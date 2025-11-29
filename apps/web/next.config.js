@@ -2,7 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: [],
-  output: 'standalone',
+  // Remove 'standalone' output for Vercel deployment
+  // output: 'standalone', // Only needed for Docker/self-hosting
 };
 
 module.exports = nextConfig;
