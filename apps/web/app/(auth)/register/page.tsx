@@ -43,11 +43,12 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      // Sign up with Supabase Auth
+      // Sign up with Supabase Auth (disable email confirmation)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
+          emailRedirectTo: undefined, // No email confirmation
           data: {
             username: data.username,
             first_name: data.firstName,
@@ -59,17 +60,22 @@ export default function RegisterPage() {
       if (authError) throw authError;
       if (!authData.user) throw new Error('No user returned');
 
-      // Update profile with username and names
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          username: data.username,
-          first_name: data.firstName || null,
-          last_name: data.lastName || null,
-        })
-        .eq('id', authData.user.id);
+      // Wait a bit for the trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (profileError) throw profileError;
+      // Use RPC function to create/update profile (bypasses RLS)
+      const { error: profileError } = await supabase.rpc('create_or_update_profile', {
+        user_id: authData.user.id,
+        user_email: data.email,
+        user_username: data.username,
+        user_first_name: data.firstName || null,
+        user_last_name: data.lastName || null,
+      });
+
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        throw new Error(`Database error saving new user: ${profileError.message}`);
+      }
 
       // Fetch updated profile
       const { data: profile, error: fetchError } = await supabase

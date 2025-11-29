@@ -12,7 +12,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { setUser, setProfile, setLoading } = useAuthStore();
+  const { setUser, setProfile, setLoading, user } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
   const supabase = createClient();
 
@@ -35,6 +35,7 @@ export default function DashboardLayout({
         }
       } else {
         router.push('/login');
+        return;
       }
       
       setLoading(false);
@@ -53,7 +54,8 @@ export default function DashboardLayout({
     );
   }
 
-  if (!isAuth) {
+  // If no user after checking, show nothing (redirect is happening)
+  if (!user) {
     return null;
   }
 
