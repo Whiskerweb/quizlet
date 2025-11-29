@@ -1,0 +1,5 @@
+apps/api
+node_modules
+.turbo
+*.log
+
