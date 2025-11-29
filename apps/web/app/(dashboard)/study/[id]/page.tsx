@@ -142,7 +142,7 @@ export default function StudyPage() {
       updatedState = recordAnswer(updatedState, card.id, true);
       
       try {
-        await studyApi.submitAnswer(sessionId, {
+        await studyService.submitAnswer(sessionId, {
           flashcardId: card.id,
           isCorrect: true,
           timeSpent: totalTime / flashcards.length,
