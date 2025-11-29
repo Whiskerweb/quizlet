@@ -1,5 +1,7 @@
 # 🚀 DÉPLOIEMENT EN 5 MINUTES
 
+> ⚠️ **Railway est maintenant payant ($1/mois)**. Pour un déploiement 100% gratuit, utilisez **Render** (voir `DEPLOY_RENDER.md`)
+
 ## ⚡ Guide Ultra Rapide
 
 ### Étape 1 : Générer les Secrets JWT (30 secondes)
