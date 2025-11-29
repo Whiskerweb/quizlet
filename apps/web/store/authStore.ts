@@ -1,84 +1,45 @@
 import { create } from 'zustand';
+import { createClient } from '@/lib/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
-interface User {
+interface Profile {
   id: string;
   email: string;
   username: string;
-  firstName?: string;
-  lastName?: string;
-  avatar?: string;
-  isPremium: boolean;
+  first_name?: string | null;
+  last_name?: string | null;
+  avatar?: string | null;
+  is_premium: boolean;
 }
 
 interface AuthState {
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  setAuth: (user: User, accessToken: string, refreshToken: string) => void;
-  setUser: (user: User) => void;
-  logout: () => void;
+  profile: Profile | null;
+  loading: boolean;
+  setUser: (user: User | null) => void;
+  setProfile: (profile: Profile | null) => void;
+  setLoading: (loading: boolean) => void;
+  logout: () => Promise<void>;
   isAuthenticated: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => {
-  // Initialize with null values to avoid hydration mismatch
-  // We'll sync from localStorage in useEffect on client side
   return {
     user: null,
-    accessToken: null,
-    refreshToken: null,
-    setAuth: (user, accessToken, refreshToken) => {
-      set({ user, accessToken, refreshToken });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-      }
-    },
-    setUser: (user) => {
-      set({ user });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(user));
-      }
-    },
-    logout: () => {
-      set({ user: null, accessToken: null, refreshToken: null });
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('user');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-      }
+    profile: null,
+    loading: true,
+    setUser: (user) => set({ user }),
+    setProfile: (profile) => set({ profile }),
+    setLoading: (loading) => set({ loading }),
+    logout: async () => {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      set({ user: null, profile: null });
     },
     isAuthenticated: () => {
       const state = get();
-      // Check both state and localStorage for client-side
-      if (typeof window !== 'undefined') {
-        const storedUser = localStorage.getItem('user');
-        const storedToken = localStorage.getItem('accessToken');
-        return (state.user !== null && state.accessToken !== null) || 
-               (storedUser !== null && storedToken !== null);
-      }
-      return state.user !== null && state.accessToken !== null;
+      return state.user !== null && state.profile !== null;
     },
   };
 });
-
-// Sync store with localStorage on client mount
-if (typeof window !== 'undefined') {
-  const storedUser = localStorage.getItem('user');
-  const storedToken = localStorage.getItem('accessToken');
-  const storedRefreshToken = localStorage.getItem('refreshToken');
-  
-  if (storedUser && storedToken) {
-    try {
-      useAuthStore.getState().setAuth(
-        JSON.parse(storedUser),
-        storedToken,
-        storedRefreshToken || ''
-      );
-    } catch (e) {
-      // Ignore parse errors
-    }
-  }
-}
 

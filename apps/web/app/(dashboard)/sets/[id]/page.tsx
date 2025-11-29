@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { setsApi, Set } from '@/lib/api/sets.api';
-import { flashcardsApi, Flashcard } from '@/lib/api/flashcards.api';
+import { setsService } from '@/lib/supabase/sets';
+import { flashcardsService } from '@/lib/supabase/flashcards';
+import type { SetWithFlashcards } from '@/lib/supabase/sets';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Play, Edit, Trash2, Plus } from 'lucide-react';
@@ -13,7 +14,7 @@ export default function SetDetailPage() {
   const params = useParams();
   const router = useRouter();
   const setId = params.id as string;
-  const [set, setSet] = useState<(Set & { flashcards: Flashcard[] }) | null>(null);
+  const [set, setSet] = useState<SetWithFlashcards | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function SetDetailPage() {
   const loadSet = async () => {
     try {
       setIsLoading(true);
-      const data = await setsApi.getOne(setId);
+      const data = await setsService.getOne(setId);
       setSet(data);
     } catch (error) {
       console.error('Failed to load set:', error);
@@ -37,7 +38,7 @@ export default function SetDetailPage() {
     if (!confirm('Are you sure you want to delete this set?')) return;
 
     try {
-      await setsApi.delete(setId);
+      await setsService.delete(setId);
       router.push('/dashboard');
     } catch (error) {
       console.error('Failed to delete set:', error);
@@ -91,8 +92,8 @@ export default function SetDetailPage() {
         </div>
 
         <div className="flex space-x-4 text-sm text-gray-600">
-          <span>{set._count.flashcards} cards</span>
-          <span>{set.isPublic ? 'Public' : 'Private'}</span>
+          <span>{set.flashcards?.length || 0} cards</span>
+          <span>{set.is_public ? 'Public' : 'Private'}</span>
           {set.language && <span>Language: {set.language}</span>}
         </div>
       </div>

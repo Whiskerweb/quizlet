@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { flashcardsApi } from '@/lib/api/flashcards.api';
+import { flashcardsService } from '@/lib/supabase/flashcards';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -39,11 +39,11 @@ export default function NewFlashcardPage() {
     setError(null);
 
     try {
-      await flashcardsApi.create(setId, {
+      await flashcardsService.create(setId, {
         front: data.front,
         back: data.back,
-        imageUrl: data.imageUrl || undefined,
-        audioUrl: data.audioUrl || undefined,
+        image_url: data.imageUrl || null,
+        audio_url: data.audioUrl || null,
       });
       router.push(`/sets/${setId}`);
     } catch (err: any) {
@@ -141,4 +141,5 @@ export default function NewFlashcardPage() {
     </div>
   );
 }
+
 

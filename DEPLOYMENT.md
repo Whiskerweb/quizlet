@@ -205,3 +205,4 @@ psql $DATABASE_URL < apps/api/prisma/migrations/20251129174219_add_card_progress
 
 **Une fois tout configuré, vous pourrez créer un compte et utiliser toutes les fonctionnalités !** 🎉
 
+

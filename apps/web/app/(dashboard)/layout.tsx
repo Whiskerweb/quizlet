@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { Navbar } from '@/components/layout/Navbar';
 
@@ -11,24 +12,37 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { setUser, setProfile, setLoading } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
-  const [isAuth, setIsAuth] = useState(false);
+  const supabase = createClient();
 
   useEffect(() => {
-    // Check authentication after component mounts (client-side only)
-    const checkAuth = () => {
-      const authenticated = isAuthenticated();
-      setIsAuth(authenticated);
-      setIsChecking(false);
+    const checkAuth = async () => {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (!authenticated) {
+      if (user) {
+        setUser(user);
+        // Fetch profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setProfile(profile);
+        }
+      } else {
         router.push('/login');
       }
+      
+      setLoading(false);
+      setIsChecking(false);
     };
 
     checkAuth();
-  }, [isAuthenticated, router]);
+  }, [router, setUser, setProfile, setLoading, supabase]);
 
   // Show nothing while checking to avoid hydration mismatch
   if (isChecking) {

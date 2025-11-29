@@ -81,3 +81,4 @@
 - **"CORS error"** → Vérifiez `FRONTEND_URL` dans Railway
 - **"Database error"** → Vérifiez que PostgreSQL est créé et `DATABASE_URL` existe
 
+

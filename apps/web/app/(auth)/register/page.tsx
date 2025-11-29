@@ -10,7 +10,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
-import { authApi } from '@/lib/api/auth.api';
+import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 
 const registerSchema = z.object({
@@ -25,9 +25,10 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
+  const { setUser, setProfile } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const supabase = createClient();
 
   const {
     register,
@@ -42,11 +43,49 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const response = await authApi.register(data);
-      setAuth(response.user, response.accessToken, response.refreshToken);
+      // Sign up with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            username: data.username,
+            first_name: data.firstName,
+            last_name: data.lastName,
+          },
+        },
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('No user returned');
+
+      // Update profile with username and names
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          username: data.username,
+          first_name: data.firstName || null,
+          last_name: data.lastName || null,
+        })
+        .eq('id', authData.user.id);
+
+      if (profileError) throw profileError;
+
+      // Fetch updated profile
+      const { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      setUser(authData.user);
+      setProfile(profile);
       router.push('/dashboard');
+      router.refresh();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -151,4 +190,5 @@ export default function RegisterPage() {
     </div>
   );
 }
+
 

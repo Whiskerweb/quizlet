@@ -3,13 +3,16 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
-import { setsApi, Set } from '@/lib/api/sets.api';
+import { setsService } from '@/lib/supabase/sets';
+import type { Database } from '@/lib/supabase/types';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Plus, BookOpen, TrendingUp } from 'lucide-react';
+import { Plus, BookOpen } from 'lucide-react';
+
+type Set = Database['public']['Tables']['sets']['Row'];
 
 export default function DashboardPage() {
-  const { user } = useAuthStore();
+  const { profile } = useAuthStore();
   const [sets, setSets] = useState<Set[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -21,8 +24,8 @@ export default function DashboardPage() {
   const loadSets = async () => {
     try {
       setIsLoading(true);
-      const response = await setsApi.getAll({ userId: user?.id });
-      setSets(response.sets);
+      const mySets = await setsService.getMySets();
+      setSets(mySets);
     } catch (error) {
       console.error('Failed to load sets:', error);
     } finally {
@@ -35,7 +38,7 @@ export default function DashboardPage() {
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.username}!
+            Welcome back, {profile?.username}!
           </h1>
           <p className="text-gray-600 mt-1">Manage your study sets</p>
         </div>
@@ -77,8 +80,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <div className="px-6 pb-6">
                   <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>{set._count.flashcards} cards</span>
-                    <span>{set.isPublic ? 'Public' : 'Private'}</span>
+                    <span>{set.is_public ? 'Public' : 'Private'}</span>
                   </div>
                 </div>
               </Card>

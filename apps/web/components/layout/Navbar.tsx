@@ -7,15 +7,15 @@ import { Button } from '../ui/Button';
 import { BookOpen, LogOut, User } from 'lucide-react';
 
 export function Navbar() {
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const { profile, logout, isAuthenticated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     window.location.href = '/login';
   };
 
@@ -61,10 +61,10 @@ export function Navbar() {
                     Dashboard
                   </Button>
                 </Link>
-                <Link href={`/profile/${user?.username}`}>
+                <Link href={`/profile/${profile?.username}`}>
                   <Button variant="ghost" size="sm">
                     <User className="h-4 w-4 mr-2" />
-                    {user?.username}
+                    {profile?.username}
                   </Button>
                 </Link>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>

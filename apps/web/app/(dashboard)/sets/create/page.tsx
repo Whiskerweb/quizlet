@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { setsApi } from '@/lib/api/sets.api';
+import { setsService } from '@/lib/supabase/sets';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -39,12 +39,12 @@ export default function CreateSetPage() {
 
     try {
       const tags = data.tags ? data.tags.split(',').map((t) => t.trim()) : [];
-      const set = await setsApi.create({
+      const set = await setsService.create({
         title: data.title,
-        description: data.description,
-        isPublic: data.isPublic ?? false,
+        description: data.description || null,
+        is_public: data.isPublic ?? false,
         tags,
-        language: data.language,
+        language: data.language || null,
       });
       router.push(`/sets/${set.id}`);
     } catch (err: any) {
@@ -147,4 +147,5 @@ export default function CreateSetPage() {
     </div>
   );
 }
+
 

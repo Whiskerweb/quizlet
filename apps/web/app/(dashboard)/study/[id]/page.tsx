@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { setsApi } from '@/lib/api/sets.api';
-import { studyApi } from '@/lib/api/study.api';
+import { setsService } from '@/lib/supabase/sets';
+import { studyService } from '@/lib/supabase/study';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Check, X } from 'lucide-react';
@@ -54,7 +54,7 @@ export default function StudyPage() {
   const loadSet = async () => {
     try {
       setIsLoading(true);
-      const set = await setsApi.getOne(setId);
+      const set = await setsService.getOne(setId);
       if (set.flashcards && Array.isArray(set.flashcards) && set.flashcards.length > 0) {
         const validFlashcards = set.flashcards.filter(
           card => card && typeof card.front === 'string' && typeof card.back === 'string'
@@ -82,7 +82,7 @@ export default function StudyPage() {
 
   const startSession = async () => {
     try {
-      const session = await studyApi.startSession({
+      const session = await studyService.startSession({
         setId,
         mode,
       });
@@ -99,7 +99,7 @@ export default function StudyPage() {
 
     try {
       // Submit to backend
-      await studyApi.submitAnswer(sessionId, {
+      await studyService.submitAnswer(sessionId, {
         flashcardId,
         isCorrect,
         timeSpent,
@@ -167,7 +167,7 @@ export default function StudyPage() {
     if (!sessionId) return;
 
     try {
-      await studyApi.completeSession(sessionId);
+      await studyService.completeSession(sessionId);
       setIsCompleted(true);
     } catch (error) {
       console.error('Failed to complete session:', error);

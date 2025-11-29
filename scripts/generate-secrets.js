@@ -21,3 +21,4 @@ console.log('  - JWT_EXPIRES_IN=15m');
 console.log('  - JWT_REFRESH_EXPIRES_IN=7d');
 console.log('  - FRONTEND_URL=https://votre-app.vercel.app');
 
+
