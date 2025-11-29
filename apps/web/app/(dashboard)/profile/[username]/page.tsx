@@ -14,6 +14,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadSets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username]);
 
   const loadSets = async () => {

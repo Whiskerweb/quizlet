@@ -48,6 +48,7 @@ export default function StudyPage() {
 
   useEffect(() => {
     loadSet();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setId]);
 
   const loadSet = async () => {
@@ -177,6 +178,7 @@ export default function StudyPage() {
     if (flashcards.length > 0 && !sessionId) {
       startSession();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flashcards, mode]);
 
   useEffect(() => {
@@ -190,6 +192,7 @@ export default function StudyPage() {
       setIsFlipped(false);
       setMatchCompleted(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
   if (isLoading) {

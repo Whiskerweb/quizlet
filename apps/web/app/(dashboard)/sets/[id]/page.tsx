@@ -18,6 +18,7 @@ export default function SetDetailPage() {
 
   useEffect(() => {
     loadSet();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setId]);
 
   const loadSet = async () => {

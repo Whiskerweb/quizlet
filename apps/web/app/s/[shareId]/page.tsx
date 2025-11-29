@@ -17,6 +17,7 @@ export default function SharedSetPage() {
 
   useEffect(() => {
     loadSet();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shareId]);
 
   const loadSet = async () => {
