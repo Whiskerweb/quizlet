@@ -7,6 +7,7 @@ import { StudyModule } from './study/study.module';
 import { StatsModule } from './stats/stats.module';
 import { SearchModule } from './search/search.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -19,5 +20,6 @@ import { PrismaModule } from './prisma/prisma.module';
     StatsModule,
     SearchModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
