@@ -66,7 +66,7 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
           onKeyPress={handleKeyPress}
           placeholder="Type your answer..."
           disabled={showResult}
-          className="text-lg"
+          className="text-lg text-gray-900"
           autoFocus
         />
 
