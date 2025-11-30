@@ -85,8 +85,15 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
     return pathname?.startsWith(href);
   };
 
-  const sidebarWidth = isOpen ? '260px' : '80px';
-  const sidebarWidthClass = isOpen ? 'w-[260px]' : 'w-[80px]';
+  // On mobile, sidebar is completely hidden when closed (width 0)
+  // On desktop, sidebar is collapsed to 80px when closed
+  const sidebarWidth = isMobile 
+    ? (isOpen ? '260px' : '0px')
+    : (isOpen ? '260px' : '80px');
+  
+  const sidebarWidthClass = isMobile
+    ? (isOpen ? 'w-[260px]' : 'w-0')
+    : (isOpen ? 'w-[260px]' : 'w-[80px]');
 
   return (
     <>
@@ -104,9 +111,11 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
           'fixed left-0 top-0 h-screen bg-dark-background-sidebar border-r border-[rgba(255,255,255,0.06)] flex flex-col z-50 transition-all duration-300 ease-in-out',
           sidebarWidthClass,
           isMobile && !isOpen && '-translate-x-full',
-          isMobile && isOpen && 'translate-x-0'
+          isMobile && isOpen && 'translate-x-0',
+          // Hide border when completely closed on mobile
+          isMobile && !isOpen && 'border-0'
         )}
-        style={{ width: isMobile ? (isOpen ? '260px' : '0') : sidebarWidth }}
+        style={{ width: sidebarWidth }}
       >
         {/* Logo & Toggle */}
         <div className={cn(
