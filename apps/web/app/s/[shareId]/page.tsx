@@ -191,11 +191,13 @@ export default function SharedSetPage() {
   // Show error only if we have an error and no set data
   if (error && !set) {
     return (
-      <div className="min-h-screen bg-dark-background-base flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <p className="text-[16px] text-white">{error || 'Set non trouvé'}</p>
+      <div className="min-h-screen bg-dark-background-base flex items-center justify-center px-4">
+        <Card className="p-6 sm:p-8 text-center max-w-md w-full border border-[rgba(255,255,255,0.06)]">
+          <p className="text-[14px] sm:text-[16px] text-white mb-4">{error || 'Set non trouvé'}</p>
           <Link href="/">
-            <Button className="mt-4">Retour à l'accueil</Button>
+            <Button className="w-full sm:w-auto text-[14px] sm:text-[15px] h-10 sm:h-11">
+              Retour à l'accueil
+            </Button>
           </Link>
         </Card>
       </div>
@@ -205,11 +207,13 @@ export default function SharedSetPage() {
   // If no set loaded and no error, show not found
   if (!set) {
     return (
-      <div className="min-h-screen bg-dark-background-base flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <p className="text-[16px] text-white">Set non trouvé</p>
+      <div className="min-h-screen bg-dark-background-base flex items-center justify-center px-4">
+        <Card className="p-6 sm:p-8 text-center max-w-md w-full border border-[rgba(255,255,255,0.06)]">
+          <p className="text-[14px] sm:text-[16px] text-white mb-4">Set non trouvé</p>
           <Link href="/">
-            <Button className="mt-4">Retour à l'accueil</Button>
+            <Button className="w-full sm:w-auto text-[14px] sm:text-[15px] h-10 sm:h-11">
+              Retour à l'accueil
+            </Button>
           </Link>
         </Card>
       </div>
@@ -222,56 +226,71 @@ export default function SharedSetPage() {
     return (
       <>
         <div className="min-h-screen bg-dark-background-base">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-8">
-              <h1 className="text-[28px] font-bold text-white mb-2">{set.title}</h1>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-[22px] sm:text-[24px] lg:text-[28px] font-bold text-white mb-2 leading-tight">
+                {set.title}
+              </h1>
               {set.description && (
-                <p className="text-[16px] text-dark-text-secondary mb-4">{set.description}</p>
+                <p className="text-[14px] sm:text-[16px] text-dark-text-secondary mb-3 sm:mb-4">
+                  {set.description}
+                </p>
               )}
-              <div className="flex items-center space-x-4 mb-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:gap-4 mb-3 sm:mb-4">
                 {set.user && (
-                  <div className="flex items-center text-[14px] text-dark-text-secondary">
-                    <User className="h-4 w-4 mr-1" />
+                  <div className="flex items-center text-[12px] sm:text-[14px] text-dark-text-secondary">
+                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                     {set.user.username}
                   </div>
                 )}
-                <span className="text-[14px] text-dark-text-secondary">
+                <span className="text-[12px] sm:text-[14px] text-dark-text-secondary">
                   {set.flashcards?.length || 0} {set.flashcards?.length === 1 ? 'carte' : 'cartes'}
                 </span>
                 {set.language && (
-                  <span className="text-[14px] text-dark-text-secondary">Langue: {set.language}</span>
+                  <span className="text-[12px] sm:text-[14px] text-dark-text-secondary">
+                    Langue: {set.language}
+                  </span>
                 )}
                 {set.password_hash && (
-                  <div className="flex items-center text-[14px] text-brand-primary">
-                    <Lock className="h-4 w-4 mr-1" />
+                  <div className="flex items-center text-[12px] sm:text-[14px] text-brand-primary">
+                    <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                     Protégé par mot de passe
                   </div>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 {user ? (
-                  <Button variant="outline" onClick={() => setPasswordModalOpen(true)}>
-                    <Lock className="h-4 w-4 mr-2" />
-                    Entrer le mot de passe pour ajouter
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setPasswordModalOpen(true)}
+                    className="w-full sm:w-auto text-[13px] sm:text-[14px] h-10 sm:h-11"
+                  >
+                    <Lock className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Entrer le mot de passe pour ajouter</span>
+                    <span className="sm:hidden">Entrer le mot de passe</span>
                   </Button>
                 ) : (
-                  <Link href={`/login?redirect=/s/${shareId}`}>
-                    <Button variant="outline">
-                      <LogIn className="h-4 w-4 mr-2" />
-                      Se connecter pour ajouter
+                  <Link href={`/login?redirect=/s/${shareId}`} className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full sm:w-auto text-[13px] sm:text-[14px] h-10 sm:h-11">
+                      <LogIn className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Se connecter pour ajouter</span>
+                      <span className="sm:hidden">Se connecter</span>
                     </Button>
                   </Link>
                 )}
               </div>
             </div>
-            <Card className="p-6 text-center">
-              <Lock className="h-12 w-12 text-brand-primary mx-auto mb-4" />
-              <p className="text-[16px] text-white mb-4">
+            <Card className="p-5 sm:p-6 text-center border border-[rgba(255,255,255,0.06)]">
+              <Lock className="h-10 w-10 sm:h-12 sm:w-12 text-brand-primary mx-auto mb-3 sm:mb-4" />
+              <p className="text-[14px] sm:text-[16px] text-white mb-4 leading-relaxed">
                 Ce set est protégé par un mot de passe. Entrez le mot de passe pour voir le contenu et l'ajouter à votre profil.
               </p>
               {user && (
-                <Button onClick={() => setPasswordModalOpen(true)}>
-                  <Lock className="h-4 w-4 mr-2" />
+                <Button 
+                  onClick={() => setPasswordModalOpen(true)}
+                  className="w-full sm:w-auto text-[13px] sm:text-[14px] h-10 sm:h-11"
+                >
+                  <Lock className="h-4 w-4 sm:mr-2" />
                   Entrer le mot de passe
                 </Button>
               )}
@@ -294,58 +313,72 @@ export default function SharedSetPage() {
   return (
     <>
       <div className="min-h-screen bg-dark-background-base">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-[28px] font-bold text-white mb-2">{set.title}</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-[22px] sm:text-[24px] lg:text-[28px] font-bold text-white mb-2 leading-tight">
+              {set.title}
+            </h1>
             {set.description && (
-              <p className="text-[16px] text-dark-text-secondary mb-4">{set.description}</p>
+              <p className="text-[14px] sm:text-[16px] text-dark-text-secondary mb-3 sm:mb-4">
+                {set.description}
+              </p>
             )}
-            <div className="flex items-center space-x-4 mb-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:gap-4 mb-3 sm:mb-4">
               {set.user && (
-                <div className="flex items-center text-[14px] text-dark-text-secondary">
-                  <User className="h-4 w-4 mr-1" />
+                <div className="flex items-center text-[12px] sm:text-[14px] text-dark-text-secondary">
+                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                   {set.user.username}
                 </div>
               )}
-              <span className="text-[14px] text-dark-text-secondary">
+              <span className="text-[12px] sm:text-[14px] text-dark-text-secondary">
                 {set.flashcards?.length || 0} {set.flashcards?.length === 1 ? 'carte' : 'cartes'}
               </span>
               {set.language && (
-                <span className="text-[14px] text-dark-text-secondary">Langue: {set.language}</span>
+                <span className="text-[12px] sm:text-[14px] text-dark-text-secondary">
+                  Langue: {set.language}
+                </span>
               )}
               {set.password_hash && (
-                <div className="flex items-center text-[14px] text-brand-primary">
-                  <Lock className="h-4 w-4 mr-1" />
+                <div className="flex items-center text-[12px] sm:text-[14px] text-brand-primary">
+                  <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                   Protégé
                 </div>
               )}
             </div>
-            <div className="flex gap-2">
-              <Link href={`/study/${set.id}`}>
-                <Button>
-                  <Play className="h-4 w-4 mr-2" />
-                  Étudier ce set
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Link href={`/study/${set.id}`} className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto text-[13px] sm:text-[14px] h-10 sm:h-11">
+                  <Play className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Étudier ce set</span>
+                  <span className="sm:hidden">Étudier</span>
                 </Button>
               </Link>
               {user ? (
                 isAlreadyAdded ? (
-                  <Link href="/dashboard">
-                    <Button variant="outline">
-                      <Check className="h-4 w-4 mr-2" />
-                      Déjà ajouté - Voir mes sets
+                  <Link href="/dashboard" className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full sm:w-auto text-[13px] sm:text-[14px] h-10 sm:h-11">
+                      <Check className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Déjà ajouté - Voir mes sets</span>
+                      <span className="sm:hidden">Déjà ajouté</span>
                     </Button>
                   </Link>
                 ) : (
-                  <Button variant="outline" onClick={handleAddToMySets}>
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Ajouter à mes sets
+                  <Button 
+                    variant="outline" 
+                    onClick={handleAddToMySets}
+                    className="w-full sm:w-auto text-[13px] sm:text-[14px] h-10 sm:h-11"
+                  >
+                    <Share2 className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Ajouter à mes sets</span>
+                    <span className="sm:hidden">Ajouter</span>
                   </Button>
                 )
               ) : (
-                <Link href={`/login?redirect=/s/${shareId}`}>
-                  <Button variant="outline">
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Se connecter pour ajouter
+                <Link href={`/login?redirect=/s/${shareId}`} className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto text-[13px] sm:text-[14px] h-10 sm:h-11">
+                    <LogIn className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Se connecter pour ajouter</span>
+                    <span className="sm:hidden">Se connecter</span>
                   </Button>
                 </Link>
               )}
@@ -353,25 +386,37 @@ export default function SharedSetPage() {
           </div>
 
           {set.flashcards && set.flashcards.length > 0 ? (
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {set.flashcards.map((card) => (
-                <Card key={card.id}>
-                  <div className="p-4">
-                    <div className="mb-2">
-                      <span className="text-[12px] text-dark-text-muted">Front</span>
-                      <FormattedText text={card.front} className="text-[16px] text-white mt-1" as="p" />
+                <Card key={card.id} className="border border-[rgba(255,255,255,0.06)]">
+                  <div className="p-4 sm:p-5">
+                    <div className="mb-3 sm:mb-4">
+                      <span className="text-[11px] sm:text-[12px] text-dark-text-muted uppercase tracking-wide">
+                        Front
+                      </span>
+                      <FormattedText 
+                        text={card.front} 
+                        className="text-[15px] sm:text-[16px] text-white mt-1.5 sm:mt-2" 
+                        as="p" 
+                      />
                     </div>
                     <div>
-                      <span className="text-[12px] text-dark-text-muted">Back</span>
-                      <FormattedText text={card.back} className="text-[16px] text-white mt-1" as="p" />
+                      <span className="text-[11px] sm:text-[12px] text-dark-text-muted uppercase tracking-wide">
+                        Back
+                      </span>
+                      <FormattedText 
+                        text={card.back} 
+                        className="text-[15px] sm:text-[16px] text-white mt-1.5 sm:mt-2" 
+                        as="p" 
+                      />
                     </div>
                   </div>
                 </Card>
               ))}
             </div>
           ) : (
-            <Card variant="emptyState" className="text-center py-12">
-              <p className="text-[16px] text-white">Aucune flashcard dans ce set</p>
+            <Card variant="emptyState" className="text-center py-10 sm:py-12 border border-[rgba(255,255,255,0.06)]">
+              <p className="text-[14px] sm:text-[16px] text-white">Aucune flashcard dans ce set</p>
             </Card>
           )}
         </div>

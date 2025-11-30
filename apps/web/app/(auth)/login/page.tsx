@@ -75,20 +75,22 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Sign in to your account</CardTitle>
+      <div className="flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-64px)]">
+        <Card className="w-full max-w-md border border-gray-200 shadow-sm">
+          <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
+            <CardTitle className="text-[20px] sm:text-[24px] font-bold text-gray-900">
+              Sign in to your account
+            </CardTitle>
           </CardHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-[13px] sm:text-[14px]">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-[13px] sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                 Email
               </label>
               <Input
@@ -96,14 +98,15 @@ function LoginForm() {
                 type="email"
                 {...register('email')}
                 placeholder="you@example.com"
+                className="h-10 sm:h-11 text-[14px] sm:text-[15px]"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-[12px] sm:text-sm text-red-600">{errors.email.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-[13px] sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                 Password
               </label>
               <Input
@@ -111,19 +114,20 @@ function LoginForm() {
                 type="password"
                 {...register('password')}
                 placeholder="••••••••"
+                className="h-10 sm:h-11 text-[14px] sm:text-[15px]"
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-[12px] sm:text-sm text-red-600">{errors.password.message}</p>
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full h-10 sm:h-11 text-[14px] sm:text-[15px] font-medium" disabled={isLoading}>
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
 
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-[12px] sm:text-sm text-gray-600 pt-2">
               Don&apos;t have an account?{' '}
-              <Link href={`/register${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="text-primary-600 hover:underline">
+              <Link href={`/register${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="text-primary-600 hover:underline font-medium">
                 Sign up
               </Link>
             </p>
@@ -139,13 +143,15 @@ export default function LoginPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Sign in to your account</CardTitle>
+        <div className="flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-64px)]">
+          <Card className="w-full max-w-md border border-gray-200 shadow-sm">
+            <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
+              <CardTitle className="text-[20px] sm:text-[24px] font-bold text-gray-900">
+                Sign in to your account
+              </CardTitle>
             </CardHeader>
-            <div className="p-6">
-              <p className="text-center text-gray-600">Loading...</p>
+            <div className="p-4 sm:p-6">
+              <p className="text-center text-gray-600 text-[14px] sm:text-[15px]">Loading...</p>
             </div>
           </Card>
         </div>
