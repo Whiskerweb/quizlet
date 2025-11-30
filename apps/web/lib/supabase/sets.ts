@@ -82,81 +82,39 @@ export const setsService = {
   },
 
   async getByShareId(shareId: string) {
-    const supabase = createClient();
-    
-    // First, get the set without relations to avoid RLS issues
-    const { data: setData, error: setError } = await supabase
-      .from('sets')
-      .select('*')
-      .eq('share_id', shareId)
-      .eq('is_public', true) // Only get public sets
-      .maybeSingle();
+    // Use API route for better server-side handling and RLS compatibility
+    try {
+      const response = await fetch(`/api/sets/share/${shareId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store', // Always fetch fresh data
+      });
 
-    if (setError) {
-      console.error('Error fetching set by shareId:', setError);
-      console.error('Error code:', setError.code);
-      console.error('Error message:', setError.message);
-      console.error('Error details:', setError.details);
-      console.error('Error hint:', setError.hint);
-      
-      if (setError.code === 'PGRST116' || setError.message?.includes('No rows') || setError.message?.includes('not found')) {
-        throw new Error('Set non trouvé. Vérifiez que le lien de partage est correct.');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 404) {
+          throw new Error('Set non trouvé. Vérifiez que le lien de partage est correct.');
+        }
+        throw new Error(errorData.error || 'Erreur lors du chargement du set');
       }
-      throw setError;
-    }
-    
-    if (!setData) {
-      console.error('No set data returned for shareId:', shareId);
-      throw new Error('Set non trouvé. Vérifiez que le lien de partage est correct.');
-    }
-    
-    console.log('Set found:', {
-      id: setData.id,
-      title: setData.title,
-      is_public: setData.is_public,
-      has_password: !!setData.password_hash,
-      share_id: setData.share_id
-    });
-    
-    // Get flashcards separately to avoid RLS issues with relations
-    const { data: flashcardsData, error: flashcardsError } = await supabase
-      .from('flashcards')
-      .select('*')
-      .eq('set_id', setData.id)
-      .order('order', { ascending: true });
 
-    if (flashcardsError) {
-      console.error('Error fetching flashcards:', flashcardsError);
-      // Don't throw, just use empty array
+      const data = await response.json();
+      
+      console.log('Set loaded from API:', {
+        id: data.id,
+        title: data.title,
+        is_public: data.is_public,
+        has_password: !!data.password_hash,
+        share_id: data.share_id
+      });
+      
+      return data as SetWithFlashcards;
+    } catch (error: any) {
+      console.error('Error fetching set by shareId via API:', error);
+      throw error;
     }
-    
-    // Get profile separately (this should work because profiles are public)
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, username, avatar')
-      .eq('id', setData.user_id)
-      .maybeSingle();
-
-    if (profileError) {
-      console.error('Error fetching profile:', profileError);
-      // Don't throw, just use undefined
-    }
-    
-    // Sort flashcards by order
-    const flashcards = (flashcardsData || []).sort((a: Flashcard, b: Flashcard) => (a.order || 0) - (b.order || 0));
-    
-    // Transform to SetWithFlashcards format
-    const result = {
-      ...setData,
-      flashcards,
-      user: profileData ? {
-        id: profileData.id,
-        username: profileData.username,
-        avatar: profileData.avatar,
-      } : undefined,
-    };
-    
-    return result as SetWithFlashcards;
   },
 
   async getMySets() {
