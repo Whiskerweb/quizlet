@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Folder, Sparkles } from 'lucide-react';
+import { Home, BookOpen, Folder, Sparkles, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { foldersService } from '@/lib/supabase/folders';
+import { sharedSetsService } from '@/lib/supabase/shared-sets';
+import { useAuthStore } from '@/store/authStore';
 import type { Database } from '@/lib/supabase/types';
 
 type Folder = Database['public']['Tables']['folders']['Row'];
@@ -23,12 +25,18 @@ const mainNavItems: NavItem[] = [
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const { user } = useAuthStore();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(true);
+  const [hasSharedSets, setHasSharedSets] = useState(false);
+  const [isLoadingSharedSets, setIsLoadingSharedSets] = useState(true);
 
   useEffect(() => {
     loadFolders();
-  }, []);
+    if (user) {
+      loadSharedSets();
+    }
+  }, [user]);
 
   const loadFolders = async () => {
     try {
@@ -43,12 +51,25 @@ export function SidebarNav() {
     }
   };
 
+  const loadSharedSets = async () => {
+    try {
+      setIsLoadingSharedSets(true);
+      const sharedSets = await sharedSetsService.getMySharedSets();
+      setHasSharedSets(sharedSets.length > 0);
+    } catch (error) {
+      console.warn('Failed to load shared sets:', error);
+      setHasSharedSets(false);
+    } finally {
+      setIsLoadingSharedSets(false);
+    }
+  };
+
   const isActive = (href: string) => {
     if (href === '/home') {
       return pathname === '/home';
     }
     if (href === '/dashboard') {
-      return pathname === '/dashboard' || pathname?.startsWith('/folders/');
+      return pathname === '/dashboard' || (pathname?.startsWith('/folders/') && pathname !== '/folders/shared');
     }
     return pathname?.startsWith(href);
   };
@@ -98,28 +119,47 @@ export function SidebarNav() {
           </p>
           {isLoadingFolders ? (
             <div className="text-[12px] text-dark-text-muted">Chargement...</div>
-          ) : folders.length === 0 ? (
-            <div className="text-[12px] text-dark-text-muted">Aucun dossier</div>
           ) : (
             <div className="space-y-1">
-              {folders.map((folder) => {
-                const isFolderActive = pathname === `/folders/${folder.id}`;
-                return (
-                  <Link
-                    key={folder.id}
-                    href={`/folders/${folder.id}`}
-                    className={cn(
-                      'flex items-center gap-3 h-10 px-4 rounded-lg transition-all duration-[180ms]',
-                      isFolderActive
-                        ? 'bg-dark-semantic-navActiveBackground text-white'
-                        : 'text-white hover:bg-[rgba(255,255,255,0.06)]'
-                    )}
-                  >
-                    <Folder className="h-4 w-4" style={{ color: folder.color || '#8B8FBE' }} />
-                    <span className="text-[14px] font-medium truncate">{folder.name}</span>
-                  </Link>
-                );
-              })}
+              {/* Shared Sets Folder - Virtual folder that appears if user has shared sets */}
+              {!isLoadingSharedSets && hasSharedSets && (
+                <Link
+                  href="/folders/shared"
+                  className={cn(
+                    'flex items-center gap-3 h-10 px-4 rounded-lg transition-all duration-[180ms]',
+                    pathname === '/folders/shared'
+                      ? 'bg-dark-semantic-navActiveBackground text-white'
+                      : 'text-white hover:bg-[rgba(255,255,255,0.06)]'
+                  )}
+                >
+                  <Share2 className="h-4 w-4" style={{ color: '#8B8FBE' }} />
+                  <span className="text-[14px] font-medium truncate">Sets partagés</span>
+                </Link>
+              )}
+              
+              {/* Regular Folders */}
+              {folders.length === 0 && !hasSharedSets ? (
+                <div className="text-[12px] text-dark-text-muted">Aucun dossier</div>
+              ) : (
+                folders.map((folder) => {
+                  const isFolderActive = pathname === `/folders/${folder.id}`;
+                  return (
+                    <Link
+                      key={folder.id}
+                      href={`/folders/${folder.id}`}
+                      className={cn(
+                        'flex items-center gap-3 h-10 px-4 rounded-lg transition-all duration-[180ms]',
+                        isFolderActive
+                          ? 'bg-dark-semantic-navActiveBackground text-white'
+                          : 'text-white hover:bg-[rgba(255,255,255,0.06)]'
+                      )}
+                    >
+                      <Folder className="h-4 w-4" style={{ color: folder.color || '#8B8FBE' }} />
+                      <span className="text-[14px] font-medium truncate">{folder.name}</span>
+                    </Link>
+                  );
+                })
+              )}
             </div>
           )}
         </div>
