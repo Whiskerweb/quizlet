@@ -202,43 +202,45 @@ export default function HomePage() {
   return (
     <>
       {/* Welcome Header with XP */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
           <div>
-            <h1 className="text-[28px] font-bold text-white">
+            <h1 className="text-[22px] sm:text-[24px] lg:text-[28px] font-bold text-white">
               Welcome back, {profile?.username}!
             </h1>
-            <p className="text-[16px] text-dark-text-secondary mt-1">
+            <p className="text-[14px] sm:text-[16px] text-dark-text-secondary mt-1">
               Continue your learning journey
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="text-right">
-              <div className="text-[12px] text-dark-text-muted uppercase tracking-wide">Level</div>
-              <div className="text-[32px] font-bold text-brand-primary">{stats.level}</div>
+              <div className="text-[11px] sm:text-[12px] text-dark-text-muted uppercase tracking-wide">Level</div>
+              <div className="text-[24px] sm:text-[28px] lg:text-[32px] font-bold text-brand-primary">
+                {stats.level}
+              </div>
             </div>
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-primary to-brand-primaryDark flex items-center justify-center border-4 border-dark-background-cardMuted">
-              <Trophy className="h-8 w-8 text-white" />
+            <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-brand-primary to-brand-primaryDark flex items-center justify-center border-4 border-dark-background-cardMuted">
+              <Trophy className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-white" />
             </div>
           </div>
         </div>
 
         {/* XP Progress Bar */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-2">
+        <Card className="p-4 sm:p-5 lg:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 gap-2">
             <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-brand-primary" />
-              <span className="text-[16px] text-white">
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary" />
+              <span className="text-[14px] sm:text-[16px] text-white">
                 {stats.totalXP.toLocaleString()} XP
               </span>
             </div>
-            <span className="text-[16px] text-white">
+            <span className="text-[13px] sm:text-[14px] lg:text-[16px] text-white">
               {stats.xpToNextLevel > 0 ? `${stats.xpToNextLevel} XP to Level ${stats.level + 1}` : 'Max Level!'}
             </span>
           </div>
-          <div className="w-full bg-dark-background-cardMuted rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-dark-background-cardMuted rounded-full h-2.5 sm:h-3 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-brand-primary to-brand-primarySoft h-3 rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-brand-primary to-brand-primarySoft h-2.5 sm:h-3 rounded-full transition-all duration-500"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
@@ -246,7 +248,7 @@ export default function HomePage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-2 border-b border-[rgba(255,255,255,0.06)]">
+      <div className="mb-4 sm:mb-6 flex gap-1 sm:gap-2 border-b border-[rgba(255,255,255,0.06)] overflow-x-auto">
         {[
           { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
           { id: 'recent', label: 'Récent', icon: Clock },
@@ -259,15 +261,15 @@ export default function HomePage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`
-                px-4 py-3 text-[14px] font-medium transition-all border-b-2
+                px-3 sm:px-4 py-2 sm:py-3 text-[13px] sm:text-[14px] font-medium transition-all border-b-2 whitespace-nowrap
                 ${activeTab === tab.id
                   ? 'border-brand-primary text-white'
                   : 'border-transparent text-dark-text-secondary hover:text-white'
                 }
               `}
             >
-              <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4" />
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>{tab.label}</span>
               </div>
             </button>
@@ -279,20 +281,24 @@ export default function HomePage() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Stats Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <Card className="p-4 sm:p-5 lg:p-6">
               <div className="flex items-center justify-between mb-2">
-                <BookOpen className="h-5 w-5 text-brand-primary" />
-                <span className="text-[16px] text-white">Sets</span>
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary" />
+                <span className="text-[14px] sm:text-[16px] text-white">Sets</span>
               </div>
-              <div className="text-[16px] text-white">{stats.totalSets}</div>
+              <div className="text-[20px] sm:text-[24px] lg:text-[28px] font-bold text-white">
+                {stats.totalSets}
+              </div>
             </Card>
-            <Card className="p-6">
+            <Card className="p-4 sm:p-5 lg:p-6">
               <div className="flex items-center justify-between mb-2">
-                <Target className="h-5 w-5 text-brand-secondaryTeal" />
-                <span className="text-[16px] text-white">Flashcards</span>
+                <Target className="h-4 w-4 sm:h-5 sm:w-5 text-brand-secondaryTeal" />
+                <span className="text-[14px] sm:text-[16px] text-white">Flashcards</span>
               </div>
-              <div className="text-[16px] text-white">{stats.totalFlashcards}</div>
+              <div className="text-[20px] sm:text-[24px] lg:text-[28px] font-bold text-white">
+                {stats.totalFlashcards}
+              </div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center justify-between mb-2">

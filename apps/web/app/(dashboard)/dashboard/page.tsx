@@ -116,25 +116,31 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
         <div>
-          <h1 className="text-[28px] font-bold text-dark-text-primary leading-tight">
+          <h1 className="text-[22px] sm:text-[24px] lg:text-[28px] font-bold text-white leading-tight">
             Welcome back, {profile?.username}!
           </h1>
-          <p className="text-[16px] text-dark-text-secondary mt-1">Manage your study sets</p>
+          <p className="text-[14px] sm:text-[16px] text-dark-text-secondary mt-1">
+            Manage your study sets
+          </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button 
             variant="outline" 
             onClick={() => setIsCreateFolderModalOpen(true)}
+            size="sm"
+            className="flex-1 sm:flex-initial text-[13px] sm:text-[14px]"
           >
-            <FolderPlus className="h-4 w-4 mr-2" />
-            New Folder
+            <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+            <span className="hidden sm:inline">New Folder</span>
+            <span className="sm:hidden">Folder</span>
           </Button>
-          <Link href="/sets/create">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Set
+          <Link href="/sets/create" className="flex-1 sm:flex-initial">
+            <Button size="sm" className="w-full text-[13px] sm:text-[14px]">
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Create Set</span>
+              <span className="sm:hidden">Create</span>
             </Button>
           </Link>
         </div>
@@ -172,21 +178,25 @@ export default function DashboardPage() {
                   : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted'
               }`}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Folder className="h-5 w-5" style={{ color: folder.color }} />
-                  <h2 className="text-[20px] font-semibold text-dark-text-primary">{folder.name}</h2>
-                  <span className="text-[13px] text-dark-text-muted">({folder.sets.length})</span>
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Folder className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" style={{ color: folder.color }} />
+                  <h2 className="text-[16px] sm:text-[18px] lg:text-[20px] font-semibold text-white truncate">
+                    {folder.name}
+                  </h2>
+                  <span className="text-[12px] sm:text-[13px] text-dark-text-muted flex-shrink-0">
+                    ({folder.sets.length})
+                  </span>
                 </div>
                 <button
                   onClick={() => handleDeleteFolder(folder.id)}
-                  className="p-1 text-dark-text-muted hover:text-dark-states-danger transition-colors"
+                  className="p-1.5 sm:p-1 text-dark-text-muted hover:text-dark-states-danger transition-colors flex-shrink-0"
                   title="Delete folder"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </button>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {folder.sets.map((set) => (
                   <div
                     key={set.id}

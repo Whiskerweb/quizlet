@@ -109,35 +109,46 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
         style={{ width: isMobile ? (isOpen ? '260px' : '0') : sidebarWidth }}
       >
         {/* Logo & Toggle */}
-        <div className="p-6 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+        <div className={cn(
+          'border-b border-[rgba(255,255,255,0.06)] flex items-center',
+          isOpen ? 'p-4 sm:p-6 justify-between' : 'p-4 sm:p-6 justify-center'
+        )}>
           {isOpen ? (
-            <Link href="/home" className="flex items-center gap-2 flex-1">
-              <BookOpen className="h-6 w-6 text-brand-primary flex-shrink-0" />
-              <span className="text-[24px] font-bold text-dark-text-primary whitespace-nowrap">Quizlet</span>
+            <Link href="/home" className="flex items-center gap-2 flex-1 min-w-0">
+              <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-brand-primary flex-shrink-0" />
+              <span className="text-[20px] sm:text-[24px] font-bold text-dark-text-primary whitespace-nowrap truncate">
+                Quizlet
+              </span>
             </Link>
           ) : (
             <Link href="/home" className="flex items-center justify-center w-full">
-              <BookOpen className="h-6 w-6 text-brand-primary" />
+              <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-brand-primary" />
             </Link>
           )}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className={cn(
-              'p-2 rounded-lg text-dark-text-secondary hover:text-white hover:bg-[rgba(255,255,255,0.06)] transition-all duration-[180ms] flex-shrink-0',
-              !isOpen && 'mx-auto'
-            )}
-            aria-label={isOpen ? 'Fermer la sidebar' : 'Ouvrir la sidebar'}
-          >
-            {isOpen ? (
-              <ChevronLeft className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
+          {/* Toggle button - only show on desktop, mobile uses header button */}
+          {!isMobile && (
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className={cn(
+                'p-2 rounded-lg text-dark-text-secondary hover:text-white hover:bg-[rgba(255,255,255,0.06)] transition-all duration-[180ms] flex-shrink-0',
+                !isOpen && 'mx-auto'
+              )}
+              aria-label={isOpen ? 'Fermer la sidebar' : 'Ouvrir la sidebar'}
+            >
+              {isOpen ? (
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              ) : (
+                <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
+              )}
+            </button>
+          )}
         </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-6">
+      <nav className={cn(
+        'flex-1 overflow-y-auto',
+        isOpen ? 'p-4 sm:p-6' : 'p-3 sm:p-4'
+      )}>
         {/* Main Navigation */}
         <div className="space-y-1">
           {mainNavItems.map((item) => {
@@ -147,34 +158,42 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => isMobile && setIsOpen(false)}
                 className={cn(
-                  'flex items-center h-10 rounded-lg transition-all duration-[180ms]',
-                  isOpen ? 'gap-3 px-4' : 'justify-center px-2',
+                  'flex items-center rounded-lg transition-all duration-[180ms]',
+                  isOpen ? 'gap-2 sm:gap-3 px-3 sm:px-4 h-9 sm:h-10' : 'justify-center px-2 h-9 sm:h-10',
                   active
                     ? 'bg-dark-semantic-navActiveBackground text-white'
                     : 'text-white hover:bg-[rgba(255,255,255,0.06)]'
                 )}
                 title={!isOpen ? item.label : undefined}
               >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                {isOpen && <span className="text-[14px] font-medium whitespace-nowrap">{item.label}</span>}
+                <Icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                {isOpen && (
+                  <span className="text-[13px] sm:text-[14px] font-medium whitespace-nowrap">
+                    {item.label}
+                  </span>
+                )}
               </Link>
             );
           })}
         </div>
 
         {/* Divider */}
-        <div className="my-6 border-t border-[rgba(255,255,255,0.06)]" />
+        <div className={cn('border-t border-[rgba(255,255,255,0.06)]', isOpen ? 'my-4 sm:my-6' : 'my-3 sm:my-4')} />
 
         {/* Folders Section */}
         <div className="mb-2">
           {isOpen && (
-            <p className="text-[12px] text-dark-text-muted uppercase tracking-wide mb-2 px-4">
+            <p className="text-[11px] sm:text-[12px] text-dark-text-muted uppercase tracking-wide mb-2 px-3 sm:px-4">
               Vos dossiers
             </p>
           )}
           {isLoadingFolders ? (
-            <div className={cn('text-[12px] text-dark-text-muted', isOpen ? 'px-4' : 'text-center')}>
+            <div className={cn(
+              'text-[11px] sm:text-[12px] text-dark-text-muted',
+              isOpen ? 'px-3 sm:px-4' : 'text-center'
+            )}>
               {isOpen ? 'Chargement...' : '...'}
             </div>
           ) : (
@@ -183,23 +202,31 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
               {!isLoadingSharedSets && hasSharedSets && (
                 <Link
                   href="/folders/shared"
+                  onClick={() => isMobile && setIsOpen(false)}
                   className={cn(
-                    'flex items-center h-10 rounded-lg transition-all duration-[180ms]',
-                    isOpen ? 'gap-3 px-4' : 'justify-center px-2',
+                    'flex items-center rounded-lg transition-all duration-[180ms]',
+                    isOpen ? 'gap-2 sm:gap-3 px-3 sm:px-4 h-9 sm:h-10' : 'justify-center px-2 h-9 sm:h-10',
                     pathname === '/folders/shared'
                       ? 'bg-dark-semantic-navActiveBackground text-white'
                       : 'text-white hover:bg-[rgba(255,255,255,0.06)]'
                   )}
                   title={!isOpen ? 'Sets partagés' : undefined}
                 >
-                  <Share2 className="h-4 w-4 flex-shrink-0" style={{ color: '#8B8FBE' }} />
-                  {isOpen && <span className="text-[14px] font-medium truncate">Sets partagés</span>}
+                  <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" style={{ color: '#8B8FBE' }} />
+                  {isOpen && (
+                    <span className="text-[13px] sm:text-[14px] font-medium truncate">
+                      Sets partagés
+                    </span>
+                  )}
                 </Link>
               )}
               
               {/* Regular Folders */}
               {folders.length === 0 && !hasSharedSets ? (
-                <div className={cn('text-[12px] text-dark-text-muted', isOpen ? 'px-4' : 'text-center')}>
+                <div className={cn(
+                  'text-[11px] sm:text-[12px] text-dark-text-muted',
+                  isOpen ? 'px-3 sm:px-4' : 'text-center'
+                )}>
                   {isOpen ? 'Aucun dossier' : ''}
                 </div>
               ) : (
@@ -209,17 +236,22 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                     <Link
                       key={folder.id}
                       href={`/folders/${folder.id}`}
+                      onClick={() => isMobile && setIsOpen(false)}
                       className={cn(
-                        'flex items-center h-10 rounded-lg transition-all duration-[180ms]',
-                        isOpen ? 'gap-3 px-4' : 'justify-center px-2',
+                        'flex items-center rounded-lg transition-all duration-[180ms]',
+                        isOpen ? 'gap-2 sm:gap-3 px-3 sm:px-4 h-9 sm:h-10' : 'justify-center px-2 h-9 sm:h-10',
                         isFolderActive
                           ? 'bg-dark-semantic-navActiveBackground text-white'
                           : 'text-white hover:bg-[rgba(255,255,255,0.06)]'
                       )}
                       title={!isOpen ? folder.name : undefined}
                     >
-                      <Folder className="h-4 w-4 flex-shrink-0" style={{ color: folder.color || '#8B8FBE' }} />
-                      {isOpen && <span className="text-[14px] font-medium truncate">{folder.name}</span>}
+                      <Folder className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" style={{ color: folder.color || '#8B8FBE' }} />
+                      {isOpen && (
+                        <span className="text-[13px] sm:text-[14px] font-medium truncate">
+                          {folder.name}
+                        </span>
+                      )}
                     </Link>
                   );
                 })
@@ -229,22 +261,27 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
         </div>
 
         {/* Quick Start Section */}
-        <div className="mt-6">
+        <div className={cn('mt-4 sm:mt-6')}>
           {isOpen && (
-            <p className="text-[12px] text-dark-text-muted uppercase tracking-wide mb-2 px-4">
+            <p className="text-[11px] sm:text-[12px] text-dark-text-muted uppercase tracking-wide mb-2 px-3 sm:px-4">
               Commencez ici
             </p>
           )}
           <Link
             href="/sets/create"
+            onClick={() => isMobile && setIsOpen(false)}
             className={cn(
-              'flex items-center h-10 rounded-lg text-white hover:bg-[rgba(255,255,255,0.06)] transition-all duration-[180ms]',
-              isOpen ? 'gap-3 px-4' : 'justify-center px-2'
+              'flex items-center rounded-lg text-white hover:bg-[rgba(255,255,255,0.06)] transition-all duration-[180ms]',
+              isOpen ? 'gap-2 sm:gap-3 px-3 sm:px-4 h-9 sm:h-10' : 'justify-center px-2 h-9 sm:h-10'
             )}
             title={!isOpen ? 'Créer des flashcards' : undefined}
           >
-            <Sparkles className="h-5 w-5 flex-shrink-0" />
-            {isOpen && <span className="text-[14px] font-medium whitespace-nowrap">Créer des flashcards</span>}
+            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+            {isOpen && (
+              <span className="text-[13px] sm:text-[14px] font-medium whitespace-nowrap">
+                Créer des flashcards
+              </span>
+            )}
           </Link>
         </div>
       </nav>

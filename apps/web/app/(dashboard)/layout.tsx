@@ -106,34 +106,39 @@ export default function DashboardLayout({
         }}
       >
         {/* Top Bar */}
-        <header className="h-16 border-b border-[rgba(255,255,255,0.06)] bg-dark-background-base flex items-center px-4 sm:px-6 lg:px-8 gap-4">
+        <header className="h-14 sm:h-16 border-b border-[rgba(255,255,255,0.06)] bg-dark-background-base flex items-center px-3 sm:px-4 lg:px-8 gap-2 sm:gap-3 lg:gap-4">
           {/* Mobile Menu Button */}
           {isMobile && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="lg:hidden"
+              className="lg:hidden flex-shrink-0"
             >
               <Menu className="h-5 w-5" />
             </Button>
           )}
           
-          <TopSearchBar className="flex-1" />
+          <TopSearchBar className="flex-1 min-w-0" />
           
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0">
             <Link href={`/profile/${profile?.username}`}>
-              <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-[999px] bg-dark-background-cardMuted border-2 border-[rgba(255,255,255,0.12)] flex items-center justify-center">
-                  <User className="h-4 w-4 text-dark-text-secondary" />
+              <Button variant="ghost" size="sm" className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[999px] bg-dark-background-cardMuted border-2 border-[rgba(255,255,255,0.12)] flex items-center justify-center flex-shrink-0">
+                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-dark-text-secondary" />
                 </div>
-                <span className="hidden sm:inline text-[14px] text-dark-text-secondary">
+                <span className="hidden md:inline text-[13px] sm:text-[14px] text-dark-text-secondary">
                   {profile?.username}
                 </span>
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="flex-shrink-0">
-              <LogOut className="h-4 w-4" />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleLogout} 
+              className="flex-shrink-0 p-1.5 sm:p-2"
+            >
+              <LogOut className="h-4 w-4 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </header>
