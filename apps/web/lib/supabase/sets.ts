@@ -84,7 +84,15 @@ export const setsService = {
   async getByShareId(shareId: string) {
     // Use API route for better server-side handling and RLS compatibility
     try {
-      const response = await fetch(`/api/sets/share/${shareId}`, {
+      // Use absolute URL for production compatibility
+      const baseUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : process.env.NEXT_PUBLIC_APP_URL || '';
+      
+      const apiUrl = `${baseUrl}/api/sets/share/${shareId}`;
+      console.log('[Client] Fetching set from API:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -92,17 +100,24 @@ export const setsService = {
         cache: 'no-store', // Always fetch fresh data
       });
 
+      console.log('[Client] API response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('[Client] API error response:', errorData);
+        
         if (response.status === 404) {
           throw new Error('Set non trouvé. Vérifiez que le lien de partage est correct.');
         }
-        throw new Error(errorData.error || 'Erreur lors du chargement du set');
+        if (response.status === 403) {
+          throw new Error('Ce set n\'est pas public.');
+        }
+        throw new Error(errorData.error || errorData.details || 'Erreur lors du chargement du set');
       }
 
       const data = await response.json();
       
-      console.log('Set loaded from API:', {
+      console.log('[Client] Set loaded from API:', {
         id: data.id,
         title: data.title,
         is_public: data.is_public,
@@ -112,7 +127,9 @@ export const setsService = {
       
       return data as SetWithFlashcards;
     } catch (error: any) {
-      console.error('Error fetching set by shareId via API:', error);
+      console.error('[Client] Error fetching set by shareId via API:', error);
+      console.error('[Client] Error message:', error.message);
+      console.error('[Client] Error stack:', error.stack);
       throw error;
     }
   },
