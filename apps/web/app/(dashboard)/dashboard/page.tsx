@@ -147,10 +147,10 @@ export default function DashboardPage() {
       ) : folders.length === 0 && setsWithoutFolder.length === 0 ? (
         <Card variant="emptyState" className="text-center py-12">
           <BookOpen className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-          <h3 className="text-title font-semibold text-dark-text-primary mb-2">
+          <h3 className="text-[16px] text-white mb-2">
             No sets yet
           </h3>
-          <p className="text-bodySecondary text-dark-text-secondary mb-4">
+          <p className="text-[16px] text-white mb-4">
             Create your first study set to get started
           </p>
           <Link href="/sets/create">
@@ -201,12 +201,12 @@ export default function DashboardPage() {
                       <Card className="h-full">
                         <CardHeader>
                           <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                          <p className="text-[16px] text-dark-text-secondary line-clamp-2 mt-2">
+                          <p className="text-[16px] text-white line-clamp-2 mt-2">
                             {set.description || 'No description'}
                           </p>
                         </CardHeader>
                         <div className="px-6 pb-6">
-                          <div className="flex items-center justify-between text-[13px] text-dark-text-muted">
+                          <div className="flex items-center justify-between text-[16px] text-white">
                             <span>{set.is_public ? 'Public' : 'Private'}</span>
                           </div>
                         </div>
@@ -252,12 +252,12 @@ export default function DashboardPage() {
                         <Card className="h-full">
                           <CardHeader>
                             <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                            <p className="text-bodySecondary text-dark-text-secondary line-clamp-2 mt-2">
+                            <p className="text-[16px] text-white line-clamp-2 mt-2">
                               {set.description || 'No description'}
                             </p>
                           </CardHeader>
                           <div className="px-6 pb-6">
-                            <div className="flex items-center justify-between text-bodySm text-dark-text-muted">
+                            <div className="flex items-center justify-between text-[16px] text-white">
                               <span>{set.is_public ? 'Public' : 'Private'}</span>
                             </div>
                           </div>

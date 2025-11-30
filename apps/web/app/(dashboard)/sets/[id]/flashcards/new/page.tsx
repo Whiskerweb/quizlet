@@ -59,7 +59,7 @@ export default function NewFlashcardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Flashcard Details</CardTitle>
+          <CardTitle className="text-[16px] text-white">Flashcard Details</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
           {error && (

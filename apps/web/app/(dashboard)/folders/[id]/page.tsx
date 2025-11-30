@@ -118,8 +118,8 @@ export default function FolderPage() {
       {folder.sets.length === 0 ? (
         <Card variant="emptyState" className="text-center py-12">
           <Folder className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-          <h3 className="text-[20px] font-semibold text-white mb-2">No sets in this folder</h3>
-          <p className="text-[16px] text-dark-text-secondary mb-4">
+          <h3 className="text-[16px] text-white mb-2">No sets in this folder</h3>
+          <p className="text-[16px] text-white mb-4">
             Drag sets here from the dashboard to organize them
           </p>
           <Link href="/dashboard">
@@ -133,12 +133,12 @@ export default function FolderPage() {
               <Card className="h-full hover:shadow-elevation-1 transition-shadow cursor-pointer">
                 <CardHeader>
                   <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                  <p className="text-[16px] text-dark-text-secondary line-clamp-2 mt-2">
+                  <p className="text-[16px] text-white line-clamp-2 mt-2">
                     {set.description || 'No description'}
                   </p>
                 </CardHeader>
                 <div className="px-6 pb-6">
-                  <div className="flex items-center justify-between text-[13px] text-dark-text-muted">
+                  <div className="flex items-center justify-between text-[16px] text-white">
                     <span>{set.is_public ? 'Public' : 'Private'}</span>
                   </div>
                 </div>

@@ -228,11 +228,11 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-brand-primary" />
-              <span className="text-[14px] font-medium text-white">
+              <span className="text-[16px] text-white">
                 {stats.totalXP.toLocaleString()} XP
               </span>
             </div>
-            <span className="text-[12px] text-dark-text-muted">
+            <span className="text-[16px] text-white">
               {stats.xpToNextLevel > 0 ? `${stats.xpToNextLevel} XP to Level ${stats.level + 1}` : 'Max Level!'}
             </span>
           </div>
@@ -283,38 +283,38 @@ export default function HomePage() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <BookOpen className="h-5 w-5 text-brand-primary" />
-                <span className="text-[12px] text-dark-text-muted">Sets</span>
+                <span className="text-[16px] text-white">Sets</span>
               </div>
-              <div className="text-[28px] font-bold text-white">{stats.totalSets}</div>
+              <div className="text-[16px] text-white">{stats.totalSets}</div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <Target className="h-5 w-5 text-brand-secondaryTeal" />
-                <span className="text-[12px] text-dark-text-muted">Flashcards</span>
+                <span className="text-[16px] text-white">Flashcards</span>
               </div>
-              <div className="text-[28px] font-bold text-white">{stats.totalFlashcards}</div>
+              <div className="text-[16px] text-white">{stats.totalFlashcards}</div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <Clock className="h-5 w-5 text-brand-accentYellow" />
-                <span className="text-[12px] text-dark-text-muted">Temps d'étude</span>
+                <span className="text-[16px] text-white">Temps d'étude</span>
               </div>
-              <div className="text-[28px] font-bold text-white">
+              <div className="text-[16px] text-white">
                 {Math.floor(stats.totalStudyTime / 60)}h {stats.totalStudyTime % 60}m
               </div>
             </Card>
             <Card className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <Flame className="h-5 w-5 text-brand-accentPink" />
-                <span className="text-[12px] text-dark-text-muted">Série</span>
+                <span className="text-[16px] text-white">Série</span>
               </div>
-              <div className="text-[28px] font-bold text-white">{stats.streak} jours</div>
+              <div className="text-[16px] text-white">{stats.streak} jours</div>
             </Card>
           </div>
 
           {/* Quick Actions */}
           <Card className="p-6">
-            <h2 className="text-[20px] font-semibold text-white mb-4">Actions rapides</h2>
+            <h2 className="text-[16px] text-white mb-4">Actions rapides</h2>
             <div className="grid md:grid-cols-3 gap-4">
               <Link href="/sets/create">
                 <Button className="w-full justify-start" variant="secondary">
@@ -341,12 +341,12 @@ export default function HomePage() {
 
           {/* Performance */}
           <Card className="p-6">
-            <h2 className="text-[20px] font-semibold text-white mb-4">Performance</h2>
+            <h2 className="text-[16px] text-white mb-4">Performance</h2>
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[14px] text-white">Score moyen</span>
-                  <span className="text-[14px] font-semibold text-white">
+                  <span className="text-[16px] text-white">Score moyen</span>
+                  <span className="text-[16px] text-white">
                     {stats.averageScore.toFixed(1)}%
                   </span>
                 </div>
@@ -359,12 +359,12 @@ export default function HomePage() {
               </div>
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[rgba(255,255,255,0.06)]">
                 <div>
-                  <div className="text-[12px] text-dark-text-muted">Sessions totales</div>
-                  <div className="text-[20px] font-bold text-white">{stats.totalSessions}</div>
+                  <div className="text-[16px] text-white">Sessions totales</div>
+                  <div className="text-[16px] text-white">{stats.totalSessions}</div>
                 </div>
                 <div>
-                  <div className="text-[12px] text-dark-text-muted">Cartes à réviser</div>
-                  <div className="text-[20px] font-bold text-white">{stats.setsToReview}</div>
+                  <div className="text-[16px] text-white">Cartes à réviser</div>
+                  <div className="text-[16px] text-white">{stats.setsToReview}</div>
                 </div>
               </div>
             </div>
@@ -377,8 +377,8 @@ export default function HomePage() {
           {stats.recentSets.length === 0 ? (
             <Card variant="emptyState" className="text-center py-12">
               <BookOpen className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-              <h3 className="text-[20px] font-semibold text-white mb-2">Aucun set récent</h3>
-              <p className="text-[16px] text-dark-text-secondary mb-4">
+              <h3 className="text-[16px] text-white mb-2">Aucun set récent</h3>
+              <p className="text-[16px] text-white mb-4">
                 Créez votre premier set pour commencer
               </p>
               <Link href="/sets/create">
@@ -391,14 +391,14 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <Link href={`/sets/${set.id}`}>
-                      <h3 className="text-[18px] font-semibold text-white mb-1 hover:text-brand-primary transition-colors">
+                      <h3 className="text-[16px] text-white mb-1 hover:text-brand-primary transition-colors">
                         {set.title}
                       </h3>
                     </Link>
-                    <p className="text-[14px] text-dark-text-secondary line-clamp-2">
+                    <p className="text-[16px] text-white line-clamp-2">
                       {set.description || 'No description'}
                     </p>
-                    <div className="flex items-center gap-4 mt-3 text-[12px] text-dark-text-muted">
+                    <div className="flex items-center gap-4 mt-3 text-[16px] text-white">
                       <span>{set.is_public ? 'Public' : 'Private'}</span>
                       <span>{new Date(set.created_at).toLocaleDateString('fr-FR')}</span>
                     </div>
@@ -421,8 +421,8 @@ export default function HomePage() {
           {stats.setsToReview === 0 ? (
             <Card variant="emptyState" className="text-center py-12">
               <Target className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-              <h3 className="text-[20px] font-semibold text-white mb-2">Rien à réviser</h3>
-              <p className="text-[16px] text-dark-text-secondary mb-4">
+              <h3 className="text-[16px] text-white mb-2">Rien à réviser</h3>
+              <p className="text-[16px] text-white mb-4">
                 Toutes vos cartes sont à jour ! Continuez à étudier pour en ajouter plus.
               </p>
               <Link href="/dashboard">
@@ -436,10 +436,10 @@ export default function HomePage() {
                   <Target className="h-6 w-6 text-brand-primary" />
                 </div>
                 <div>
-                  <h3 className="text-[20px] font-semibold text-white">
+                  <h3 className="text-[16px] text-white">
                     {stats.setsToReview} cartes à réviser
                   </h3>
-                  <p className="text-[14px] text-dark-text-secondary">
+                  <p className="text-[16px] text-white">
                     Il est temps de réviser vos cartes pour maintenir votre progression
                   </p>
                 </div>
@@ -518,14 +518,14 @@ export default function HomePage() {
                   <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${achievement.color} flex items-center justify-center mb-4`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="text-[16px] font-semibold text-white mb-1">
+                  <h3 className="text-[16px] text-white mb-1">
                     {achievement.title}
                   </h3>
-                  <p className="text-[14px] text-dark-text-secondary">
+                  <p className="text-[16px] text-white">
                     {achievement.description}
                   </p>
                   {achievement.unlocked && (
-                    <div className="mt-3 flex items-center gap-1 text-[12px] text-brand-primary">
+                    <div className="mt-3 flex items-center gap-1 text-[16px] text-brand-primary">
                       <Award className="h-4 w-4" />
                       <span>Débloqué</span>
                     </div>

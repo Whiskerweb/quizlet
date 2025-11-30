@@ -58,9 +58,9 @@ export default function CreateSetPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Create New Set</h1>
 
-      <Card>
+        <Card>
         <CardHeader>
-          <CardTitle>Set Details</CardTitle>
+          <CardTitle className="text-[16px] text-white">Set Details</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
           {error && (

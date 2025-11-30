@@ -48,7 +48,7 @@ export default function ProfilePage() {
         <p>Loading...</p>
       ) : sets.length === 0 ? (
         <Card className="text-center py-12">
-          <p className="text-gray-600">No sets yet</p>
+          <p className="text-[16px] text-white">No sets yet</p>
         </Card>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -56,12 +56,12 @@ export default function ProfilePage() {
             <Card key={set.id} className="hover:shadow-lg transition-shadow cursor-pointer h-full">
               <CardHeader>
                 <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                <p className="text-sm text-gray-600 line-clamp-2 mt-2">
+                <p className="text-[16px] text-white line-clamp-2 mt-2">
                   {set.description || 'No description'}
                 </p>
               </CardHeader>
               <div className="px-6 pb-6">
-                <div className="flex items-center justify-between text-sm text-gray-500">
+                <div className="flex items-center justify-between text-[16px] text-white">
                   <span>{set._count.flashcards} cards</span>
                   <span>{set.isPublic ? 'Public' : 'Private'}</span>
                 </div>

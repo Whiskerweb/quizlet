@@ -119,7 +119,7 @@ export default function SetDetailPage() {
 
       {set.flashcards.length === 0 ? (
         <Card variant="emptyState" className="text-center py-12">
-          <p className="text-dark-text-secondary mb-4">No flashcards yet</p>
+          <p className="text-[16px] text-white mb-4">No flashcards yet</p>
           <Link href={`/sets/${setId}/flashcards/new`}>
             <Button>Add Your First Card</Button>
           </Link>
@@ -130,12 +130,12 @@ export default function SetDetailPage() {
             <Card key={card.id} className="relative group">
               <div className="p-4">
                 <div className="mb-2">
-                  <span className="text-[12px] text-dark-text-muted">Front</span>
-                  <FormattedText text={card.front} className="font-medium text-dark-text-primary mt-1" as="p" />
+                  <span className="text-[16px] text-white">Front</span>
+                  <FormattedText text={card.front} className="text-[16px] text-white mt-1" as="p" />
                 </div>
                 <div className="mb-4">
-                  <span className="text-[12px] text-dark-text-muted">Back</span>
-                  <FormattedText text={card.back} className="text-dark-text-primary mt-1" as="p" />
+                  <span className="text-[16px] text-white">Back</span>
+                  <FormattedText text={card.back} className="text-[16px] text-white mt-1" as="p" />
                 </div>
                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Link href={`/sets/${setId}/flashcards/${card.id}/edit`}>
