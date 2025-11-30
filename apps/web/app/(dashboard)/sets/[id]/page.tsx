@@ -16,6 +16,7 @@ export default function SetDetailPage() {
   const setId = params.id as string;
   const [set, setSet] = useState<SetWithFlashcards | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
 
   useEffect(() => {
     loadSet();
@@ -125,15 +126,45 @@ export default function SetDetailPage() {
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           {set.flashcards.map((card, index) => (
-            <Card key={card.id}>
+            <Card key={card.id} className="relative group">
               <div className="p-4">
                 <div className="mb-2">
                   <span className="text-xs text-gray-500">Front</span>
                   <p className="font-medium text-gray-900">{card.front}</p>
                 </div>
-                <div>
+                <div className="mb-4">
                   <span className="text-xs text-gray-500">Back</span>
                   <p className="text-gray-900">{card.back}</p>
+                </div>
+                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link href={`/sets/${setId}/flashcards/${card.id}/edit`}>
+                    <Button size="sm" variant="outline">
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                  </Link>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      if (!confirm('Are you sure you want to delete this flashcard?')) return;
+                      setDeletingCardId(card.id);
+                      try {
+                        await flashcardsService.delete(card.id);
+                        await loadSet();
+                      } catch (error) {
+                        console.error('Failed to delete flashcard:', error);
+                        alert('Failed to delete flashcard');
+                      } finally {
+                        setDeletingCardId(null);
+                      }
+                    }}
+                    disabled={deletingCardId === card.id}
+                    className="text-red-600 border-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    {deletingCardId === card.id ? 'Deleting...' : 'Delete'}
+                  </Button>
                 </div>
               </div>
             </Card>

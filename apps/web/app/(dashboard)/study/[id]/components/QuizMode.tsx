@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
 
 interface Flashcard {
   id: string;
@@ -22,28 +22,48 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
   const [showResult, setShowResult] = useState(false);
   const [options, setOptions] = useState<string[]>([]);
   const [startTime] = useState(Date.now());
+  const [isReversed, setIsReversed] = useState(false);
 
   useEffect(() => {
     // Generate multiple choice options
     const generateOptions = () => {
-      // Get wrong answers from other flashcards
-      const wrongAnswers = allFlashcards
-        .filter(card => card.id !== flashcard.id)
-        .map(card => card.back)
-        .sort(() => Math.random() - 0.5);
+      if (isReversed) {
+        // Reversed mode: description (back) as question, titles (front) as options
+        // Get wrong titles from other flashcards
+        const wrongTitles = allFlashcards
+          .filter(card => card.id !== flashcard.id)
+          .map(card => card.front)
+          .sort(() => Math.random() - 0.5);
 
-      // We want at least 4 options total (1 correct + 3 wrong)
-      // If we don't have enough wrong answers, we'll use fewer options
-      const neededWrong = Math.min(3, wrongAnswers.length);
-      const selectedWrong = wrongAnswers.slice(0, neededWrong);
+        const neededWrong = Math.min(3, wrongTitles.length);
+        const selectedWrong = wrongTitles.slice(0, neededWrong);
 
-      // Combine with correct answer and shuffle
-      const allOptions = [flashcard.back, ...selectedWrong].sort(() => Math.random() - 0.5);
-      setOptions(allOptions);
+        // Combine with correct title and shuffle
+        const allOptions = [flashcard.front, ...selectedWrong].sort(() => Math.random() - 0.5);
+        setOptions(allOptions);
+      } else {
+        // Normal mode: term (front) as question, definitions (back) as options
+        // Get wrong answers from other flashcards
+        const wrongAnswers = allFlashcards
+          .filter(card => card.id !== flashcard.id)
+          .map(card => card.back)
+          .sort(() => Math.random() - 0.5);
+
+        // We want at least 4 options total (1 correct + 3 wrong)
+        // If we don't have enough wrong answers, we'll use fewer options
+        const neededWrong = Math.min(3, wrongAnswers.length);
+        const selectedWrong = wrongAnswers.slice(0, neededWrong);
+
+        // Combine with correct answer and shuffle
+        const allOptions = [flashcard.back, ...selectedWrong].sort(() => Math.random() - 0.5);
+        setOptions(allOptions);
+      }
     };
 
     generateOptions();
-  }, [flashcard, allFlashcards]);
+    setSelectedAnswer(null);
+    setShowResult(false);
+  }, [flashcard, allFlashcards, isReversed]);
 
   const handleSelect = (option: string) => {
     if (showResult) return;
@@ -51,7 +71,11 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
     setSelectedAnswer(option);
     setShowResult(true);
     
-    const isCorrect = option === flashcard.back;
+    // Check if answer is correct based on mode
+    const isCorrect = isReversed 
+      ? option === flashcard.front  // In reversed mode, correct answer is the front (title)
+      : option === flashcard.back;   // In normal mode, correct answer is the back (definition)
+    
     const timeSpent = Date.now() - startTime;
     
     // Auto-advance after showing result
@@ -62,17 +86,35 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
     }, 1500);
   };
 
+  const correctAnswer = isReversed ? flashcard.front : flashcard.back;
+  const questionText = isReversed ? flashcard.back : flashcard.front;
+  const questionLabel = isReversed ? 'Description' : 'Question';
+
   return (
     <div className="w-full">
-      <div className="mb-6">
-        <p className="text-sm text-gray-700 mb-2 font-medium">Question</p>
-        <p className="text-2xl font-bold text-gray-900">{flashcard.front}</p>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex-1">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-gray-700 font-medium">{questionLabel}</p>
+              <button
+                onClick={() => setIsReversed(!isReversed)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title={isReversed ? 'Mode normal: Question → Réponses' : 'Mode inversé: Description → Titres'}
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span>{isReversed ? 'Mode inversé' : 'Mode normal'}</span>
+              </button>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{questionText}</p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3">
         {options.map((option, index) => {
           const isSelected = selectedAnswer === option;
-          const isCorrect = option === flashcard.back;
+          const isCorrect = option === correctAnswer;
           const showCorrect = showResult && isCorrect;
           const showIncorrect = showResult && isSelected && !isCorrect;
 
@@ -107,9 +149,9 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
       {showResult && (
         <div className="mt-4 p-4 rounded-lg bg-gray-50">
           <p className="text-sm text-gray-600">
-            {selectedAnswer === flashcard.back 
+            {selectedAnswer === correctAnswer 
               ? '✓ Correct!' 
-              : `✗ Incorrect. The correct answer is: ${flashcard.back}`
+              : `✗ Incorrect. The correct answer is: ${correctAnswer}`
             }
           </p>
         </div>

@@ -27,6 +27,7 @@ export default function EditSetPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     loadSet();
@@ -46,6 +47,7 @@ export default function EditSetPage() {
           imageUrl: card.image_url || null,
         }))
       );
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Failed to load set:', error);
     } finally {
@@ -77,6 +79,8 @@ export default function EditSetPage() {
     try {
       await flashcardsService.delete(id);
       setFlashcards(flashcards.filter((card) => card.id !== id));
+      // Optionally reload to ensure consistency
+      await loadSet();
     } catch (error) {
       console.error('Failed to delete flashcard:', error);
       alert('Failed to delete flashcard');
@@ -84,6 +88,7 @@ export default function EditSetPage() {
   };
 
   const handleUpdateCard = (id: string, field: 'front' | 'back', value: string) => {
+    setHasUnsavedChanges(true);
     setFlashcards(
       flashcards.map((card) =>
         card.id === id ? { ...card, [field]: value } : card
@@ -115,6 +120,7 @@ export default function EditSetPage() {
 
       // Reload to get updated data
       await loadSet();
+      setHasUnsavedChanges(false);
       alert('Flashcards saved successfully!');
     } catch (error) {
       console.error('Failed to save flashcards:', error);
@@ -128,6 +134,7 @@ export default function EditSetPage() {
     try {
       await flashcardsService.import(setId, cards);
       await loadSet();
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Failed to import flashcards:', error);
       alert('Failed to import flashcards');
@@ -245,13 +252,18 @@ export default function EditSetPage() {
       </div>
 
       {/* Save Button */}
-      <div className="flex justify-end space-x-4">
-        <Button variant="outline" onClick={() => router.back()}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Save Changes'}
-        </Button>
+      <div className="flex justify-between items-center pt-4 border-t">
+        {hasUnsavedChanges && (
+          <p className="text-sm text-amber-600">You have unsaved changes</p>
+        )}
+        <div className="flex justify-end space-x-4 ml-auto">
+          <Button variant="outline" onClick={() => router.back()}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving || !hasUnsavedChanges}>
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </div>
 
       {/* Import Modal */}
