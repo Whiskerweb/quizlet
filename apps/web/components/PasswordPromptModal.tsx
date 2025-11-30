@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -22,8 +23,14 @@ export function PasswordPromptModal({
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleSubmit = async () => {
     setError(null);
@@ -45,9 +52,21 @@ export function PasswordPromptModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md">
+  const modalContent = (
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
+      style={{ position: 'fixed', zIndex: 9999 }}
+      onClick={(e) => {
+        // Close on backdrop click
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <Card 
+        className="w-full max-w-md relative z-[10000]"
+        style={{ position: 'relative', zIndex: 10000 }}
+      >
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-brand-primary" />
@@ -116,6 +135,9 @@ export function PasswordPromptModal({
       </Card>
     </div>
   );
+
+  // Render in a portal to avoid z-index issues
+  return createPortal(modalContent, document.body);
 }
 
 
