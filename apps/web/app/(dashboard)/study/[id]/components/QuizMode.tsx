@@ -131,7 +131,7 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
                   : showIncorrect
                   ? 'border-red-500 bg-red-50 text-gray-900'
                   : isSelected
-                  ? 'border-brand-primary bg-[rgba(66,85,255,0.1)] text-white'
+                  ? 'border-brand-primary bg-[rgba(96,165,250,0.1)] text-white'
                   : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted text-white hover:border-[rgba(255,255,255,0.18)]'
                 }
                 ${showResult ? 'cursor-default' : 'cursor-pointer'}

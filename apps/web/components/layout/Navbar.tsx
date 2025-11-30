@@ -27,8 +27,8 @@ export function Navbar() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2">
-                <BookOpen className="h-6 w-6 text-primary-600" />
-                <span className="text-xl font-bold text-gray-900">Quizlet</span>
+                <BookOpen className="h-6 w-6 text-brand-primary" />
+                <span className="text-xl font-bold text-gray-900">CARDZ</span>
               </Link>
             </div>
             <div className="flex items-center space-x-4">
@@ -48,8 +48,8 @@ export function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <BookOpen className="h-6 w-6 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">Quizlet</span>
+              <BookOpen className="h-6 w-6 text-brand-primary" />
+              <span className="text-xl font-bold text-gray-900">CARDZ</span>
             </Link>
           </div>
 

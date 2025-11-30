@@ -89,7 +89,7 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Collez vos données ici"
-              className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white resize-none font-mono text-sm"
+              className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary text-gray-900 bg-white resize-none font-mono text-sm"
             />
           </div>
 
@@ -109,7 +109,7 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
                       value={option}
                       checked={termSeparator === option}
                       onChange={(e) => setTermSeparator(e.target.value as TermSeparator)}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                      className="h-4 w-4 text-brand-primary focus:ring-brand-primary border-gray-300"
                     />
                     <span className="text-sm text-gray-700">{option}</span>
                   </label>
@@ -120,7 +120,7 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
                     value={customTermSeparator}
                     onChange={(e) => setCustomTermSeparator(e.target.value)}
                     placeholder="Séparateur personnalisé"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary text-gray-900 bg-white text-sm"
                   />
                 )}
               </div>
@@ -140,7 +140,7 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
                       value={option}
                       checked={cardSeparator === option}
                       onChange={(e) => setCardSeparator(e.target.value as CardSeparator)}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                      className="h-4 w-4 text-brand-primary focus:ring-brand-primary border-gray-300"
                     />
                     <span className="text-sm text-gray-700">{option}</span>
                   </label>
@@ -151,7 +151,7 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
                     value={customCardSeparator}
                     onChange={(e) => setCustomCardSeparator(e.target.value)}
                     placeholder="Séparateur personnalisé"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary text-gray-900 bg-white text-sm"
                   />
                 )}
               </div>

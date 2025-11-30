@@ -53,7 +53,7 @@ export function StudyModeSelector({ currentMode, onModeChange }: StudyModeSelect
               className={`
                 p-4 rounded-lg border-2 transition-all text-left text-white
                 ${isActive 
-                  ? 'border-brand-primary bg-[rgba(66,85,255,0.1)]' 
+                  ? 'border-brand-primary bg-[rgba(96,165,250,0.1)]' 
                   : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:border-[rgba(255,255,255,0.18)] text-white'
                 }
               `}

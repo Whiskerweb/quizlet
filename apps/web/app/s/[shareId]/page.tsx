@@ -389,14 +389,14 @@ export default function SharedSetPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {set.flashcards.map((card) => (
                 <Card key={card.id} className="border border-[rgba(255,255,255,0.06)]">
-                  <div className="p-4 sm:p-5">
+                  <div className="p-4 sm:p-5 card-text-content">
                     <div className="mb-3 sm:mb-4">
                       <span className="text-[11px] sm:text-[12px] text-dark-text-muted uppercase tracking-wide">
                         Front
                       </span>
                       <FormattedText 
                         text={card.front} 
-                        className="text-[15px] sm:text-[16px] text-white mt-1.5 sm:mt-2" 
+                        className="text-[16px] text-white mt-1.5 sm:mt-2" 
                         as="p" 
                       />
                     </div>
@@ -406,7 +406,7 @@ export default function SharedSetPage() {
                       </span>
                       <FormattedText 
                         text={card.back} 
-                        className="text-[15px] sm:text-[16px] text-white mt-1.5 sm:mt-2" 
+                        className="text-[16px] text-white mt-1.5 sm:mt-2" 
                         as="p" 
                       />
                     </div>

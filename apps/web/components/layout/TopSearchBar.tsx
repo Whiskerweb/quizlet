@@ -21,7 +21,7 @@ export function TopSearchBar({ placeholder = 'Rechercher...', className, onSearc
           className={cn(
             'h-10 sm:h-11 pl-[42px] sm:pl-[50px] pr-[14px] sm:pr-[18px] rounded-[999px]',
             'bg-dark-background-card border-none shadow-[0_0_0_1px_rgba(255,255,255,0.06)]',
-            'focus:shadow-[0_0_0_2px_rgba(66,85,255,0.6)] focus:border-white',
+            'focus:shadow-[0_0_0_2px_rgba(96,165,250,0.6)] focus:border-white',
             'text-[14px] sm:text-[14px] text-dark-text-primary placeholder:text-dark-text-placeholder'
           )}
           onChange={(e) => onSearch?.(e.target.value)}

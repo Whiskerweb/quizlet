@@ -130,7 +130,7 @@ export default function FolderPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {folder.sets.map((set) => (
             <Link key={set.id} href={`/sets/${set.id}`} className="block h-full">
-              <Card className="h-full hover:shadow-elevation-1 transition-shadow cursor-pointer">
+              <Card className="h-full hover:shadow-elevation-1 transition-shadow cursor-pointer card-text-content">
                 <CardHeader>
                   <CardTitle className="line-clamp-2">{set.title}</CardTitle>
                   <p className="text-[16px] text-white line-clamp-2 mt-2">

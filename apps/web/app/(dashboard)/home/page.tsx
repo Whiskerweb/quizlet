@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { createClient } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { createSetAndRedirect } from '@/lib/utils/createSetAndRedirect';
 import { 
   Trophy, 
   Clock, 
@@ -39,7 +41,9 @@ interface HomeStats {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const { profile, user } = useAuthStore();
+  const [isCreatingSet, setIsCreatingSet] = useState(false);
   const [stats, setStats] = useState<HomeStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'recent' | 'review' | 'achievements'>('overview');
@@ -322,12 +326,26 @@ export default function HomePage() {
           <Card className="p-6">
             <h2 className="text-[16px] text-white mb-4">Actions rapides</h2>
             <div className="grid md:grid-cols-3 gap-4">
-              <Link href="/sets/create">
-                <Button className="w-full justify-start" variant="secondary">
-                  <BookOpen className="h-4 w-4" />
-                  Créer un set
-                </Button>
-              </Link>
+              <Button 
+                className="w-full justify-start" 
+                variant="secondary"
+                onClick={async () => {
+                  setIsCreatingSet(true);
+                  try {
+                    const setId = await createSetAndRedirect();
+                    router.push(`/sets/${setId}/edit`);
+                  } catch (error) {
+                    console.error('Failed to create set:', error);
+                    alert('Failed to create set. Please try again.');
+                  } finally {
+                    setIsCreatingSet(false);
+                  }
+                }}
+                disabled={isCreatingSet}
+              >
+                <BookOpen className="h-4 w-4" />
+                {isCreatingSet ? 'Création...' : 'Créer un set'}
+              </Button>
               <Link href="/dashboard">
                 <Button className="w-full justify-start" variant="secondary">
                   <Target className="h-4 w-4" />
@@ -387,9 +405,23 @@ export default function HomePage() {
               <p className="text-[16px] text-white mb-4">
                 Créez votre premier set pour commencer
               </p>
-              <Link href="/sets/create">
-                <Button>Créer un set</Button>
-              </Link>
+              <Button
+                onClick={async () => {
+                  setIsCreatingSet(true);
+                  try {
+                    const setId = await createSetAndRedirect();
+                    router.push(`/sets/${setId}/edit`);
+                  } catch (error) {
+                    console.error('Failed to create set:', error);
+                    alert('Failed to create set. Please try again.');
+                  } finally {
+                    setIsCreatingSet(false);
+                  }
+                }}
+                disabled={isCreatingSet}
+              >
+                {isCreatingSet ? 'Création...' : 'Créez votre premier set'}
+              </Button>
             </Card>
           ) : (
             stats.recentSets.map((set) => (

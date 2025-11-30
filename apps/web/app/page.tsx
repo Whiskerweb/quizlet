@@ -42,21 +42,21 @@ export default function HomePage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               <div className="bg-white p-5 sm:p-6 rounded-lg shadow-sm border border-gray-200">
-                <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-primary-600 mb-3 sm:mb-4" />
+                <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-brand-primary mb-3 sm:mb-4" />
                 <h3 className="text-[18px] sm:text-xl font-semibold mb-2 text-gray-900">Multiple Study Modes</h3>
                 <p className="text-[14px] sm:text-[15px] lg:text-base text-gray-600 leading-relaxed">
                   Flashcards, Quiz, Writing, and Match modes to suit your learning style.
                 </p>
               </div>
               <div className="bg-white p-5 sm:p-6 rounded-lg shadow-sm border border-gray-200">
-                <Users className="h-10 w-10 sm:h-12 sm:w-12 text-primary-600 mb-3 sm:mb-4" />
+                <Users className="h-10 w-10 sm:h-12 sm:w-12 text-brand-primary mb-3 sm:mb-4" />
                 <h3 className="text-[18px] sm:text-xl font-semibold mb-2 text-gray-900">Share & Discover</h3>
                 <p className="text-[14px] sm:text-[15px] lg:text-base text-gray-600 leading-relaxed">
                   Share your sets with others or discover millions of study sets.
                 </p>
               </div>
               <div className="bg-white p-5 sm:p-6 rounded-lg shadow-sm border border-gray-200 sm:col-span-2 lg:col-span-1">
-                <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12 text-primary-600 mb-3 sm:mb-4" />
+                <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12 text-brand-primary mb-3 sm:mb-4" />
                 <h3 className="text-[18px] sm:text-xl font-semibold mb-2 text-gray-900">Track Progress</h3>
                 <p className="text-[14px] sm:text-[15px] lg:text-base text-gray-600 leading-relaxed">
                   Monitor your study sessions and see your improvement over time.

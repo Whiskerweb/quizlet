@@ -87,7 +87,7 @@ export default function SharedSetsFolderPage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sharedSets.map((sharedSet) => (
-            <Card key={sharedSet.id} className="h-full hover:shadow-elevation-1 transition-shadow">
+            <Card key={sharedSet.id} className="h-full hover:shadow-elevation-1 transition-shadow card-text-content">
               <CardHeader>
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">

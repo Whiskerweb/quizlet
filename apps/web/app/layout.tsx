@@ -6,7 +6,7 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Quizlet Clone - Modern Flashcard Learning',
+  title: 'CARDZ - Modern Flashcard Learning',
   description: 'Create, study, and share flashcards',
 };
 

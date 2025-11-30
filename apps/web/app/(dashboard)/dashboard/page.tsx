@@ -9,10 +9,13 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { CreateFolderModal } from '@/components/CreateFolderModal';
 import { Plus, BookOpen, Folder, FolderPlus, Trash2 } from 'lucide-react';
+import { createSetAndRedirect } from '@/lib/utils/createSetAndRedirect';
+import { useRouter } from 'next/navigation';
 
 type Set = Database['public']['Tables']['sets']['Row'];
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { profile } = useAuthStore();
   const [folders, setFolders] = useState<FolderWithSets[]>([]);
   const [setsWithoutFolder, setSetsWithoutFolder] = useState<Set[]>([]);
@@ -20,6 +23,7 @@ export default function DashboardPage() {
   const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
   const [draggedSetId, setDraggedSetId] = useState<string | null>(null);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+  const [isCreatingSet, setIsCreatingSet] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -136,13 +140,33 @@ export default function DashboardPage() {
             <span className="hidden sm:inline">New Folder</span>
             <span className="sm:hidden">Folder</span>
           </Button>
-          <Link href="/sets/create" className="flex-1 sm:flex-initial">
-            <Button size="sm" className="w-full text-[13px] sm:text-[14px]">
-              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Create Set</span>
-              <span className="sm:hidden">Create</span>
-            </Button>
-          </Link>
+          <Button 
+            size="sm" 
+            className="w-full sm:w-auto text-[13px] sm:text-[14px]"
+            onClick={async () => {
+              setIsCreatingSet(true);
+              try {
+                const setId = await createSetAndRedirect();
+                router.push(`/sets/${setId}/edit`);
+              } catch (error) {
+                console.error('Failed to create set:', error);
+                alert('Failed to create set. Please try again.');
+              } finally {
+                setIsCreatingSet(false);
+              }
+            }}
+            disabled={isCreatingSet}
+          >
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+            {isCreatingSet ? (
+              <span>Creating...</span>
+            ) : (
+              <>
+                <span className="hidden sm:inline">Create Set</span>
+                <span className="sm:hidden">Create</span>
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -159,9 +183,23 @@ export default function DashboardPage() {
           <p className="text-[16px] text-white mb-4">
             Create your first study set to get started
           </p>
-          <Link href="/sets/create">
-            <Button>Create Your First Set</Button>
-          </Link>
+          <Button
+            onClick={async () => {
+              setIsCreatingSet(true);
+              try {
+                const setId = await createSetAndRedirect();
+                router.push(`/sets/${setId}/edit`);
+              } catch (error) {
+                console.error('Failed to create set:', error);
+                alert('Failed to create set. Please try again.');
+              } finally {
+                setIsCreatingSet(false);
+              }
+            }}
+            disabled={isCreatingSet}
+          >
+            {isCreatingSet ? 'Création...' : 'Créer votre premier set'}
+          </Button>
         </Card>
       ) : (
         <div className="space-y-8">
@@ -208,7 +246,7 @@ export default function DashboardPage() {
                     }`}
                   >
                     <Link href={`/sets/${set.id}`} className="block h-full">
-                      <Card className="h-full">
+                      <Card className="h-full card-text-content">
                         <CardHeader>
                           <CardTitle className="line-clamp-2">{set.title}</CardTitle>
                           <p className="text-[16px] text-white line-clamp-2 mt-2">
@@ -258,21 +296,21 @@ export default function DashboardPage() {
                         draggedSetId === set.id ? 'opacity-50' : ''
                       }`}
                     >
-                      <Link href={`/sets/${set.id}`} className="block h-full">
-                        <Card className="h-full">
-                          <CardHeader>
-                            <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                            <p className="text-[16px] text-white line-clamp-2 mt-2">
-                              {set.description || 'No description'}
-                            </p>
-                          </CardHeader>
-                          <div className="px-6 pb-6">
-                            <div className="flex items-center justify-between text-[16px] text-white">
-                              <span>{set.is_public ? 'Public' : 'Private'}</span>
-                            </div>
+                    <Link href={`/sets/${set.id}`} className="block h-full">
+                      <Card className="h-full card-text-content">
+                        <CardHeader>
+                          <CardTitle className="line-clamp-2">{set.title}</CardTitle>
+                          <p className="text-[16px] text-white line-clamp-2 mt-2">
+                            {set.description || 'No description'}
+                          </p>
+                        </CardHeader>
+                        <div className="px-6 pb-6">
+                          <div className="flex items-center justify-between text-[16px] text-white">
+                            <span>{set.is_public ? 'Public' : 'Private'}</span>
                           </div>
-                        </Card>
-                      </Link>
+                        </div>
+                      </Card>
+                    </Link>
                     </div>
                   ))}
                 </div>

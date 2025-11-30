@@ -9,6 +9,8 @@ import type { ParsedCard } from '@/lib/utils/parseImportedText';
 import { ImportModal } from '@/components/ImportModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { GripVertical, Trash2, Image as ImageIcon, Plus } from 'lucide-react';
 
@@ -32,6 +34,8 @@ export default function EditSetPage() {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [dragOverCardId, setDragOverCardId] = useState<string | null>(null);
   const [newlyAddedCardId, setNewlyAddedCardId] = useState<string | null>(null);
+  const [setTitle, setSetTitle] = useState('');
+  const [setDescription, setSetDescription] = useState('');
 
   useEffect(() => {
     loadSet();
@@ -43,6 +47,8 @@ export default function EditSetPage() {
       setIsLoading(true);
       const data = await setsService.getOne(setId);
       setSet(data);
+      setSetTitle(data.title || '');
+      setSetDescription(data.description || '');
       // Sort flashcards by order to ensure correct order
       const sortedFlashcards = (data.flashcards || [])
         .sort((a, b) => (a.order || 0) - (b.order || 0))
@@ -52,7 +58,24 @@ export default function EditSetPage() {
           back: card.back,
           imageUrl: card.image_url || null,
         }));
-      setFlashcards(sortedFlashcards);
+      
+      // If no flashcards exist, add one empty card by default
+      if (sortedFlashcards.length === 0) {
+        const emptyCard = {
+          id: `temp-${Date.now()}`,
+          front: '',
+          back: '',
+          imageUrl: null,
+        };
+        setFlashcards([emptyCard]);
+        setNewlyAddedCardId(emptyCard.id);
+        setTimeout(() => {
+          setNewlyAddedCardId(null);
+        }, 600);
+      } else {
+        setFlashcards(sortedFlashcards);
+      }
+      
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Failed to load set:', error);
@@ -90,7 +113,7 @@ export default function EditSetPage() {
   };
 
   const handleDeleteCard = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this card?')) return;
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette carte ?')) return;
 
     // If it's a temporary card (starts with "temp-"), just remove it from state
     if (id.startsWith('temp-')) {
@@ -118,9 +141,41 @@ export default function EditSetPage() {
     );
   };
 
+  const handleSetTitleChange = (value: string) => {
+    setSetTitle(value);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSetDescriptionChange = (value: string) => {
+    setSetDescription(value);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleUpdateSetInfo = async () => {
+    if (!set) return;
+    
+    try {
+      await setsService.update(setId, {
+        title: setTitle || 'Untitled Set',
+        description: setDescription || null,
+      });
+      setHasUnsavedChanges(true);
+    } catch (error) {
+      console.error('Failed to update set info:', error);
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Update set title and description
+      if (set && (setTitle !== set.title || setDescription !== (set.description || ''))) {
+        await setsService.update(setId, {
+          title: setTitle || 'Set sans titre',
+          description: setDescription || null,
+        });
+      }
+
       // Save all flashcards and update their order
       const existingCardIds: string[] = [];
       
@@ -152,10 +207,10 @@ export default function EditSetPage() {
       // Reload to get updated data
       await loadSet();
       setHasUnsavedChanges(false);
-      alert('Flashcards saved successfully!');
+      alert('Flashcards enregistrées avec succès !');
     } catch (error) {
       console.error('Failed to save flashcards:', error);
-      alert('Failed to save flashcards');
+      alert('Erreur lors de l\'enregistrement des flashcards');
     } finally {
       setIsSaving(false);
     }
@@ -168,7 +223,7 @@ export default function EditSetPage() {
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Failed to import flashcards:', error);
-      alert('Failed to import flashcards');
+      alert('Erreur lors de l\'importation des flashcards');
     }
   };
 
@@ -251,9 +306,33 @@ export default function EditSetPage() {
 
   return (
     <>
+      {/* Set Title and Description */}
       <div className="mb-6">
-        <h1 className="text-[28px] font-bold text-dark-text-primary mb-2">Edit Set: {set.title}</h1>
-        <p className="text-[16px] text-dark-text-secondary">Manage your flashcards</p>
+        <div className="mb-4">
+          <label htmlFor="set-title" className="block text-[13px] sm:text-[14px] font-medium text-white mb-1.5 sm:mb-2">
+            Titre du set *
+          </label>
+          <Input
+            id="set-title"
+            value={setTitle}
+            onChange={(e) => handleSetTitleChange(e.target.value)}
+            placeholder="ex: Vocabulaire français"
+            className="text-[14px] sm:text-[15px]"
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="set-description" className="block text-[13px] sm:text-[14px] font-medium text-white mb-1.5 sm:mb-2">
+            Description
+          </label>
+          <Textarea
+            id="set-description"
+            value={setDescription}
+            onChange={(e) => handleSetDescriptionChange(e.target.value)}
+            placeholder="Décrivez votre set..."
+            rows={3}
+            className="text-[14px] sm:text-[15px]"
+          />
+        </div>
       </div>
 
       {/* Import Button */}
@@ -318,26 +397,26 @@ export default function EditSetPage() {
               {/* Card Content */}
               <div className="flex-1 grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Term
+                  <label className="block text-[12px] font-medium text-dark-text-muted mb-1">
+                    Terme
                   </label>
                   <RichTextEditor
                     id={`front-${card.id}`}
                     value={card.front || ''}
                     onChange={(value) => handleUpdateCard(card.id, 'front', value)}
-                    placeholder="Enter term..."
+                    placeholder="Entrez le terme..."
                     rows={3}
                   />
                 </div>
                 <div>
                   <label className="block text-[12px] font-medium text-dark-text-muted mb-1">
-                    Definition
+                    Définition
                   </label>
                   <RichTextEditor
                     id={`back-${card.id}`}
                     value={card.back || ''}
                     onChange={(value) => handleUpdateCard(card.id, 'back', value)}
-                    placeholder="Enter definition..."
+                    placeholder="Entrez la définition..."
                     rows={3}
                   />
                 </div>
@@ -371,7 +450,7 @@ export default function EditSetPage() {
           <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button
               onClick={() => handleAddCard(index)}
-              className="bg-primary-600 text-white rounded-full p-2 shadow-lg hover:bg-primary-700 transition-colors"
+              className="bg-brand-primary text-white rounded-full p-2 shadow-lg hover:bg-brand-primaryDark transition-colors"
               title="Add card below"
             >
               <Plus className="h-4 w-4" />
@@ -385,21 +464,21 @@ export default function EditSetPage() {
       <div className="mb-6">
         <Button variant="outline" onClick={() => handleAddCard()}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Card
+          Ajouter une carte
         </Button>
       </div>
 
       {/* Save Button */}
       <div className="flex justify-between items-center pt-4 border-t">
         {hasUnsavedChanges && (
-          <p className="text-[13px] text-dark-states-warning">You have unsaved changes</p>
+          <p className="text-[13px] text-dark-states-warning">Vous avez des modifications non enregistrées</p>
         )}
         <div className="flex justify-end space-x-4 ml-auto">
           <Button variant="outline" onClick={() => router.back()}>
-            Cancel
+            Annuler
           </Button>
           <Button onClick={handleSave} disabled={isSaving || !hasUnsavedChanges}>
-            {isSaving ? 'Saving...' : 'Save Changes'}
+            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
           </Button>
         </div>
       </div>

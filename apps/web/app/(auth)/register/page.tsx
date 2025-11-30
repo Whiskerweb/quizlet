@@ -197,7 +197,7 @@ function RegisterForm() {
 
             <p className="text-center text-[12px] sm:text-sm text-gray-600 pt-2">
               Already have an account?{' '}
-              <Link href={`/login${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="text-primary-600 hover:underline font-medium">
+              <Link href={`/login${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="text-brand-primary hover:underline font-medium">
                 Sign in
               </Link>
             </p>

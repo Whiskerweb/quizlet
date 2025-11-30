@@ -76,7 +76,7 @@ export default function NewFlashcardPage() {
               id="front"
               {...register('front')}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary text-gray-900 bg-white"
               placeholder="Enter the question or term..."
             />
             {errors.front && (
@@ -92,7 +92,7 @@ export default function NewFlashcardPage() {
               id="back"
               {...register('back')}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary text-gray-900 bg-white"
               placeholder="Enter the answer or definition..."
             />
             {errors.back && (

@@ -146,7 +146,7 @@ export default function SetDetailPage() {
         <div className="grid md:grid-cols-2 gap-4">
           {set.flashcards.map((card, index) => (
             <Card key={card.id} className="relative group">
-              <div className="p-4">
+              <div className="p-4 card-text-content">
                 <div className="mb-2">
                   <span className="text-[16px] text-white">Front</span>
                   <FormattedText text={card.front} className="text-[16px] text-white mt-1" as="p" />

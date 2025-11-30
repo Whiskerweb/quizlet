@@ -9,14 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Brand colors
+        // Brand colors - Light blue palette
         brand: {
-          primary: '#4255FF',
-          primarySoft: '#5468FF',
-          primaryDark: '#1B2BFF',
-          secondaryTeal: '#3FD3FF',
-          accentYellow: '#FFD95A',
-          accentPink: '#FF5FA2',
+          primary: '#60A5FA',      // Light blue
+          primarySoft: '#93C5FD',   // Very light blue
+          primaryDark: '#3B82F6',   // Medium light blue
+          secondaryTeal: '#67E8F9', // Light cyan
+          accentYellow: '#FCD34D',  // Light yellow
+          accentPink: '#F472B6',    // Light pink
         },
         // Dark theme
         dark: {
@@ -44,13 +44,13 @@ const config: Config = {
             focus: '#FFFFFF',
           },
           states: {
-            primaryHover: '#5468FF',
-            primaryActive: '#1B2BFF',
+            primaryHover: '#93C5FD',
+            primaryActive: '#3B82F6',
             surfaceHover: '#181F3E',
             surfaceActive: '#141A37',
             danger: '#FF4B5C',
             success: '#3BD373',
-            warning: '#FFD95A',
+            warning: '#FCD34D',
           },
           semantic: {
             navActiveBackground: '#1C2346',
@@ -72,30 +72,30 @@ const config: Config = {
             primary: '#111135',
             secondary: '#44466F',
             muted: '#7B7FA5',
-            link: '#4255FF',
+            link: '#60A5FA',
           },
           border: {
             subtle: '#E1E4FF',
             soft: '#D3D9FF',
           },
           states: {
-            primaryHover: '#5468FF',
-            primaryActive: '#1B2BFF',
+            primaryHover: '#93C5FD',
+            primaryActive: '#3B82F6',
             surfaceHover: '#EEF1FF',
           },
         },
-        // Legacy primary colors (for backward compatibility)
+        // Legacy primary colors (for backward compatibility) - Light blue palette
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#4255FF',
-          600: '#1B2BFF',
-          700: '#1B2BFF',
-          800: '#1B2BFF',
-          900: '#1B2BFF',
+          50: '#EFF6FF',
+          100: '#DBEAFE',
+          200: '#BFDBFE',
+          300: '#93C5FD',
+          400: '#60A5FA',
+          500: '#3B82F6',
+          600: '#2563EB',
+          700: '#1D4ED8',
+          800: '#1E40AF',
+          900: '#1E3A8A',
         },
       },
       spacing: {
@@ -135,8 +135,8 @@ const config: Config = {
       boxShadow: {
         'elevation-1': '0 8px 24px rgba(0,0,0,0.28)',
         'elevation-2': '0 12px 32px rgba(0,0,0,0.36)',
-        'primary-glow': '0 10px 24px rgba(66,85,255,0.45)',
-        'primary-glow-lg': '0 10px 26px rgba(66,85,255,0.45)',
+        'primary-glow': '0 10px 24px rgba(96,165,250,0.45)',
+        'primary-glow-lg': '0 10px 26px rgba(96,165,250,0.45)',
       },
       transitionDuration: {
         fast: '120ms',

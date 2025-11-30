@@ -11,6 +11,7 @@ interface FormattedTextProps {
 /**
  * Component to safely render HTML formatted text (bold, italic, underline)
  * Converts HTML tags to rendered format
+ * All child elements inherit the parent's color and font-size
  */
 export function FormattedText({ text, className = '', as: Component = 'div' }: FormattedTextProps) {
   const formattedHTML = useMemo(() => {
@@ -34,9 +35,18 @@ export function FormattedText({ text, className = '', as: Component = 'div' }: F
     return sanitized;
   }, [text]);
 
+  // Add style to ensure all child elements inherit color and font-size
+  const style = {
+    color: 'inherit',
+    fontSize: 'inherit',
+    fontFamily: 'inherit',
+    lineHeight: 'inherit',
+  };
+
   return (
     <Component
       className={className}
+      style={style}
       dangerouslySetInnerHTML={{ __html: formattedHTML }}
     />
   );

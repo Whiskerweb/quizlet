@@ -91,7 +91,7 @@ export default function CreateSetPage() {
               id="description"
               {...register('description')}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary text-gray-900 bg-white"
               placeholder="Describe your set..."
             />
           </div>
@@ -123,7 +123,7 @@ export default function CreateSetPage() {
               id="isPublic"
               type="checkbox"
               {...register('isPublic')}
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              className="h-4 w-4 text-brand-primary focus:ring-brand-primary border-gray-300 rounded"
             />
             <label htmlFor="isPublic" className="ml-2 block text-sm text-white">
               Make this set public

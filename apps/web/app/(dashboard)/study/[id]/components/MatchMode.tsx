@@ -151,7 +151,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
           <div
-            className="bg-primary-600 h-2 rounded-full transition-all"
+            className="bg-brand-primary h-2 rounded-full transition-all"
             style={{ width: `${(matchedPairs.size / batchFronts.length) * 100}%` }}
           />
         </div>
@@ -185,7 +185,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
                     ${matched
                       ? 'border-green-500 bg-green-50 opacity-60 text-gray-900'
                       : selected
-                      ? 'border-brand-primary bg-[rgba(66,85,255,0.1)] text-white'
+                      ? 'border-brand-primary bg-[rgba(96,165,250,0.1)] text-white'
                       : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:border-[rgba(255,255,255,0.18)] text-white'
                     }
                     ${matched ? 'cursor-default' : 'cursor-pointer'}
@@ -219,7 +219,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
                     ${matched
                       ? 'border-green-500 bg-green-50 opacity-60 text-gray-900'
                       : selected
-                      ? 'border-brand-primary bg-[rgba(66,85,255,0.1)] text-white'
+                      ? 'border-brand-primary bg-[rgba(96,165,250,0.1)] text-white'
                       : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:border-[rgba(255,255,255,0.18)] text-white'
                     }
                     ${matched ? 'cursor-default' : 'cursor-pointer'}

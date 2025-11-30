@@ -21,6 +21,35 @@
   .marketing-page {
     @apply bg-light-background-base text-light-text-primary;
   }
+  
+  /* Force all text in cards to be uniform: white, 16px */
+  .card-text-content,
+  .card-text-content *,
+  .card-text-content p,
+  .card-text-content div,
+  .card-text-content span,
+  .card-text-content b,
+  .card-text-content strong,
+  .card-text-content i,
+  .card-text-content em,
+  .card-text-content u {
+    color: white !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* Ensure FormattedText children inherit styles when parent has text-white */
+  [class*="text-white"] b,
+  [class*="text-white"] strong,
+  [class*="text-white"] i,
+  [class*="text-white"] em,
+  [class*="text-white"] u,
+  [class*="text-white"] p,
+  [class*="text-white"] div,
+  [class*="text-white"] span {
+    color: inherit !important;
+    font-size: inherit !important;
+  }
 }
 
 @layer utilities {
@@ -28,7 +57,3 @@
     text-wrap: balance;
   }
 }
-
-
-
-

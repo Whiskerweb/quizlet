@@ -299,7 +299,7 @@ export default function StudyPage() {
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
-            className="bg-primary-600 h-2 rounded-full transition-all"
+            className="bg-brand-primary h-2 rounded-full transition-all"
             style={{ width: `${progress.progress}%` }}
           />
         </div>
