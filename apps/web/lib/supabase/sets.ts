@@ -97,14 +97,35 @@ export const setsService = {
       .eq('share_id', shareId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // Better error handling
+      console.error('Error fetching set by shareId:', error);
+      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+        throw new Error('Set non trouvé. Vérifiez que le lien de partage est correct.');
+      }
+      throw error;
+    }
+    
+    if (!data) {
+      throw new Error('Set non trouvé');
+    }
     
     // Sort flashcards by order
     if (data.flashcards && Array.isArray(data.flashcards)) {
       data.flashcards.sort((a: Flashcard, b: Flashcard) => (a.order || 0) - (b.order || 0));
     }
     
-    return data as SetWithFlashcards;
+    // Transform profiles to user format
+    const result = {
+      ...data,
+      user: data.profiles ? {
+        id: data.profiles.id,
+        username: data.profiles.username,
+        avatar: data.profiles.avatar,
+      } : undefined,
+    };
+    
+    return result as SetWithFlashcards;
   },
 
   async getMySets() {

@@ -34,11 +34,22 @@ export default function SharedSetPage() {
     try {
       setIsLoading(true);
       setError(null);
+      
+      console.log('Loading set with shareId:', shareId);
       const data = await setsService.getByShareId(shareId);
+      console.log('Set loaded:', data ? { id: data.id, title: data.title, is_public: data.is_public, has_password: !!data.password_hash } : 'null');
+      
+      if (!data) {
+        setError('Set non trouvé');
+        setIsLoading(false);
+        return;
+      }
       
       // Check if set is public
       if (!data.is_public) {
         setError('Ce set n\'est pas public');
+        // Still set the set data so we can show it
+        setSet(data);
         setIsLoading(false);
         return;
       }
@@ -49,10 +60,12 @@ export default function SharedSetPage() {
 
       // Check if password is required
       if (data.password_hash) {
+        console.log('Set has password, checking access...');
         // Check if user already has access
         if (user) {
           try {
             const hasAccess = await sharedSetsService.hasAccess(data.id);
+            console.log('User has access:', hasAccess);
             if (hasAccess) {
               setPasswordVerified(true);
               setIsAlreadyAdded(true);
@@ -64,6 +77,7 @@ export default function SharedSetPage() {
           }
         }
         // Password required - show modal
+        console.log('Opening password modal');
         setPasswordModalOpen(true);
         return;
       }
@@ -80,7 +94,19 @@ export default function SharedSetPage() {
       }
     } catch (err: any) {
       console.error('Failed to load set:', err);
-      setError(err.message || 'Set non trouvé');
+      console.error('Error details:', {
+        message: err.message,
+        code: err.code,
+        details: err.details,
+        hint: err.hint
+      });
+      
+      // Check if it's a "not found" error
+      if (err.code === 'PGRST116' || err.message?.includes('not found') || err.message?.includes('No rows')) {
+        setError('Set non trouvé. Vérifiez que le lien de partage est correct.');
+      } else {
+        setError(err.message || 'Erreur lors du chargement du set');
+      }
       setIsLoading(false);
     }
   };
