@@ -83,6 +83,9 @@ export const setsService = {
 
   async getByShareId(shareId: string) {
     const supabase = createClient();
+    
+    // First, try to get the set without filtering by is_public
+    // We'll check is_public in the component
     const { data, error } = await supabase
       .from('sets')
       .select(`
@@ -95,20 +98,34 @@ export const setsService = {
         )
       `)
       .eq('share_id', shareId)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error if not found
 
     if (error) {
       // Better error handling
       console.error('Error fetching set by shareId:', error);
-      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      console.error('Error details:', error.details);
+      console.error('Error hint:', error.hint);
+      
+      if (error.code === 'PGRST116' || error.message?.includes('No rows') || error.message?.includes('not found')) {
         throw new Error('Set non trouvé. Vérifiez que le lien de partage est correct.');
       }
       throw error;
     }
     
     if (!data) {
-      throw new Error('Set non trouvé');
+      console.error('No data returned for shareId:', shareId);
+      throw new Error('Set non trouvé. Vérifiez que le lien de partage est correct.');
     }
+    
+    console.log('Set found:', {
+      id: data.id,
+      title: data.title,
+      is_public: data.is_public,
+      has_password: !!data.password_hash,
+      share_id: data.share_id
+    });
     
     // Sort flashcards by order
     if (data.flashcards && Array.isArray(data.flashcards)) {

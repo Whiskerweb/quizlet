@@ -36,27 +36,46 @@ export default function SharedSetPage() {
       setError(null);
       
       console.log('Loading set with shareId:', shareId);
-      const data = await setsService.getByShareId(shareId);
-      console.log('Set loaded:', data ? { id: data.id, title: data.title, is_public: data.is_public, has_password: !!data.password_hash } : 'null');
+      
+      let data;
+      try {
+        data = await setsService.getByShareId(shareId);
+        console.log('Set loaded successfully:', data ? { 
+          id: data.id, 
+          title: data.title, 
+          is_public: data.is_public, 
+          has_password: !!data.password_hash,
+          share_id: data.share_id
+        } : 'null');
+      } catch (fetchError: any) {
+        console.error('Error in getByShareId:', fetchError);
+        // If it's a "not found" error, show specific message
+        if (fetchError.message?.includes('non trouvé') || fetchError.code === 'PGRST116') {
+          setError('Set non trouvé. Vérifiez que le lien de partage est correct.');
+        } else {
+          setError(fetchError.message || 'Erreur lors du chargement du set');
+        }
+        setIsLoading(false);
+        return;
+      }
       
       if (!data) {
+        console.error('No data returned from getByShareId');
         setError('Set non trouvé');
         setIsLoading(false);
         return;
       }
       
-      // Check if set is public
-      if (!data.is_public) {
-        setError('Ce set n\'est pas public');
-        // Still set the set data so we can show it
-        setSet(data);
-        setIsLoading(false);
-        return;
-      }
-
-      // Always set the set data first
+      // Always set the set data first, even if not public or has password
       setSet(data);
       setIsLoading(false);
+      
+      // Check if set is public
+      if (!data.is_public) {
+        console.log('Set is not public');
+        setError('Ce set n\'est pas public');
+        return;
+      }
 
       // Check if password is required
       if (data.password_hash) {
@@ -93,20 +112,16 @@ export default function SharedSetPage() {
         }
       }
     } catch (err: any) {
-      console.error('Failed to load set:', err);
+      console.error('Unexpected error in loadSet:', err);
       console.error('Error details:', {
         message: err.message,
         code: err.code,
         details: err.details,
-        hint: err.hint
+        hint: err.hint,
+        stack: err.stack
       });
       
-      // Check if it's a "not found" error
-      if (err.code === 'PGRST116' || err.message?.includes('not found') || err.message?.includes('No rows')) {
-        setError('Set non trouvé. Vérifiez que le lien de partage est correct.');
-      } else {
-        setError(err.message || 'Erreur lors du chargement du set');
-      }
+      setError(err.message || 'Erreur lors du chargement du set');
       setIsLoading(false);
     }
   };
