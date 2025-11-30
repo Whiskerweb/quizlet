@@ -10,7 +10,7 @@ interface TextFormatToolbarProps {
   onFormat?: (format: 'bold' | 'italic' | 'underline') => void;
 }
 
-export function TextFormatToolbar({ textareaId, textareaRef, onFormat, fieldName }: TextFormatToolbarProps) {
+export function TextFormatToolbar({ textareaId, textareaRef, onFormat }: TextFormatToolbarProps) {
   const [selection, setSelection] = useState<{ start: number; end: number; text: string } | null>(null);
 
   useEffect(() => {
