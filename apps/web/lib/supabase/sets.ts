@@ -84,61 +84,75 @@ export const setsService = {
   async getByShareId(shareId: string) {
     const supabase = createClient();
     
-    // First, try to get the set without filtering by is_public
-    // We'll check is_public in the component
-    const { data, error } = await supabase
+    // First, get the set without relations to avoid RLS issues
+    const { data: setData, error: setError } = await supabase
       .from('sets')
-      .select(`
-        *,
-        flashcards (*),
-        profiles:user_id (
-          id,
-          username,
-          avatar
-        )
-      `)
+      .select('*')
       .eq('share_id', shareId)
-      .maybeSingle(); // Use maybeSingle instead of single to avoid error if not found
+      .eq('is_public', true) // Only get public sets
+      .maybeSingle();
 
-    if (error) {
-      // Better error handling
-      console.error('Error fetching set by shareId:', error);
-      console.error('Error code:', error.code);
-      console.error('Error message:', error.message);
-      console.error('Error details:', error.details);
-      console.error('Error hint:', error.hint);
+    if (setError) {
+      console.error('Error fetching set by shareId:', setError);
+      console.error('Error code:', setError.code);
+      console.error('Error message:', setError.message);
+      console.error('Error details:', setError.details);
+      console.error('Error hint:', setError.hint);
       
-      if (error.code === 'PGRST116' || error.message?.includes('No rows') || error.message?.includes('not found')) {
+      if (setError.code === 'PGRST116' || setError.message?.includes('No rows') || setError.message?.includes('not found')) {
         throw new Error('Set non trouvé. Vérifiez que le lien de partage est correct.');
       }
-      throw error;
+      throw setError;
     }
     
-    if (!data) {
-      console.error('No data returned for shareId:', shareId);
+    if (!setData) {
+      console.error('No set data returned for shareId:', shareId);
       throw new Error('Set non trouvé. Vérifiez que le lien de partage est correct.');
     }
     
     console.log('Set found:', {
-      id: data.id,
-      title: data.title,
-      is_public: data.is_public,
-      has_password: !!data.password_hash,
-      share_id: data.share_id
+      id: setData.id,
+      title: setData.title,
+      is_public: setData.is_public,
+      has_password: !!setData.password_hash,
+      share_id: setData.share_id
     });
     
-    // Sort flashcards by order
-    if (data.flashcards && Array.isArray(data.flashcards)) {
-      data.flashcards.sort((a: Flashcard, b: Flashcard) => (a.order || 0) - (b.order || 0));
+    // Get flashcards separately to avoid RLS issues with relations
+    const { data: flashcardsData, error: flashcardsError } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('set_id', setData.id)
+      .order('order', { ascending: true });
+
+    if (flashcardsError) {
+      console.error('Error fetching flashcards:', flashcardsError);
+      // Don't throw, just use empty array
     }
     
-    // Transform profiles to user format
+    // Get profile separately (this should work because profiles are public)
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar')
+      .eq('id', setData.user_id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      // Don't throw, just use undefined
+    }
+    
+    // Sort flashcards by order
+    const flashcards = (flashcardsData || []).sort((a: Flashcard, b: Flashcard) => (a.order || 0) - (b.order || 0));
+    
+    // Transform to SetWithFlashcards format
     const result = {
-      ...data,
-      user: data.profiles ? {
-        id: data.profiles.id,
-        username: data.profiles.username,
-        avatar: data.profiles.avatar,
+      ...setData,
+      flashcards,
+      user: profileData ? {
+        id: profileData.id,
+        username: profileData.username,
+        avatar: profileData.avatar,
       } : undefined,
     };
     
