@@ -149,5 +149,54 @@ export const flashcardsService = {
 
     await Promise.all(updates);
   },
+
+  async import(setId: string, cards: { term: string; definition: string }[]) {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Verify set ownership
+    const { data: set, error: setError } = await supabase
+      .from('sets')
+      .select('id')
+      .eq('id', setId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (setError || !set) throw new Error('Set not found or access denied');
+
+    // Get max order
+    const { data: existingCards } = await supabase
+      .from('flashcards')
+      .select('order')
+      .eq('set_id', setId)
+      .order('order', { ascending: false })
+      .limit(1);
+
+    const startOrder = existingCards && existingCards.length > 0 ? existingCards[0].order + 1 : 0;
+
+    // Create all flashcards
+    const flashcardsToInsert = cards.map((card, index) => ({
+      front: card.term,
+      back: card.definition,
+      set_id: setId,
+      order: startOrder + index,
+    }));
+
+    const { data, error } = await supabase
+      .from('flashcards')
+      .insert(flashcardsToInsert)
+      .select();
+
+    if (error) throw error;
+
+    // Update set stats (the function automatically counts the flashcards)
+    await supabase.rpc('increment_flashcard_count', { 
+      set_id_param: setId
+    });
+
+    return data as Flashcard[];
+  },
 };
+
 

@@ -11,6 +11,7 @@ import {
 import { FlashcardsService } from './flashcards.service';
 import { CreateFlashcardDto } from './dto/create-flashcard.dto';
 import { UpdateFlashcardDto } from './dto/update-flashcard.dto';
+import { ImportFlashcardsDto } from './dto/import-flashcards.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -63,6 +64,17 @@ export class FlashcardsController {
   ) {
     return this.flashcardsService.reorder(setId, user.id, flashcardIds);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('import')
+  import(
+    @Param('setId') setId: string,
+    @CurrentUser() user: any,
+    @Body() importFlashcardsDto: ImportFlashcardsDto
+  ) {
+    return this.flashcardsService.import(setId, user.id, importFlashcardsDto);
+  }
 }
+
 
 

@@ -100,12 +100,19 @@ export default function SetDetailPage() {
 
       <div className="mb-4 flex justify-between items-center">
         <h2 className="text-xl font-semibold">Flashcards</h2>
-        <Link href={`/sets/${setId}/flashcards/new`}>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Flashcard
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`/sets/${setId}/edit`}>
+            <Button size="sm" variant="outline">
+              Importer
+            </Button>
+          </Link>
+          <Link href={`/sets/${setId}/flashcards/new`}>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Flashcard
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {set.flashcards.length === 0 ? (
@@ -122,11 +129,11 @@ export default function SetDetailPage() {
               <div className="p-4">
                 <div className="mb-2">
                   <span className="text-xs text-gray-500">Front</span>
-                  <p className="font-medium">{card.front}</p>
+                  <p className="font-medium text-gray-900">{card.front}</p>
                 </div>
                 <div>
                   <span className="text-xs text-gray-500">Back</span>
-                  <p className="text-gray-700">{card.back}</p>
+                  <p className="text-gray-900">{card.back}</p>
                 </div>
               </div>
             </Card>

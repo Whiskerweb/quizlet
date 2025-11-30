@@ -56,6 +56,12 @@ export const flashcardsApi = {
   reorder: async (setId: string, flashcardIds: string[]): Promise<void> => {
     await apiClient.patch(`/sets/${setId}/flashcards/reorder`, { flashcardIds });
   },
+
+  import: async (setId: string, cards: { term: string; definition: string }[]): Promise<Flashcard[]> => {
+    const response = await apiClient.post(`/sets/${setId}/flashcards/import`, { cards });
+    return response.data;
+  },
 };
+
 
 

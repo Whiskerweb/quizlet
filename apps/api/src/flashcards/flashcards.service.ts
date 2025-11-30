@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFlashcardDto } from './dto/create-flashcard.dto';
 import { UpdateFlashcardDto } from './dto/update-flashcard.dto';
+import { ImportFlashcardsDto } from './dto/import-flashcards.dto';
 
 @Injectable()
 export class FlashcardsService {
@@ -128,6 +129,47 @@ export class FlashcardsService {
 
     return { message: 'Flashcards reordered successfully' };
   }
+
+  async import(setId: string, userId: string, dto: ImportFlashcardsDto) {
+    // Verify set ownership
+    const set = await this.prisma.set.findUnique({
+      where: { id: setId },
+    });
+
+    if (!set) {
+      throw new NotFoundException('Set not found');
+    }
+
+    if (set.userId !== userId) {
+      throw new ForbiddenException('You can only import flashcards to your own sets');
+    }
+
+    // Get max order
+    const maxOrder = await this.prisma.flashcard.findFirst({
+      where: { setId },
+      orderBy: { order: 'desc' },
+      select: { order: true },
+    });
+
+    const startOrder = maxOrder ? maxOrder.order + 1 : 0;
+
+    // Create all flashcards
+    const flashcards = await Promise.all(
+      dto.cards.map((card, index) =>
+        this.prisma.flashcard.create({
+          data: {
+            front: card.term,
+            back: card.definition,
+            setId,
+            order: startOrder + index,
+          },
+        })
+      )
+    );
+
+    return flashcards;
+  }
 }
+
 
 
