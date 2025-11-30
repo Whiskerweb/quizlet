@@ -64,3 +64,4 @@ Notre middleware Next.js autorise déjà ces routes publiques :
 
 Une fois la protection Vercel désactivée, ces routes seront accessibles sans authentification.
 
+

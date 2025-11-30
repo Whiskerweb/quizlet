@@ -67,3 +67,4 @@ COMMENT ON COLUMN public.sets.password_hash IS 'Hashed password for protected se
 COMMENT ON TABLE public.shared_sets IS 'Tracks sets that have been shared with users after password verification.';
 
 
+

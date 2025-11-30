@@ -111,3 +111,4 @@ Si le problème persiste, partagez :
 4. **Réponse de l'API** (curl ou navigateur)
 5. **ShareId** qui ne fonctionne pas (sans le mot de passe si protégé)
 
+

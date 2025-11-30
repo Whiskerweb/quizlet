@@ -122,3 +122,4 @@ Pour chaque page, vérifier :
 - [ ] Pas de débordement horizontal
 - [ ] Tous les éléments cliquables ont une taille minimale de 44px
 
+
