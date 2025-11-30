@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { FormattedText } from '@/components/FormattedText';
 import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
 
 interface Flashcard {
@@ -106,7 +107,7 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
                 <span>{isReversed ? 'Mode inversé' : 'Mode normal'}</span>
               </button>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{questionText}</p>
+            <FormattedText text={questionText} className="text-2xl font-bold text-gray-900" as="p" />
           </div>
         </div>
       </div>
@@ -137,7 +138,7 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
               `}
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-900">{option}</span>
+                <FormattedText text={option} className="font-medium text-gray-900" as="span" />
                 {showCorrect && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                 {showIncorrect && <XCircle className="h-5 w-5 text-red-600" />}
               </div>
@@ -151,7 +152,11 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
           <p className="text-sm text-gray-600">
             {selectedAnswer === correctAnswer 
               ? '✓ Correct!' 
-              : `✗ Incorrect. The correct answer is: ${correctAnswer}`
+              : (
+                <>
+                  ✗ Incorrect. The correct answer is: <FormattedText text={correctAnswer} as="span" />
+                </>
+              )
             }
           </p>
         </div>

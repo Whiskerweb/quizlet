@@ -33,3 +33,5 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION public.create_or_update_profile TO authenticated;
 
+
+

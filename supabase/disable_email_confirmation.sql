@@ -8,3 +8,5 @@
 -- However, we can also modify the trigger to not require email confirmation
 -- The trigger will still work, but users won't need to confirm their email
 
+
+

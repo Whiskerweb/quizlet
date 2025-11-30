@@ -7,6 +7,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { setsApi, Set } from '@/lib/api/sets.api';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { FormattedText } from '@/components/FormattedText';
 import { Play, User } from 'lucide-react';
 
 export default function SharedSetPage() {
@@ -87,11 +88,11 @@ export default function SharedSetPage() {
               <div className="p-4">
                 <div className="mb-2">
                   <span className="text-xs text-gray-500">Front</span>
-                  <p className="font-medium">{card.front}</p>
+                  <FormattedText text={card.front} className="font-medium" as="p" />
                 </div>
                 <div>
                   <span className="text-xs text-gray-500">Back</span>
-                  <p className="text-gray-700">{card.back}</p>
+                  <FormattedText text={card.back} className="text-gray-700" as="p" />
                 </div>
               </div>
             </Card>

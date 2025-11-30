@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
+import { FormattedText } from '@/components/FormattedText';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 
 interface Flashcard {
@@ -191,7 +192,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
                   `}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">{card.front}</span>
+                    <FormattedText text={card.front} className="font-medium text-gray-900" as="span" />
                     {matched && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                   </div>
                 </button>
@@ -225,7 +226,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
                   `}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">{back.text}</span>
+                    <FormattedText text={back.text} className="font-medium text-gray-900" as="span" />
                     {matched && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                   </div>
                 </button>

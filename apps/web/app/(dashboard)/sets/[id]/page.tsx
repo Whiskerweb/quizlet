@@ -8,6 +8,7 @@ import { flashcardsService } from '@/lib/supabase/flashcards';
 import type { SetWithFlashcards } from '@/lib/supabase/sets';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { FormattedText } from '@/components/FormattedText';
 import { Play, Edit, Trash2, Plus } from 'lucide-react';
 
 export default function SetDetailPage() {
@@ -130,11 +131,11 @@ export default function SetDetailPage() {
               <div className="p-4">
                 <div className="mb-2">
                   <span className="text-xs text-gray-500">Front</span>
-                  <p className="font-medium text-gray-900">{card.front}</p>
+                  <FormattedText text={card.front} className="font-medium text-gray-900" as="p" />
                 </div>
                 <div className="mb-4">
                   <span className="text-xs text-gray-500">Back</span>
-                  <p className="text-gray-900">{card.back}</p>
+                  <FormattedText text={card.back} className="text-gray-900" as="p" />
                 </div>
                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Link href={`/sets/${setId}/flashcards/${card.id}/edit`}>

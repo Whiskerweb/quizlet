@@ -72,6 +72,12 @@ export const setsService = {
       .single();
 
     if (error) throw error;
+    
+    // Sort flashcards by order
+    if (data.flashcards && Array.isArray(data.flashcards)) {
+      data.flashcards.sort((a: Flashcard, b: Flashcard) => (a.order || 0) - (b.order || 0));
+    }
+    
     return data as SetWithFlashcards;
   },
 
@@ -211,4 +217,6 @@ export const setsService = {
     return newSet as Set;
   },
 };
+
+
 

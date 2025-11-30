@@ -58,6 +58,7 @@ export interface Database {
           tags: string[]
           language: string | null
           user_id: string
+          folder_id: string | null
           created_at: string
           updated_at: string
         }
@@ -71,6 +72,7 @@ export interface Database {
           tags?: string[]
           language?: string | null
           user_id: string
+          folder_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -84,6 +86,36 @@ export interface Database {
           tags?: string[]
           language?: string | null
           user_id?: string
+          folder_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      folders: {
+        Row: {
+          id: string
+          name: string
+          user_id: string
+          color: string
+          order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          user_id: string
+          color?: string
+          order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          user_id?: string
+          color?: string
+          order?: number
           created_at?: string
           updated_at?: string
         }
@@ -286,4 +318,6 @@ export interface Database {
     }
   }
 }
+
+
 

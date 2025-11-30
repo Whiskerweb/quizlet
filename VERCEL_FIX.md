@@ -46,3 +46,5 @@ Le fichier `vercel.json` à la racine est pour la configuration globale, mais Ve
 
 **Une fois le Root Directory configuré, tout devrait fonctionner !** 🚀
 
+
+

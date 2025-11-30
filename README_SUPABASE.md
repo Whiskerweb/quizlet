@@ -98,3 +98,5 @@ Suivez `SUPABASE_SETUP.md` pour :
 
 **🎉 Migration terminée ! Votre app est maintenant 100% gratuite et plus simple à maintenir !**
 
+
+

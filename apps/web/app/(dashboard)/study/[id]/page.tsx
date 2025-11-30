@@ -6,6 +6,7 @@ import { setsService } from '@/lib/supabase/sets';
 import { studyService } from '@/lib/supabase/study';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { FormattedText } from '@/components/FormattedText';
 import { Check, X } from 'lucide-react';
 import { StudyModeSelector } from './components/StudyModeSelector';
 import { QuizMode } from './components/QuizMode';
@@ -315,17 +316,19 @@ export default function StudyPage() {
             {!isFlipped ? (
               <div className="space-y-4">
                 <p className="text-xs uppercase tracking-wide text-gray-400 mb-6">Front</p>
-                <div className="text-3xl md:text-4xl font-bold text-gray-900 break-words whitespace-pre-wrap leading-relaxed">
-                  {currentCard.front || 'No front text'}
-                </div>
+                <FormattedText 
+                  text={currentCard.front || 'No front text'} 
+                  className="text-3xl md:text-4xl font-bold text-gray-900 break-words whitespace-pre-wrap leading-relaxed" 
+                />
                 <p className="text-sm text-gray-400 mt-8">Click to flip</p>
               </div>
             ) : (
               <div className="space-y-4">
                 <p className="text-xs uppercase tracking-wide text-gray-400 mb-6">Back</p>
-                <div className="text-3xl md:text-4xl font-bold text-gray-900 break-words whitespace-pre-wrap leading-relaxed">
-                  {currentCard.back || 'No back text'}
-                </div>
+                <FormattedText 
+                  text={currentCard.back || 'No back text'} 
+                  className="text-3xl md:text-4xl font-bold text-gray-900 break-words whitespace-pre-wrap leading-relaxed" 
+                />
                 <div className="flex justify-center space-x-4 mt-8">
                   <Button
                     variant="outline"

@@ -34,7 +34,7 @@ interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {
 
 export function CardTitle({ className, children, ...props }: CardTitleProps) {
   return (
-    <h3 className={cn('text-xl font-semibold', className)} {...props}>
+    <h3 className={cn('text-xl font-semibold text-gray-900', className)} {...props}>
       {children}
     </h3>
   );

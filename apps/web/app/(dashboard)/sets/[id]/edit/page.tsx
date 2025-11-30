@@ -9,6 +9,7 @@ import type { ParsedCard } from '@/lib/utils/parseImportedText';
 import { ImportModal } from '@/components/ImportModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { GripVertical, Trash2, Image as ImageIcon, Plus } from 'lucide-react';
 
 interface FlashcardItem {
@@ -28,6 +29,9 @@ export default function EditSetPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
+  const [dragOverCardId, setDragOverCardId] = useState<string | null>(null);
+  const [newlyAddedCardId, setNewlyAddedCardId] = useState<string | null>(null);
 
   useEffect(() => {
     loadSet();
@@ -39,14 +43,16 @@ export default function EditSetPage() {
       setIsLoading(true);
       const data = await setsService.getOne(setId);
       setSet(data);
-      setFlashcards(
-        (data.flashcards || []).map((card) => ({
+      // Sort flashcards by order to ensure correct order
+      const sortedFlashcards = (data.flashcards || [])
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map((card) => ({
           id: card.id,
           front: card.front,
           back: card.back,
           imageUrl: card.image_url || null,
-        }))
-      );
+        }));
+      setFlashcards(sortedFlashcards);
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Failed to load set:', error);
@@ -55,16 +61,32 @@ export default function EditSetPage() {
     }
   };
 
-  const handleAddCard = () => {
-    setFlashcards([
-      ...flashcards,
-      {
-        id: `temp-${Date.now()}`,
-        front: '',
-        back: '',
-        imageUrl: null,
-      },
-    ]);
+  const handleAddCard = (insertAfterIndex?: number) => {
+    const newCard = {
+      id: `temp-${Date.now()}`,
+      front: '',
+      back: '',
+      imageUrl: null,
+    };
+
+    if (insertAfterIndex !== undefined) {
+      // Insert after the specified index
+      const newFlashcards = [...flashcards];
+      newFlashcards.splice(insertAfterIndex + 1, 0, newCard);
+      setFlashcards(newFlashcards);
+    } else {
+      // Add at the end (default behavior)
+      setFlashcards([...flashcards, newCard]);
+    }
+    
+    // Trigger animation
+    setNewlyAddedCardId(newCard.id);
+    setHasUnsavedChanges(true);
+    
+    // Remove animation class after animation completes
+    setTimeout(() => {
+      setNewlyAddedCardId(null);
+    }, 600);
   };
 
   const handleDeleteCard = async (id: string) => {
@@ -99,8 +121,11 @@ export default function EditSetPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Save all flashcards
-      for (const card of flashcards) {
+      // Save all flashcards and update their order
+      const existingCardIds: string[] = [];
+      
+      for (let index = 0; index < flashcards.length; index++) {
+        const card = flashcards[index];
         if (card.id.startsWith('temp-')) {
           // Create new card
           await flashcardsService.create(setId, {
@@ -115,7 +140,13 @@ export default function EditSetPage() {
             back: card.back,
             image_url: card.imageUrl || null,
           });
+          existingCardIds.push(card.id);
         }
+      }
+
+      // Update order for all existing cards
+      if (existingCardIds.length > 0) {
+        await flashcardsService.reorder(setId, existingCardIds);
       }
 
       // Reload to get updated data
@@ -138,6 +169,67 @@ export default function EditSetPage() {
     } catch (error) {
       console.error('Failed to import flashcards:', error);
       alert('Failed to import flashcards');
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, cardId: string) => {
+    setDraggedCardId(cardId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', cardId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedCardId(null);
+    setDragOverCardId(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, cardId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedCardId && draggedCardId !== cardId) {
+      setDragOverCardId(cardId);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverCardId(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetCardId: string) => {
+    e.preventDefault();
+    setDragOverCardId(null);
+
+    if (!draggedCardId || draggedCardId === targetCardId) {
+      return;
+    }
+
+    const draggedIndex = flashcards.findIndex((card) => card.id === draggedCardId);
+    const targetIndex = flashcards.findIndex((card) => card.id === targetCardId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      return;
+    }
+
+    // Reorder flashcards in state
+    const newFlashcards = [...flashcards];
+    const [removed] = newFlashcards.splice(draggedIndex, 1);
+    newFlashcards.splice(targetIndex, 0, removed);
+    setFlashcards(newFlashcards);
+    setHasUnsavedChanges(true);
+
+    // Save order to database (only for existing cards, not temp ones)
+    const existingCardIds = newFlashcards
+      .filter((card) => !card.id.startsWith('temp-'))
+      .map((card) => card.id);
+
+    if (existingCardIds.length > 0) {
+      try {
+        await flashcardsService.reorder(setId, existingCardIds);
+      } catch (error) {
+        console.error('Failed to reorder flashcards:', error);
+        // Revert on error
+        await loadSet();
+      }
     }
   };
 
@@ -178,12 +270,45 @@ export default function EditSetPage() {
       {/* Flashcards List */}
       <div className="space-y-4 mb-6">
         {flashcards.map((card, index) => (
-          <Card key={card.id} className="p-4">
-            <div className="flex items-start gap-4">
-              {/* Drag Handle */}
-              <div className="flex-shrink-0 pt-2 cursor-move text-gray-400 hover:text-gray-600">
-                <GripVertical className="h-5 w-5" />
-              </div>
+          <div
+            key={card.id}
+            className={`group relative ${
+              newlyAddedCardId === card.id
+                ? 'animate-slideIn'
+                : ''
+            }`}
+          >
+            <div
+              draggable
+              onDragStart={(e) => handleDragStart(e, card.id)}
+              onDragEnd={handleDragEnd}
+              onDragOver={(e) => handleDragOver(e, card.id)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, card.id)}
+              className={`transition-all ${
+                draggedCardId === card.id ? 'opacity-50' : ''
+              } ${
+                dragOverCardId === card.id ? 'transform translate-y-1' : ''
+              }`}
+            >
+              <Card
+                className={`p-4 transition-all ${
+                  dragOverCardId === card.id ? 'border-2 border-primary-500 shadow-lg' : ''
+                } ${
+                  newlyAddedCardId === card.id
+                    ? 'bg-primary-50 border-primary-300'
+                    : ''
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  {/* Drag Handle */}
+                  <div
+                    className="flex-shrink-0 pt-2 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                    draggable={false}
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    <GripVertical className="h-5 w-5" />
+                  </div>
 
               {/* Card Number */}
               <div className="flex-shrink-0 w-8 pt-2 text-sm font-medium text-gray-500">
@@ -196,24 +321,24 @@ export default function EditSetPage() {
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     Term
                   </label>
-                  <textarea
-                    value={card.front}
-                    onChange={(e) => handleUpdateCard(card.id, 'front', e.target.value)}
+                  <RichTextEditor
+                    id={`front-${card.id}`}
+                    value={card.front || ''}
+                    onChange={(value) => handleUpdateCard(card.id, 'front', value)}
                     placeholder="Enter term..."
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white resize-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     Definition
                   </label>
-                  <textarea
-                    value={card.back}
-                    onChange={(e) => handleUpdateCard(card.id, 'back', e.target.value)}
+                  <RichTextEditor
+                    id={`back-${card.id}`}
+                    value={card.back || ''}
+                    onChange={(value) => handleUpdateCard(card.id, 'back', value)}
                     placeholder="Enter definition..."
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white resize-none"
                   />
                 </div>
               </div>
@@ -240,6 +365,19 @@ export default function EditSetPage() {
               </div>
             </div>
           </Card>
+          </div>
+          
+          {/* Add Card Button (appears on hover) */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <button
+              onClick={() => handleAddCard(index)}
+              className="bg-primary-600 text-white rounded-full p-2 shadow-lg hover:bg-primary-700 transition-colors"
+              title="Add card below"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+          </div>
         ))}
       </div>
 

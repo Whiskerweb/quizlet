@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { flashcardsService } from '@/lib/supabase/flashcards';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 const editFlashcardSchema = z.object({
   front: z.string().min(1, 'Front is required'),
@@ -32,9 +33,14 @@ export default function EditFlashcardPage() {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useForm<EditFlashcardFormData>({
     resolver: zodResolver(editFlashcardSchema),
   });
+
+  const frontValue = watch('front');
+  const backValue = watch('back');
 
   useEffect(() => {
     loadFlashcard();
@@ -45,9 +51,12 @@ export default function EditFlashcardPage() {
     try {
       setIsLoading(true);
       const flashcard = await flashcardsService.getOne(cardId);
+      // Convert HTML tags to proper format if needed
+      const front = flashcard.front || '';
+      const back = flashcard.back || '';
       reset({
-        front: flashcard.front,
-        back: flashcard.back,
+        front: front,
+        back: back,
         imageUrl: flashcard.image_url || '',
         audioUrl: flashcard.audio_url || '',
       });
@@ -116,12 +125,16 @@ export default function EditFlashcardPage() {
             <label htmlFor="front" className="block text-sm font-medium text-gray-700 mb-1">
               Front (Question) *
             </label>
-            <textarea
-              id="front"
+            <input
+              type="hidden"
               {...register('front')}
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
+            />
+            <RichTextEditor
+              id="front"
+              value={frontValue || ''}
+              onChange={(value) => setValue('front', value, { shouldDirty: true })}
               placeholder="Enter the question or term..."
+              rows={4}
             />
             {errors.front && (
               <p className="mt-1 text-sm text-red-600">{errors.front.message}</p>
@@ -132,12 +145,16 @@ export default function EditFlashcardPage() {
             <label htmlFor="back" className="block text-sm font-medium text-gray-700 mb-1">
               Back (Answer) *
             </label>
-            <textarea
-              id="back"
+            <input
+              type="hidden"
               {...register('back')}
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
+            />
+            <RichTextEditor
+              id="back"
+              value={backValue || ''}
+              onChange={(value) => setValue('back', value, { shouldDirty: true })}
               placeholder="Enter the answer or definition..."
+              rows={4}
             />
             {errors.back && (
               <p className="mt-1 text-sm text-red-600">{errors.back.message}</p>
@@ -197,4 +214,5 @@ export default function EditFlashcardPage() {
     </div>
   );
 }
+
 

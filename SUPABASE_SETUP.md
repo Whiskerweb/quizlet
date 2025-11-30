@@ -96,3 +96,5 @@ Dans Supabase Dashboard :
 
 **Besoin d'aide ?** Consultez `SUPABASE_MIGRATION.md` pour plus de détails.
 
+
+
