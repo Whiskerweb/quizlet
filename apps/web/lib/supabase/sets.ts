@@ -87,12 +87,23 @@ export const setsService = {
       .from('sets')
       .select(`
         *,
-        flashcards (*)
+        flashcards (*),
+        profiles:user_id (
+          id,
+          username,
+          avatar
+        )
       `)
       .eq('share_id', shareId)
       .single();
 
     if (error) throw error;
+    
+    // Sort flashcards by order
+    if (data.flashcards && Array.isArray(data.flashcards)) {
+      data.flashcards.sort((a: Flashcard, b: Flashcard) => (a.order || 0) - (b.order || 0));
+    }
+    
     return data as SetWithFlashcards;
   },
 

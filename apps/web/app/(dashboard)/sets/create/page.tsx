@@ -56,7 +56,7 @@ export default function CreateSetPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Create New Set</h1>
+      <h1 className="text-3xl font-bold text-white mb-8">Create New Set</h1>
 
         <Card>
         <CardHeader>
@@ -70,7 +70,7 @@ export default function CreateSetPage() {
           )}
 
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="title" className="block text-sm font-medium text-white mb-1">
               Title *
             </label>
             <Input
@@ -84,7 +84,7 @@ export default function CreateSetPage() {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="description" className="block text-sm font-medium text-white mb-1">
               Description
             </label>
             <textarea
@@ -97,7 +97,7 @@ export default function CreateSetPage() {
           </div>
 
           <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="tags" className="block text-sm font-medium text-white mb-1">
               Tags (comma-separated)
             </label>
             <Input
@@ -108,7 +108,7 @@ export default function CreateSetPage() {
           </div>
 
           <div>
-            <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="language" className="block text-sm font-medium text-white mb-1">
               Language
             </label>
             <Input
@@ -125,7 +125,7 @@ export default function CreateSetPage() {
               {...register('isPublic')}
               className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
             />
-            <label htmlFor="isPublic" className="ml-2 block text-sm text-gray-700">
+            <label htmlFor="isPublic" className="ml-2 block text-sm text-white">
               Make this set public
             </label>
           </div>

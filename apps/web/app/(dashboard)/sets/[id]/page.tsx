@@ -9,7 +9,9 @@ import type { SetWithFlashcards } from '@/lib/supabase/sets';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { FormattedText } from '@/components/FormattedText';
-import { Play, Edit, Trash2, Plus } from 'lucide-react';
+import { Play, Edit, Trash2, Plus, Share2 } from 'lucide-react';
+import { ShareManageModal } from '@/components/ShareManageModal';
+import { hashPassword } from '@/lib/supabase/shared-sets';
 
 export default function SetDetailPage() {
   const params = useParams();
@@ -18,6 +20,7 @@ export default function SetDetailPage() {
   const [set, setSet] = useState<SetWithFlashcards | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
     loadSet();
@@ -45,6 +48,17 @@ export default function SetDetailPage() {
     } catch (error) {
       console.error('Failed to delete set:', error);
     }
+  };
+
+  const handleSavePassword = async (password: string | null) => {
+    const passwordHash = password ? hashPassword(password) : null;
+    await setsService.update(setId, { password_hash: passwordHash });
+    await loadSet();
+  };
+
+  const handleSetPublic = async (isPublic: boolean) => {
+    await setsService.update(setId, { is_public: isPublic });
+    await loadSet();
   };
 
   if (isLoading) {
@@ -86,6 +100,10 @@ export default function SetDetailPage() {
                 Edit
               </Button>
             </Link>
+            <Button variant="outline" onClick={() => setIsShareModalOpen(true)}>
+              <Share2 className="h-4 w-4" />
+              Partager
+            </Button>
             <Button variant="outline" onClick={handleDelete}>
               <Trash2 className="h-4 w-4" />
               Delete
@@ -171,6 +189,20 @@ export default function SetDetailPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {set && (
+        <ShareManageModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          onSave={handleSavePassword}
+          currentPassword={set.password_hash || null}
+          setIsPublic={handleSetPublic}
+          currentIsPublic={set.is_public || false}
+          shareId={set.share_id}
+          setTitle={set.title}
+          setId={set.id}
+        />
       )}
     </>
   );

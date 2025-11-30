@@ -59,6 +59,7 @@ export interface Database {
           language: string | null
           user_id: string
           folder_id: string | null
+          password_hash: string | null
           created_at: string
           updated_at: string
         }
@@ -73,6 +74,7 @@ export interface Database {
           language?: string | null
           user_id: string
           folder_id?: string | null
+          password_hash?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -87,6 +89,33 @@ export interface Database {
           language?: string | null
           user_id?: string
           folder_id?: string | null
+          password_hash?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      shared_sets: {
+        Row: {
+          id: string
+          set_id: string
+          user_id: string
+          shared_by_user_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          set_id: string
+          user_id: string
+          shared_by_user_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          set_id?: string
+          user_id?: string
+          shared_by_user_id?: string
           created_at?: string
           updated_at?: string
         }
