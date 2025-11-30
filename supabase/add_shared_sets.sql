@@ -66,3 +66,4 @@ CREATE POLICY "Set owners can view shared sets for their sets"
 COMMENT ON COLUMN public.sets.password_hash IS 'Hashed password for protected sets. NULL means no password protection.';
 COMMENT ON TABLE public.shared_sets IS 'Tracks sets that have been shared with users after password verification.';
 
+

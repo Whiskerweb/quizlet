@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { FormattedText } from '@/components/FormattedText';
 import { PasswordPromptModal } from '@/components/PasswordPromptModal';
-import { Play, User, Lock, Share2, LogIn } from 'lucide-react';
+import { Play, User, Lock, Share2, LogIn, Check } from 'lucide-react';
 import type { SetWithFlashcards } from '@/lib/supabase/sets';
 
 export default function SharedSetPage() {
@@ -23,11 +23,12 @@ export default function SharedSetPage() {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [passwordVerified, setPasswordVerified] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAlreadyAdded, setIsAlreadyAdded] = useState(false);
 
   useEffect(() => {
     loadSet();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shareId]);
+  }, [shareId, user]);
 
   const loadSet = async () => {
     try {
@@ -41,6 +42,9 @@ export default function SharedSetPage() {
         return;
       }
 
+      // Always set the set data first
+      setSet(data);
+
       // Check if password is required
       if (data.password_hash) {
         // Check if user already has access
@@ -48,7 +52,7 @@ export default function SharedSetPage() {
           const hasAccess = await sharedSetsService.hasAccess(data.id);
           if (hasAccess) {
             setPasswordVerified(true);
-            setSet(data);
+            setIsAlreadyAdded(true);
             return;
           }
         }
@@ -57,8 +61,11 @@ export default function SharedSetPage() {
         return;
       }
 
-      // No password required
-      setSet(data);
+      // No password required - check if already added
+      if (user) {
+        const hasAccess = await sharedSetsService.hasAccess(data.id);
+        setIsAlreadyAdded(hasAccess);
+      }
     } catch (err: any) {
       console.error('Failed to load set:', err);
       setError(err.message || 'Set non trouvé');
@@ -70,27 +77,19 @@ export default function SharedSetPage() {
   const handlePasswordSubmit = async (password: string) => {
     try {
       if (!set) {
-        // Load set first
-        const data = await setsService.getByShareId(shareId);
-        if (!data.is_public) {
-          throw new Error('Ce set n\'est pas public');
-        }
-        setSet(data);
-      }
-
-      if (!set) {
         throw new Error('Set non trouvé');
       }
 
-      // Verify password and add to shared sets if user is logged in
+      // Verify password
+      const { verifyPassword } = await import('@/lib/supabase/shared-sets');
+      if (!verifyPassword(password, set.password_hash!)) {
+        throw new Error('Mot de passe incorrect');
+      }
+
+      // If user is logged in, add to shared sets
       if (user) {
         await sharedSetsService.shareSet(set.id, password);
-      } else {
-        // Just verify password for viewing
-        const { verifyPassword } = await import('@/lib/supabase/shared-sets');
-        if (!verifyPassword(password, set.password_hash!)) {
-          throw new Error('Mot de passe incorrect');
-        }
+        setIsAlreadyAdded(true);
       }
 
       setPasswordVerified(true);
@@ -102,21 +101,28 @@ export default function SharedSetPage() {
 
   const handleAddToMySets = async () => {
     if (!user) {
-      router.push('/login');
+      // Redirect to login with return URL
+      router.push(`/login?redirect=/s/${shareId}`);
       return;
     }
 
     if (!set) return;
 
     try {
+      // Check if already added
+      if (isAlreadyAdded) {
+        router.push('/dashboard');
+        return;
+      }
+
       if (set.password_hash && !passwordVerified) {
         setPasswordModalOpen(true);
         return;
       }
 
       await sharedSetsService.shareSet(set.id);
-      alert('Set ajouté à votre liste !');
-      router.push('/dashboard');
+      setIsAlreadyAdded(true);
+      // Show success message but stay on page
     } catch (err: any) {
       alert(err.message || 'Erreur lors de l\'ajout du set');
     }
@@ -144,8 +150,66 @@ export default function SharedSetPage() {
   }
 
   // If password required and not verified, show nothing (modal will show)
+  // But we still show the set info if it's loaded
   if (set.password_hash && !passwordVerified && !passwordModalOpen) {
-    return null;
+    // Show the set but with password prompt
+    return (
+      <>
+        <div className="min-h-screen bg-dark-background-base">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-8">
+              <h1 className="text-[28px] font-bold text-white mb-2">{set.title}</h1>
+              {set.description && (
+                <p className="text-[16px] text-dark-text-secondary mb-4">{set.description}</p>
+              )}
+              <div className="flex items-center space-x-4 mb-4">
+                {set.user && (
+                  <div className="flex items-center text-[14px] text-dark-text-secondary">
+                    <User className="h-4 w-4 mr-1" />
+                    {set.user.username}
+                  </div>
+                )}
+                <span className="text-[14px] text-dark-text-secondary">
+                  {set.flashcards?.length || 0} {set.flashcards?.length === 1 ? 'carte' : 'cartes'}
+                </span>
+                {set.language && (
+                  <span className="text-[14px] text-dark-text-secondary">Langue: {set.language}</span>
+                )}
+                {set.password_hash && (
+                  <div className="flex items-center text-[14px] text-brand-primary">
+                    <Lock className="h-4 w-4 mr-1" />
+                    Protégé
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {user ? (
+                  <Button variant="outline" onClick={() => setPasswordModalOpen(true)}>
+                    <Lock className="h-4 w-4 mr-2" />
+                    Entrer le mot de passe pour ajouter
+                  </Button>
+                ) : (
+                  <Link href={`/login?redirect=/s/${shareId}`}>
+                    <Button variant="outline">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Se connecter pour ajouter
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        <PasswordPromptModal
+          isOpen={passwordModalOpen}
+          onClose={() => {
+            setPasswordModalOpen(false);
+          }}
+          onSubmit={handlePasswordSubmit}
+          setTitle={set.title}
+        />
+      </>
+    );
   }
 
   return (
@@ -185,12 +249,21 @@ export default function SharedSetPage() {
                 </Button>
               </Link>
               {user ? (
-                <Button variant="outline" onClick={handleAddToMySets}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Ajouter à mes sets
-                </Button>
+                isAlreadyAdded ? (
+                  <Link href="/dashboard">
+                    <Button variant="outline">
+                      <Check className="h-4 w-4 mr-2" />
+                      Déjà ajouté - Voir mes sets
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button variant="outline" onClick={handleAddToMySets}>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Ajouter à mes sets
+                  </Button>
+                )
               ) : (
-                <Link href="/login">
+                <Link href={`/login?redirect=/s/${shareId}`}>
                   <Button variant="outline">
                     <LogIn className="h-4 w-4 mr-2" />
                     Se connecter pour ajouter

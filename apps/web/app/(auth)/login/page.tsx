@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,12 +20,16 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUser, setProfile } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const supabase = createClient();
+  
+  // Get redirect URL from query params
+  const redirectUrl = searchParams.get('redirect') || '/dashboard';
 
   const {
     register,
@@ -59,7 +63,7 @@ export default function LoginPage() {
 
       setUser(authData.user);
       setProfile(profile);
-      router.push('/dashboard');
+      router.push(redirectUrl);
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
@@ -119,7 +123,7 @@ export default function LoginPage() {
 
             <p className="text-center text-sm text-gray-600">
               Don&apos;t have an account?{' '}
-              <Link href="/register" className="text-primary-600 hover:underline">
+              <Link href={`/register${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="text-primary-600 hover:underline">
                 Sign up
               </Link>
             </p>
@@ -127,6 +131,28 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Sign in to your account</CardTitle>
+            </CardHeader>
+            <div className="p-6">
+              <p className="text-center text-gray-600">Loading...</p>
+            </div>
+          </Card>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
 
