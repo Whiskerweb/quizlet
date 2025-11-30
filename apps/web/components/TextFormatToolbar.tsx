@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 interface TextFormatToolbarProps {
   textareaId?: string;
   textareaRef?: React.RefObject<HTMLTextAreaElement>;
-  onFormat?: (format: 'bold' | 'italic' | 'underline') => void;
+  onFormat?: (format: 'bold' | 'italic' | 'underline', newValue: string) => void;
 }
 
 export function TextFormatToolbar({ textareaId, textareaRef, onFormat }: TextFormatToolbarProps) {
