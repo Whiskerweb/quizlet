@@ -104,7 +104,7 @@ export default function SharedSetsFolderPage() {
               </CardHeader>
               <div className="px-6 pb-6 space-y-3">
                 <div className="flex items-center justify-between text-[13px] text-dark-text-muted">
-                  <span>{sharedSet.set.flashcards?.length || 0} cartes</span>
+                  <span>Set partagé</span>
                   {sharedSet.set.password_hash && (
                     <span className="text-brand-primary">Protégé</span>
                   )}
