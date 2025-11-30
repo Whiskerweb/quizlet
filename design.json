@@ -1,0 +1,676 @@
+{
+    "meta": {
+      "name": "StudyAppQuizletStyle",
+      "description": "High-level design system guidelines inspired by the provided Quizlet UI screens. Use this to generate consistent UI with a calm, focused, modern dark-first aesthetic and a bright, friendly marketing/light variant.",
+      "version": "1.0.0"
+    },
+    "foundations": {
+      "layout": {
+        "pageMaxWidth": 1280,
+        "grid": {
+          "columns": 12,
+          "gutter": 24,
+          "marginXDesktop": 32,
+          "marginXTablet": 24,
+          "marginXMobile": 16
+        },
+        "appShell": {
+          "sidebarWidthDesktop": 260,
+          "sidebarWidthTablet": 80,
+          "topBarHeight": 64,
+          "contentMaxWidth": 1120,
+          "contentPaddingX": 32,
+          "contentPaddingY": 32,
+          "cardGapY": 24,
+          "cardGapX": 24,
+          "description": "Desktop layout with a fixed left sidebar and a top search bar. Main content is centered in a wide column with generous padding and consistent vertical rhythm."
+        }
+      },
+      "spacing": {
+        "scale": [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64],
+        "aliases": {
+          "xxs": 4,
+          "xs": 8,
+          "sm": 12,
+          "md": 16,
+          "lg": 24,
+          "xl": 32,
+          "xxl": 48
+        },
+        "rules": [
+          "Use multiples of 4px for all spacing.",
+          "Primary vertical rhythm in content cards is 24px between major blocks (title, description, actions).",
+          "Inside buttons, use 12–16px horizontal padding and 8–10px vertical padding for a pill-like feel.",
+          "Sidebar items use 12px vertical padding and 16px horizontal padding.",
+          "Maintain at least 32px padding between content edges and viewport on desktop."
+        ]
+      },
+      "radii": {
+        "none": 0,
+        "xs": 4,
+        "sm": 8,
+        "md": 12,
+        "lg": 16,
+        "xl": 20,
+        "xxl": 24,
+        "pill": 999,
+        "rules": [
+          "All interactive elements (buttons, inputs, search bars, cards) use rounded corners.",
+          "Large feature cards and search bars use xl or xxl radii for a soft, approachable feel.",
+          "Chips, filters, and some buttons are fully pill-shaped (radius: 999)."
+        ]
+      },
+      "elevation": {
+        "levels": {
+          "0": {
+            "shadow": "none",
+            "description": "Base app background and flush sections; no shadow."
+          },
+          "1": {
+            "shadow": "0 8px 24px rgba(0,0,0,0.28)",
+            "description": "Standard cards and modals on dark background."
+          },
+          "2": {
+            "shadow": "0 12px 32px rgba(0,0,0,0.36)",
+            "description": "Hero cards or overlaid panels that require higher emphasis."
+          }
+        },
+        "rules": [
+          "Use elevation sparingly; most hierarchy comes from color, size, and spacing.",
+          "Dark theme relies on subtle soft shadows to lift cards from the deep background."
+        ]
+      },
+      "colors": {
+        "description": "Two primary themes: dark app shell (study experience) and light marketing/landing pages. Both use the same brand blue and complementary accents.",
+        "brand": {
+          "primary": "#4255FF",
+          "primarySoft": "#5468FF",
+          "primaryDark": "#1B2BFF",
+          "secondaryTeal": "#3FD3FF",
+          "accentYellow": "#FFD95A",
+          "accentPink": "#FF5FA2"
+        },
+        "darkTheme": {
+          "background": {
+            "base": "#05081E",
+            "subtle": "#070B28",
+            "raised": "#101632",
+            "card": "#101632",
+            "cardMuted": "#151B3B",
+            "input": "#151B3B",
+            "sidebar": "#05081E"
+          },
+          "text": {
+            "primary": "#FFFFFF",
+            "secondary": "#C5C9FF",
+            "muted": "#8B8FBE",
+            "label": "#6F739C",
+            "placeholder": "#5D618F",
+            "inverse": "#05081E"
+          },
+          "border": {
+            "subtle": "rgba(255,255,255,0.06)",
+            "soft": "rgba(255,255,255,0.12)",
+            "strong": "rgba(255,255,255,0.18)",
+            "focus": "#FFFFFF"
+          },
+          "states": {
+            "primaryHover": "#5468FF",
+            "primaryActive": "#1B2BFF",
+            "surfaceHover": "#181F3E",
+            "surfaceActive": "#141A37",
+            "danger": "#FF4B5C",
+            "success": "#3BD373",
+            "warning": "#FFD95A"
+          },
+          "semantic": {
+            "navActiveBackground": "#1C2346",
+            "navActiveIcon": "#FFFFFF",
+            "navInactiveIcon": "#C5C9FF",
+            "chipBackground": "#151B3B",
+            "chipBackgroundSelected": "#1C2346"
+          }
+        },
+        "lightTheme": {
+          "background": {
+            "base": "#FFFFFF",
+            "subtle": "#F5F7FF",
+            "card": "#FFFFFF",
+            "heroBand": "#F6F8FF"
+          },
+          "text": {
+            "primary": "#111135",
+            "secondary": "#44466F",
+            "muted": "#7B7FA5",
+            "link": "#4255FF"
+          },
+          "border": {
+            "subtle": "#E1E4FF",
+            "soft": "#D3D9FF"
+          },
+          "states": {
+            "primaryHover": "#5468FF",
+            "primaryActive": "#1B2BFF",
+            "surfaceHover": "#EEF1FF"
+          }
+        }
+      },
+      "typography": {
+        "fontFamilyBase": "\"Inter\", system-ui, -apple-system, BlinkMacSystemFont, \"SF Pro Text\", sans-serif",
+        "fontFamilyDisplay": "\"Inter\", system-ui, -apple-system, BlinkMacSystemFont, \"SF Pro Display\", sans-serif",
+        "weights": {
+          "regular": 400,
+          "medium": 500,
+          "semibold": 600,
+          "bold": 700
+        },
+        "sizes": {
+          "caption": 12,
+          "bodySm": 13,
+          "body": 14,
+          "bodyLg": 16,
+          "subtitle": 18,
+          "titleSm": 20,
+          "title": 24,
+          "titleLg": 28,
+          "display": 36,
+          "hero": 44
+        },
+        "lineHeights": {
+          "tight": 1.1,
+          "snug": 1.25,
+          "normal": 1.4,
+          "relaxed": 1.6
+        },
+        "styles": {
+          "heroHeadline": {
+            "fontFamily": "fontFamilyDisplay",
+            "size": "hero",
+            "weight": "bold",
+            "lineHeight": "tight",
+            "letterSpacing": -0.04
+          },
+          "pageTitle": {
+            "size": "titleLg",
+            "weight": "bold",
+            "lineHeight": "snug"
+          },
+          "sectionTitle": {
+            "size": "title",
+            "weight": "semibold"
+          },
+          "cardTitle": {
+            "size": "titleSm",
+            "weight": "semibold"
+          },
+          "bodyPrimary": {
+            "size": "bodyLg",
+            "weight": "regular"
+          },
+          "bodySecondary": {
+            "size": "body",
+            "weight": "regular"
+          },
+          "label": {
+            "size": "caption",
+            "weight": "medium",
+            "transform": "none",
+            "tracking": 0.02
+          },
+          "menuItem": {
+            "size": "body",
+            "weight": "medium"
+          }
+        }
+      },
+      "icons": {
+        "style": "Rounded, simple, single-weight strokes. Use solid white or brand colors on dark background, and muted navy on light.",
+        "sizes": {
+          "sm": 16,
+          "md": 20,
+          "lg": 24
+        }
+      },
+      "motion": {
+        "durations": {
+          "fast": 120,
+          "normal": 180,
+          "slow": 260
+        },
+        "easing": {
+          "standard": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "emphasized": "cubic-bezier(0.18, 0.9, 0.32, 1.1)"
+        },
+        "rules": [
+          "Use subtle motion, mostly for hover transitions, dropdowns, and pill selection.",
+          "Buttons and chips should have quick but soft hover transitions in background and shadow.",
+          "Avoid large-scale motion that distracts from study content."
+        ]
+      }
+    },
+    "components": {
+      "AppShell": {
+        "description": "Core shell for the authenticated study experience: fixed left sidebar, top search bar, main content cards.",
+        "structure": [
+          "Left sidebar navigation with logo and primary sections.",
+          "Top bar spanning content with large search input and right-aligned CTAs/user avatar.",
+          "Scrollable content column with stacked cards and section headers."
+        ],
+        "spacing": {
+          "sidebarPadding": "lg",
+          "topBarPaddingX": "lg",
+          "contentPadding": "lg"
+        },
+        "theme": "darkTheme"
+      },
+      "SidebarNav": {
+        "description": "Vertical navigation used in the dark app shell.",
+        "item": {
+          "height": 40,
+          "paddingX": 16,
+          "paddingY": 10,
+          "iconSize": "md",
+          "iconPosition": "left",
+          "labelStyle": "menuItem"
+        },
+        "states": {
+          "default": {
+            "background": "transparent",
+            "iconColor": "darkTheme.text.secondary",
+            "labelColor": "darkTheme.text.secondary"
+          },
+          "active": {
+            "background": "darkTheme.semantic.navActiveBackground",
+            "iconColor": "darkTheme.semantic.navActiveIcon",
+            "labelColor": "darkTheme.text.primary"
+          },
+          "hover": {
+            "background": "rgba(255,255,255,0.06)"
+          }
+        },
+        "sections": [
+          "Top navigation links (Accueil, Votre espace, Notifications).",
+          "Divider line.",
+          "Folders section (Vos dossiers).",
+          "Quick start section (Commencez ici)."
+        ],
+        "sectionLabelStyle": {
+          "typography": "label",
+          "color": "darkTheme.text.muted",
+          "uppercase": false,
+          "spacingTop": 24,
+          "spacingBottom": 8
+        }
+      },
+      "TopSearchBar": {
+        "description": "Prominent pill-shaped search bar centered in the top bar.",
+        "height": 44,
+        "paddingX": 18,
+        "radius": "pill",
+        "background": "darkTheme.background.card",
+        "placeholderColor": "darkTheme.text.placeholder",
+        "icon": {
+          "position": "left",
+          "size": "md"
+        },
+        "typography": "body",
+        "border": "none",
+        "shadow": "0 0 0 1px rgba(255,255,255,0.06)",
+        "focus": {
+          "borderColor": "darkTheme.border.focus",
+          "shadow": "0 0 0 2px rgba(66,85,255,0.6)"
+        }
+      },
+      "PageHeader": {
+        "description": "Title and optional subtitle at top of content column.",
+        "titleStyle": "pageTitle",
+        "subtitleStyle": "bodySecondary",
+        "spacing": {
+          "marginBottom": 24,
+          "subtitleGap": 4
+        }
+      },
+      "Card": {
+        "description": "Base card used throughout for content, hero modules, flashcard groups, empty states.",
+        "variants": {
+          "default": {
+            "background": "darkTheme.background.card",
+            "radius": "xl",
+            "padding": 24,
+            "shadowLevel": 1
+          },
+          "hero": {
+            "background": "darkTheme.background.card",
+            "radius": "xxl",
+            "padding": 28,
+            "shadowLevel": 2,
+            "layout": "two-column, left content, right illustration"
+          },
+          "listItem": {
+            "background": "darkTheme.background.cardMuted",
+            "radius": "lg",
+            "padding": 20,
+            "shadowLevel": 1
+          },
+          "emptyState": {
+            "background": "darkTheme.background.base",
+            "radius": "none",
+            "padding": 32,
+            "illustrationEmphasis": true
+          },
+          "lightMarketing": {
+            "background": "lightTheme.background.card",
+            "radius": "xl",
+            "padding": 32,
+            "shadow": "0 14px 40px rgba(16,30,115,0.14)"
+          }
+        },
+        "contentStructure": {
+          "title": {
+            "style": "cardTitle",
+            "marginBottom": 4
+          },
+          "subtitle": {
+            "style": "bodySecondary",
+            "marginBottom": 16
+          },
+          "metaRow": {
+            "style": "caption",
+            "color": "muted",
+            "marginTop": 8
+          },
+          "actionsRow": {
+            "alignment": "left",
+            "gap": 12,
+            "marginTop": 16
+          }
+        }
+      },
+      "Button": {
+        "description": "Rounded, friendly buttons with strong color contrast.",
+        "shared": {
+          "font": "body",
+          "weight": "medium",
+          "radius": "pill",
+          "paddingX": 18,
+          "paddingY": 10,
+          "gap": 8
+        },
+        "variants": {
+          "primary": {
+            "background": "brand.primary",
+            "textColor": "#FFFFFF",
+            "shadow": "0 10px 24px rgba(66,85,255,0.45)",
+            "hoverBackground": "colors.darkTheme.states.primaryHover",
+            "activeBackground": "colors.darkTheme.states.primaryActive"
+          },
+          "secondary": {
+            "background": "darkTheme.background.cardMuted",
+            "textColor": "darkTheme.text.primary",
+            "border": "1px solid rgba(255,255,255,0.12)",
+            "hoverBackground": "darkTheme.states.surfaceHover"
+          },
+          "ghost": {
+            "background": "transparent",
+            "textColor": "darkTheme.text.secondary",
+            "hoverBackground": "rgba(255,255,255,0.06)"
+          },
+          "icon": {
+            "size": 40,
+            "radius": "pill",
+            "background": "darkTheme.background.cardMuted",
+            "iconOnly": true
+          },
+          "lightPrimary": {
+            "background": "brand.primary",
+            "textColor": "#FFFFFF",
+            "shadow": "0 10px 26px rgba(66,85,255,0.45)"
+          }
+        }
+      },
+      "Chip": {
+        "description": "Pill-shaped filters such as 'Récemment'.",
+        "height": 32,
+        "radius": "pill",
+        "paddingX": 16,
+        "typography": "body",
+        "states": {
+          "default": {
+            "background": "darkTheme.semantic.chipBackground",
+            "textColor": "darkTheme.text.secondary"
+          },
+          "selected": {
+            "background": "darkTheme.semantic.chipBackgroundSelected",
+            "textColor": "darkTheme.text.primary"
+          },
+          "hover": {
+            "background": "rgba(255,255,255,0.06)"
+          }
+        }
+      },
+      "TabBar": {
+        "description": "Top tabs in 'Votre espace' page (Listes, Tests d’entraînement, etc.).",
+        "orientation": "horizontal",
+        "indicator": {
+          "height": 2,
+          "radius": 999,
+          "color": "brand.primary"
+        },
+        "labelStyle": "menuItem",
+        "spacing": {
+          "gap": 24,
+          "paddingY": 8
+        },
+        "inactive": {
+          "color": "darkTheme.text.muted"
+        },
+        "active": {
+          "color": "darkTheme.text.primary"
+        }
+      },
+      "FormField": {
+        "description": "Input container with label and optional helper.",
+        "labelStyle": "label",
+        "spacing": {
+          "labelBottom": 6,
+          "fieldBottom": 16
+        }
+      },
+      "TextInput": {
+        "description": "Inputs for title, description, and term/definition fields.",
+        "height": 44,
+        "paddingX": 16,
+        "radius": "lg",
+        "background": "darkTheme.background.cardMuted",
+        "border": "1px solid rgba(255,255,255,0.06)",
+        "placeholderColor": "darkTheme.text.placeholder",
+        "textStyle": "body",
+        "focus": {
+          "borderColor": "brand.primary",
+          "shadow": "0 0 0 1px rgba(66,85,255,0.6)"
+        }
+      },
+      "Textarea": {
+        "description": "Description fields in the list creation view.",
+        "minHeight": 80,
+        "padding": 16,
+        "radius": "lg",
+        "background": "darkTheme.background.cardMuted"
+      },
+      "FlashcardEditorRow": {
+        "description": "Row layout for term/definition in list creation.",
+        "layout": "two-column",
+        "columns": [
+          { "width": "50%", "role": "termField" },
+          { "width": "50%", "role": "definitionField" }
+        ],
+        "height": 96,
+        "background": "darkTheme.background.card",
+        "radius": "xl",
+        "padding": 16,
+        "gap": 16,
+        "indexBadge": {
+          "position": "top-left",
+          "style": "caption",
+          "color": "darkTheme.text.muted"
+        },
+        "sideImagePlaceholder": {
+          "size": 64,
+          "radius": "lg",
+          "border": "1px dashed rgba(255,255,255,0.12)",
+          "icon": "image"
+        },
+        "actions": {
+          "position": "top-right",
+          "icons": ["drag", "delete"],
+          "iconStyle": "muted"
+        }
+      },
+      "EmptyState": {
+        "description": "Center-aligned illustration and text used when there are no lists yet.",
+        "layout": "vertical-center",
+        "titleStyle": "sectionTitle",
+        "bodyStyle": "bodySecondary",
+        "illustrationSize": "medium",
+        "primaryAction": "Button.primary",
+        "spacing": {
+          "gap": 16
+        }
+      },
+      "HeroStudyModesStrip": {
+        "description": "Light marketing strip with 4 tall cards (Apprendre, Programmes d’étude, Cartes, Tests d’entraînement).",
+        "background": "lightTheme.background.base",
+        "cardLayout": {
+          "radius": 24,
+          "padding": 24,
+          "width": 260,
+          "height": 320,
+          "iconSize": 120
+        },
+        "cardColors": [
+          "#9BE7FF",
+          "#FFD5FF",
+          "#AEB8FF",
+          "#FFCF9B"
+        ],
+        "titleStyle": {
+          "size": "title",
+          "weight": "bold",
+          "color": "#111135"
+        }
+      },
+      "TopMarketingNav": {
+        "description": "Light theme top navigation with brand logo, product menus, and auth buttons.",
+        "height": 64,
+        "background": "transparent over hero band",
+        "linksStyle": "body",
+        "linkColor": "lightTheme.text.secondary",
+        "actions": {
+          "primary": "Button.lightPrimary",
+          "secondary": {
+            "variant": "ghost",
+            "textColor": "lightTheme.text.primary"
+          }
+        }
+      },
+      "Avatar": {
+        "description": "Circular avatar on the top-right in app shell.",
+        "size": 32,
+        "radius": "pill",
+        "border": "2px solid rgba(255,255,255,0.8)"
+      },
+      "Badge": {
+        "description": "Small label such as the yellow lock icon pill in the editor toolbar.",
+        "height": 24,
+        "radius": "pill",
+        "paddingX": 10,
+        "typography": "caption",
+        "iconSize": "sm",
+        "variants": {
+          "warning": {
+            "background": "#FFD95A",
+            "textColor": "#3D320A"
+          },
+          "info": {
+            "background": "rgba(63,211,255,0.16)",
+            "textColor": "#3FD3FF"
+          }
+        }
+      },
+      "Toolbar": {
+        "description": "Top toolbar in the editor (Import, Add diagram, Assistant de création, Suggestions toggle, etc.).",
+        "orientation": "horizontal",
+        "gap": 8,
+        "paddingY": 8,
+        "buttonVariant": "secondary",
+        "rightCluster": {
+          "elements": ["SuggestionsToggle", "SettingsIcon", "ReorderIcon", "KeyboardIcon", "TrashIcon"],
+          "spacing": 8
+        }
+      },
+      "Toggle": {
+        "description": "Suggestions on/off pill with blue thumb when active.",
+        "size": {
+          "width": 44,
+          "height": 24
+        },
+        "radius": "pill",
+        "track": {
+          "off": "#151B3B",
+          "on": "brand.primarySoft"
+        },
+        "thumb": {
+          "diameter": 18,
+          "color": "#FFFFFF",
+          "shadow": "0 2px 4px rgba(0,0,0,0.3)"
+        }
+      }
+    },
+    "patterns": {
+      "contentHierarchy": {
+        "rules": [
+          "Use one hero card or section per screen for the main CTA (e.g., 'Create your own flashcards').",
+          "Group related actions inside cards; avoid floating standalone buttons.",
+          "Headlines are concise, descriptive, and followed by a supporting sentence in smaller, lighter text."
+        ]
+      },
+      "colorUsage": {
+        "rules": [
+          "Brand blue is reserved for primary CTAs, key highlights, and active states.",
+          "Use one strong accent color per view; secondary accents (teal, yellow, pink) support illustrations and small badges.",
+          "Dark surfaces step up in brightness as elevation increases: base background is the darkest, input surfaces and cards are slightly lighter.",
+          "Light marketing pages keep backgrounds mostly white with soft pastel blocks behind hero components for warmth."
+        ]
+      },
+      "copyTone": {
+        "rules": [
+          "Voice is friendly, clear, and educational, avoiding technical jargon.",
+          "Headlines often use second person ('Comment souhaitez-vous étudier ?', 'Create your own flashcards').",
+          "Buttons use concise, action-oriented labels ('Créer', 'Créer et étudier', 'Ajouter des examens')."
+        ]
+      },
+      "accessibility": {
+        "rules": [
+          "Maintain contrast ratio of at least 4.5:1 for body text on background.",
+          "Hover and focus states must be visually distinct from default and active states.",
+          "Touch targets should be at least 40x40px, particularly for icon buttons and chips."
+        ]
+      },
+      "responsiveBehavior": {
+        "rules": [
+          "On smaller viewports, sidebar may collapse to an icon-only rail or a drawer; top search remains reachable.",
+          "Cards stack vertically with full-width behavior on mobile.",
+          "Multi-column components like flashcard editors become vertical stacks with clear separation between term and definition."
+        ]
+      },
+      "illustrationStyle": {
+        "description": "Soft, vector-style illustrations with rounded shapes and flat color palettes.",
+        "rules": [
+          "Use bright, clean colors that complement brand blue and maintain a playful academic vibe.",
+          "Avoid overly detailed or photorealistic imagery; favor simple shapes, subtle layering, and minimal line work.",
+          "Illustrations should not overpower the content; keep them aligned to the right side of hero cards or above headlines."
+        ]
+      }
+    }
+  }
+  

@@ -142,10 +142,10 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
     <div className="w-full">
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-gray-900 font-medium">
+          <p className="text-sm text-white font-medium">
             Match each term with its definition
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-white">
             Batch {currentBatch + 1} of {Math.ceil(allFlashcards.length / BATCH_SIZE)} • {matchedPairs.size}/{batchFronts.length} in this batch
           </p>
         </div>
@@ -169,7 +169,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Fronts (Terms) */}
         <div>
-          <h3 className="font-semibold mb-3 text-gray-900">Terms</h3>
+          <h3 className="font-semibold mb-3 text-white">Terms</h3>
           <div className="space-y-2">
             {batchFronts.map((card) => {
               const matched = isMatched(card.id);
@@ -181,18 +181,18 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
                   onClick={() => handleSelect('front', card.id, card.front)}
                   disabled={matched}
                   className={`
-                    w-full p-3 rounded-lg border-2 text-left transition-all text-gray-900
+                    w-full p-3 rounded-lg border-2 text-left transition-all
                     ${matched
-                      ? 'border-green-500 bg-green-50 opacity-60'
+                      ? 'border-green-500 bg-green-50 opacity-60 text-gray-900'
                       : selected
-                      ? 'border-primary-600 bg-primary-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      ? 'border-brand-primary bg-[rgba(66,85,255,0.1)] text-white'
+                      : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:border-[rgba(255,255,255,0.18)] text-white'
                     }
                     ${matched ? 'cursor-default' : 'cursor-pointer'}
                   `}
                 >
                   <div className="flex items-center justify-between">
-                    <FormattedText text={card.front} className="font-medium text-gray-900" as="span" />
+                    <FormattedText text={card.front} className={`font-medium ${matched ? 'text-gray-900' : 'text-white'}`} as="span" />
                     {matched && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                   </div>
                 </button>
@@ -203,7 +203,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
 
         {/* Backs (Definitions) */}
         <div>
-          <h3 className="font-semibold mb-3 text-gray-900">Definitions</h3>
+          <h3 className="font-semibold mb-3 text-white">Definitions</h3>
           <div className="space-y-2">
             {batchBacks.map((back) => {
               const matched = isMatched(back.id);
@@ -215,18 +215,18 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
                   onClick={() => handleSelect('back', back.id, back.text)}
                   disabled={matched}
                   className={`
-                    w-full p-3 rounded-lg border-2 text-left transition-all text-gray-900
+                    w-full p-3 rounded-lg border-2 text-left transition-all
                     ${matched
-                      ? 'border-green-500 bg-green-50 opacity-60'
+                      ? 'border-green-500 bg-green-50 opacity-60 text-gray-900'
                       : selected
-                      ? 'border-primary-600 bg-primary-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      ? 'border-brand-primary bg-[rgba(66,85,255,0.1)] text-white'
+                      : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:border-[rgba(255,255,255,0.18)] text-white'
                     }
                     ${matched ? 'cursor-default' : 'cursor-pointer'}
                   `}
                 >
                   <div className="flex items-center justify-between">
-                    <FormattedText text={back.text} className="font-medium text-gray-900" as="span" />
+                    <FormattedText text={back.text} className={`font-medium ${matched ? 'text-gray-900' : 'text-white'}`} as="span" />
                     {matched && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                   </div>
                 </button>

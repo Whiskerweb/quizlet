@@ -250,17 +250,17 @@ export default function EditSetPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Set: {set.title}</h1>
-        <p className="text-gray-600">Manage your flashcards</p>
+    <>
+      <div className="mb-6">
+        <h1 className="text-[28px] font-bold text-dark-text-primary mb-2">Edit Set: {set.title}</h1>
+        <p className="text-[16px] text-dark-text-secondary">Manage your flashcards</p>
       </div>
 
       {/* Import Button */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">Flashcards</h2>
-          <p className="text-sm text-gray-600">Gérez vos cartes ou importez-les en masse</p>
+          <h2 className="text-[20px] font-semibold text-dark-text-primary mb-1">Flashcards</h2>
+          <p className="text-[13px] text-dark-text-secondary">Gérez vos cartes ou importez-les en masse</p>
         </div>
         <Button onClick={() => setIsImportModalOpen(true)}>
           Importer
@@ -292,13 +292,13 @@ export default function EditSetPage() {
               }`}
             >
               <Card
-                className={`p-4 transition-all ${
-                  dragOverCardId === card.id ? 'border-2 border-primary-500 shadow-lg' : ''
-                } ${
-                  newlyAddedCardId === card.id
-                    ? 'bg-primary-50 border-primary-300'
-                    : ''
-                }`}
+              className={`p-4 transition-all ${
+                dragOverCardId === card.id ? 'border-2 border-brand-primary shadow-elevation-1' : ''
+              } ${
+                newlyAddedCardId === card.id
+                  ? 'bg-dark-background-cardMuted border-brand-primary'
+                  : ''
+              }`}
               >
                 <div className="flex items-start gap-4">
                   {/* Drag Handle */}
@@ -311,7 +311,7 @@ export default function EditSetPage() {
                   </div>
 
               {/* Card Number */}
-              <div className="flex-shrink-0 w-8 pt-2 text-sm font-medium text-gray-500">
+              <div className="flex-shrink-0 w-8 pt-2 text-[13px] font-medium text-dark-text-muted">
                 {index + 1}
               </div>
 
@@ -330,7 +330,7 @@ export default function EditSetPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-[12px] font-medium text-dark-text-muted mb-1">
                     Definition
                   </label>
                   <RichTextEditor
@@ -350,14 +350,14 @@ export default function EditSetPage() {
                     // Image button - placeholder for future image upload
                     alert('Image upload coming soon');
                   }}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 text-dark-text-muted hover:text-dark-text-secondary transition-colors"
                   title="Add image"
                 >
                   <ImageIcon className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => handleDeleteCard(card.id)}
-                  className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                  className="p-2 text-dark-text-muted hover:text-dark-states-danger transition-colors"
                   title="Delete card"
                 >
                   <Trash2 className="h-5 w-5" />
@@ -392,7 +392,7 @@ export default function EditSetPage() {
       {/* Save Button */}
       <div className="flex justify-between items-center pt-4 border-t">
         {hasUnsavedChanges && (
-          <p className="text-sm text-amber-600">You have unsaved changes</p>
+          <p className="text-[13px] text-dark-states-warning">You have unsaved changes</p>
         )}
         <div className="flex justify-end space-x-4 ml-auto">
           <Button variant="outline" onClick={() => router.back()}>
@@ -410,7 +410,7 @@ export default function EditSetPage() {
         onClose={() => setIsImportModalOpen(false)}
         onImport={handleImport}
       />
-    </div>
+    </>
   );
 }
 

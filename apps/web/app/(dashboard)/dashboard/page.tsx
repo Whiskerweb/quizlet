@@ -115,13 +115,13 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8 flex justify-between items-center">
+    <>
+      <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-[28px] font-bold text-dark-text-primary leading-tight">
             Welcome back, {profile?.username}!
           </h1>
-          <p className="text-gray-600 mt-1">Manage your study sets</p>
+          <p className="text-[16px] text-dark-text-secondary mt-1">Manage your study sets</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -142,15 +142,15 @@ export default function DashboardPage() {
 
       {isLoading ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading your sets...</p>
+          <p className="text-dark-text-secondary">Loading your sets...</p>
         </div>
       ) : folders.length === 0 && setsWithoutFolder.length === 0 ? (
-        <Card className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <Card variant="emptyState" className="text-center py-12">
+          <BookOpen className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
+          <h3 className="text-title font-semibold text-dark-text-primary mb-2">
             No sets yet
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-bodySecondary text-dark-text-secondary mb-4">
             Create your first study set to get started
           </p>
           <Link href="/sets/create">
@@ -168,19 +168,19 @@ export default function DashboardPage() {
               onDrop={(e) => handleDrop(e, folder.id)}
               className={`p-4 rounded-lg border-2 transition-all ${
                 dragOverFolderId === folder.id
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-200 bg-gray-50'
+                  ? 'border-brand-primary bg-dark-background-cardMuted'
+                  : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted'
               }`}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Folder className="h-5 w-5" style={{ color: folder.color }} />
-                  <h2 className="text-lg font-semibold text-gray-900">{folder.name}</h2>
-                  <span className="text-sm text-gray-500">({folder.sets.length})</span>
+                  <h2 className="text-[20px] font-semibold text-dark-text-primary">{folder.name}</h2>
+                  <span className="text-[13px] text-dark-text-muted">({folder.sets.length})</span>
                 </div>
                 <button
                   onClick={() => handleDeleteFolder(folder.id)}
-                  className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                  className="p-1 text-dark-text-muted hover:text-dark-states-danger transition-colors"
                   title="Delete folder"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                     draggable
                     onDragStart={(e) => handleDragStart(e, set.id)}
                     onDragEnd={handleDragEnd}
-                    className={`hover:shadow-lg transition-shadow cursor-pointer h-full ${
+                    className={`hover:shadow-elevation-1 transition-shadow cursor-pointer h-full ${
                       draggedSetId === set.id ? 'opacity-50' : ''
                     }`}
                   >
@@ -201,12 +201,12 @@ export default function DashboardPage() {
                       <Card className="h-full">
                         <CardHeader>
                           <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                          <p className="text-sm text-gray-600 line-clamp-2 mt-2">
+                          <p className="text-[16px] text-dark-text-secondary line-clamp-2 mt-2">
                             {set.description || 'No description'}
                           </p>
                         </CardHeader>
                         <div className="px-6 pb-6">
-                          <div className="flex items-center justify-between text-sm text-gray-500">
+                          <div className="flex items-center justify-between text-[13px] text-dark-text-muted">
                             <span>{set.is_public ? 'Public' : 'Private'}</span>
                           </div>
                         </div>
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {folder.sets.length === 0 && (
-                  <div className="col-span-full text-center py-8 text-gray-500">
+                  <div className="col-span-full text-center py-8 text-dark-text-muted">
                     <p>Drag sets here to organize them</p>
                   </div>
                 )}
@@ -226,14 +226,14 @@ export default function DashboardPage() {
           {/* Sets without folder */}
           {setsWithoutFolder.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Other Sets</h2>
+              <h2 className="text-[20px] font-semibold text-dark-text-primary mb-4">Other Sets</h2>
               <div
                 onDragOver={(e) => handleDragOver(e, null)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, null)}
                 className={`p-4 rounded-lg border-2 transition-all ${
                   dragOverFolderId === null
-                    ? 'border-primary-500 bg-primary-50'
+                    ? 'border-brand-primary bg-dark-background-cardMuted'
                     : 'border-transparent'
                 }`}
               >
@@ -252,12 +252,12 @@ export default function DashboardPage() {
                         <Card className="h-full">
                           <CardHeader>
                             <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                            <p className="text-sm text-gray-600 line-clamp-2 mt-2">
+                            <p className="text-bodySecondary text-dark-text-secondary line-clamp-2 mt-2">
                               {set.description || 'No description'}
                             </p>
                           </CardHeader>
                           <div className="px-6 pb-6">
-                            <div className="flex items-center justify-between text-sm text-gray-500">
+                            <div className="flex items-center justify-between text-bodySm text-dark-text-muted">
                               <span>{set.is_public ? 'Public' : 'Private'}</span>
                             </div>
                           </div>
@@ -278,7 +278,7 @@ export default function DashboardPage() {
         onClose={() => setIsCreateFolderModalOpen(false)}
         onCreate={handleCreateFolder}
       />
-    </div>
+    </>
   );
 }
 

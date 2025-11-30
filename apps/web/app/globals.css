@@ -2,28 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  * {
+    @apply border-[rgba(255,255,255,0.06)];
   }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  
+  body {
+    @apply bg-dark-background-base text-dark-text-primary font-base;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  }
+  
+  /* Dashboard/App shell uses dark theme */
+  .app-shell {
+    @apply bg-dark-background-base text-dark-text-primary;
+  }
+  
+  /* Marketing/landing pages use light theme */
+  .marketing-page {
+    @apply bg-light-background-base text-light-text-primary;
+  }
 }
 
 @layer utilities {

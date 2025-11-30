@@ -91,14 +91,14 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
               setShowResult(false);
               setSimilarity(null);
             }}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-white hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors"
             title={isReversed ? 'Mode normal: Question → Réponse' : 'Mode inversé: Description → Terme'}
           >
             <RotateCcw className="h-4 w-4" />
             <span>{isReversed ? 'Mode inversé' : 'Mode normal'}</span>
           </button>
         </div>
-        <FormattedText text={questionText} className="text-2xl font-bold text-gray-900" as="p" />
+        <FormattedText text={questionText} className="text-2xl font-bold text-white" as="p" />
       </div>
 
       <div className="space-y-4">
@@ -109,16 +109,16 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
           onKeyPress={handleKeyPress}
           placeholder="Type your answer..."
           disabled={showResult}
-          className="text-lg text-gray-900"
+          className="text-lg text-white"
           autoFocus
         />
 
         {showResult && (
           <div className={`
-            p-4 rounded-lg border-2 text-gray-900
+            p-4 rounded-lg border-2
             ${isCorrect 
-              ? 'border-green-500 bg-green-50' 
-              : 'border-red-500 bg-red-50'
+              ? 'border-green-500 bg-green-50 text-gray-900' 
+              : 'border-red-500 bg-red-50 text-gray-900'
             }
           `}>
             <div className="flex items-center space-x-2 mb-2">

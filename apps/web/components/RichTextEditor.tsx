@@ -142,10 +142,11 @@ export function RichTextEditor({
         contentEditable={!disabled}
         suppressContentEditableWarning
         className={`
-          w-full px-4 py-2 border border-gray-300 rounded-lg 
-          focus:outline-none focus:ring-2 focus:ring-primary-500 
-          text-gray-900 bg-white
-          ${isFocused ? 'ring-2 ring-primary-500' : ''}
+          w-full px-4 py-2 border border-[rgba(255,255,255,0.06)] rounded-lg 
+          bg-dark-background-cardMuted
+          focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary
+          text-dark-text-primary
+          ${isFocused ? 'ring-2 ring-brand-primary' : ''}
           ${className}
         `}
         style={{ minHeight: `${minHeight}px` }}
@@ -154,7 +155,7 @@ export function RichTextEditor({
       <style jsx global>{`
         [contenteditable][data-placeholder]:empty:before {
           content: attr(data-placeholder);
-          color: #9ca3af;
+          color: #5D618F;
           pointer-events: none;
         }
         [contenteditable] {
@@ -177,16 +178,16 @@ export function RichTextEditor({
       `}</style>
       
       {/* Format Toolbar */}
-      <div className="mt-2 flex items-center gap-1 p-1 bg-gray-50 rounded border border-gray-200">
+      <div className="mt-2 flex items-center gap-1 p-1 bg-dark-background-cardMuted rounded border border-[rgba(255,255,255,0.06)]">
         <button
           type="button"
           onClick={() => applyFormat('bold')}
           disabled={!hasSelection || disabled}
-          className={`p-1.5 rounded transition-colors ${
-            hasSelection && !disabled
-              ? 'text-gray-700 hover:bg-gray-200'
-              : 'text-gray-300 cursor-not-allowed'
-          }`}
+        className={`p-1.5 rounded transition-colors ${
+          hasSelection && !disabled
+            ? 'text-dark-text-primary hover:bg-dark-states-surfaceHover'
+            : 'text-dark-text-muted cursor-not-allowed'
+        }`}
           title="Bold (Ctrl+B)"
           onMouseDown={(e) => e.preventDefault()}
         >
@@ -196,11 +197,11 @@ export function RichTextEditor({
           type="button"
           onClick={() => applyFormat('italic')}
           disabled={!hasSelection || disabled}
-          className={`p-1.5 rounded transition-colors ${
-            hasSelection && !disabled
-              ? 'text-gray-700 hover:bg-gray-200'
-              : 'text-gray-300 cursor-not-allowed'
-          }`}
+        className={`p-1.5 rounded transition-colors ${
+          hasSelection && !disabled
+            ? 'text-dark-text-primary hover:bg-dark-states-surfaceHover'
+            : 'text-dark-text-muted cursor-not-allowed'
+        }`}
           title="Italic (Ctrl+I)"
           onMouseDown={(e) => e.preventDefault()}
         >
@@ -210,11 +211,11 @@ export function RichTextEditor({
           type="button"
           onClick={() => applyFormat('underline')}
           disabled={!hasSelection || disabled}
-          className={`p-1.5 rounded transition-colors ${
-            hasSelection && !disabled
-              ? 'text-gray-700 hover:bg-gray-200'
-              : 'text-gray-300 cursor-not-allowed'
-          }`}
+        className={`p-1.5 rounded transition-colors ${
+          hasSelection && !disabled
+            ? 'text-dark-text-primary hover:bg-dark-states-surfaceHover'
+            : 'text-dark-text-muted cursor-not-allowed'
+        }`}
           title="Underline (Ctrl+U)"
           onMouseDown={(e) => e.preventDefault()}
         >

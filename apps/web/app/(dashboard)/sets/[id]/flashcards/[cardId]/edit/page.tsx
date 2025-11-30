@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { flashcardsService } from '@/lib/supabase/flashcards';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
 const editFlashcardSchema = z.object({
@@ -107,8 +108,8 @@ export default function EditFlashcardPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Edit Flashcard</h1>
+    <>
+      <h1 className="text-[28px] font-bold text-dark-text-primary mb-6">Edit Flashcard</h1>
 
       <Card>
         <CardHeader>
@@ -116,13 +117,13 @@ export default function EditFlashcardPage() {
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            <div className="bg-dark-background-cardMuted border border-dark-states-danger text-dark-states-danger px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="front" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="front" className="block text-[14px] font-medium text-dark-text-muted mb-1">
               Front (Question) *
             </label>
             <input
@@ -137,12 +138,12 @@ export default function EditFlashcardPage() {
               rows={4}
             />
             {errors.front && (
-              <p className="mt-1 text-sm text-red-600">{errors.front.message}</p>
+              <p className="mt-1 text-[13px] text-dark-states-danger">{errors.front.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="back" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="back" className="block text-[14px] font-medium text-dark-text-muted mb-1">
               Back (Answer) *
             </label>
             <input
@@ -157,32 +158,30 @@ export default function EditFlashcardPage() {
               rows={4}
             />
             {errors.back && (
-              <p className="mt-1 text-sm text-red-600">{errors.back.message}</p>
+              <p className="mt-1 text-[13px] text-dark-states-danger">{errors.back.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="imageUrl" className="block text-[14px] font-medium text-dark-text-muted mb-1">
               Image URL (optional)
             </label>
-            <input
+            <Input
               id="imageUrl"
               type="url"
               {...register('imageUrl')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
               placeholder="https://example.com/image.jpg"
             />
           </div>
 
           <div>
-            <label htmlFor="audioUrl" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="audioUrl" className="block text-[14px] font-medium text-dark-text-muted mb-1">
               Audio URL (optional)
             </label>
-            <input
+            <Input
               id="audioUrl"
               type="url"
               {...register('audioUrl')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
               placeholder="https://example.com/audio.mp3"
             />
           </div>
@@ -192,7 +191,7 @@ export default function EditFlashcardPage() {
               type="button"
               variant="outline"
               onClick={handleDelete}
-              className="text-red-600 border-red-600 hover:bg-red-50"
+              className="text-dark-states-danger border-dark-states-danger hover:bg-dark-background-cardMuted"
             >
               Delete
             </Button>
@@ -211,7 +210,7 @@ export default function EditFlashcardPage() {
           </div>
         </form>
       </Card>
-    </div>
+    </>
   );
 }
 

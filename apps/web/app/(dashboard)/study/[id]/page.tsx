@@ -223,9 +223,9 @@ export default function StudyPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">Study Complete! 🎉</h2>
-          <p className="text-3xl font-bold text-primary-600 mb-2">100%</p>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-2xl font-bold text-white mb-4">Study Complete! 🎉</h2>
+          <p className="text-3xl font-bold text-brand-primary mb-2">100%</p>
+          <p className="text-white mb-6">
             You mastered all {progress.totalCards} cards!
           </p>
           <div className="flex justify-center space-x-4">
@@ -315,19 +315,19 @@ export default function StudyPage() {
           <div className="text-center w-full max-w-2xl">
             {!isFlipped ? (
               <div className="space-y-4">
-                <p className="text-xs uppercase tracking-wide text-gray-400 mb-6">Front</p>
+                <p className="text-xs uppercase tracking-wide text-dark-text-muted mb-6">Front</p>
                 <FormattedText 
                   text={currentCard.front || 'No front text'} 
-                  className="text-3xl md:text-4xl font-bold text-gray-900 break-words whitespace-pre-wrap leading-relaxed" 
+                  className="text-3xl md:text-4xl font-bold text-white break-words whitespace-pre-wrap leading-relaxed" 
                 />
-                <p className="text-sm text-gray-400 mt-8">Click to flip</p>
+                <p className="text-sm text-dark-text-muted mt-8">Click to flip</p>
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-xs uppercase tracking-wide text-gray-400 mb-6">Back</p>
+                <p className="text-xs uppercase tracking-wide text-dark-text-muted mb-6">Back</p>
                 <FormattedText 
                   text={currentCard.back || 'No back text'} 
-                  className="text-3xl md:text-4xl font-bold text-gray-900 break-words whitespace-pre-wrap leading-relaxed" 
+                  className="text-3xl md:text-4xl font-bold text-white break-words whitespace-pre-wrap leading-relaxed" 
                 />
                 <div className="flex justify-center space-x-4 mt-8">
                   <Button

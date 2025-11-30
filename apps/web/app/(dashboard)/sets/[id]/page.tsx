@@ -64,36 +64,36 @@ export default function SetDetailPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
+    <>
+      <div className="mb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{set.title}</h1>
+            <h1 className="text-[28px] font-bold text-dark-text-primary">{set.title}</h1>
             {set.description && (
-              <p className="text-gray-600 mt-2">{set.description}</p>
+              <p className="text-[16px] text-dark-text-secondary mt-2">{set.description}</p>
             )}
           </div>
           <div className="flex space-x-2">
             <Link href={`/study/${setId}`}>
               <Button>
-                <Play className="h-4 w-4 mr-2" />
+                <Play className="h-4 w-4" />
                 Study
               </Button>
             </Link>
             <Link href={`/sets/${setId}/edit`}>
               <Button variant="outline">
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="h-4 w-4" />
                 Edit
               </Button>
             </Link>
             <Button variant="outline" onClick={handleDelete}>
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-4 w-4" />
               Delete
             </Button>
           </div>
         </div>
 
-        <div className="flex space-x-4 text-sm text-gray-600">
+        <div className="flex space-x-4 text-[13px] text-dark-text-secondary">
           <span>{set.flashcards?.length || 0} cards</span>
           <span>{set.is_public ? 'Public' : 'Private'}</span>
           {set.language && <span>Language: {set.language}</span>}
@@ -101,7 +101,7 @@ export default function SetDetailPage() {
       </div>
 
       <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Flashcards</h2>
+        <h2 className="text-[20px] font-semibold text-dark-text-primary">Flashcards</h2>
         <div className="flex gap-2">
           <Link href={`/sets/${setId}/edit`}>
             <Button size="sm" variant="outline">
@@ -118,8 +118,8 @@ export default function SetDetailPage() {
       </div>
 
       {set.flashcards.length === 0 ? (
-        <Card className="text-center py-12">
-          <p className="text-gray-600 mb-4">No flashcards yet</p>
+        <Card variant="emptyState" className="text-center py-12">
+          <p className="text-dark-text-secondary mb-4">No flashcards yet</p>
           <Link href={`/sets/${setId}/flashcards/new`}>
             <Button>Add Your First Card</Button>
           </Link>
@@ -130,17 +130,17 @@ export default function SetDetailPage() {
             <Card key={card.id} className="relative group">
               <div className="p-4">
                 <div className="mb-2">
-                  <span className="text-xs text-gray-500">Front</span>
-                  <FormattedText text={card.front} className="font-medium text-gray-900" as="p" />
+                  <span className="text-[12px] text-dark-text-muted">Front</span>
+                  <FormattedText text={card.front} className="font-medium text-dark-text-primary mt-1" as="p" />
                 </div>
                 <div className="mb-4">
-                  <span className="text-xs text-gray-500">Back</span>
-                  <FormattedText text={card.back} className="text-gray-900" as="p" />
+                  <span className="text-[12px] text-dark-text-muted">Back</span>
+                  <FormattedText text={card.back} className="text-dark-text-primary mt-1" as="p" />
                 </div>
                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Link href={`/sets/${setId}/flashcards/${card.id}/edit`}>
                     <Button size="sm" variant="outline">
-                      <Edit className="h-4 w-4 mr-1" />
+                      <Edit className="h-4 w-4" />
                       Edit
                     </Button>
                   </Link>
@@ -161,9 +161,9 @@ export default function SetDetailPage() {
                       }
                     }}
                     disabled={deletingCardId === card.id}
-                    className="text-red-600 border-red-600 hover:bg-red-50"
+                    className="text-dark-states-danger border-dark-states-danger hover:bg-dark-background-cardMuted"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
+                    <Trash2 className="h-4 w-4" />
                     {deletingCardId === card.id ? 'Deleting...' : 'Delete'}
                   </Button>
                 </div>
@@ -172,7 +172,7 @@ export default function SetDetailPage() {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }
 
