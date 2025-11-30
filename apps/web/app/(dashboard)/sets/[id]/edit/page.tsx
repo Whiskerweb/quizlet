@@ -383,7 +383,7 @@ export default function EditSetPage() {
 
       {/* Add Card Button */}
       <div className="mb-6">
-        <Button variant="outline" onClick={handleAddCard}>
+        <Button variant="outline" onClick={() => handleAddCard()}>
           <Plus className="h-4 w-4 mr-2" />
           Add Card
         </Button>
