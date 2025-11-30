@@ -39,21 +39,28 @@ export default function SharedSetPage() {
       // Check if set is public
       if (!data.is_public) {
         setError('Ce set n\'est pas public');
+        setIsLoading(false);
         return;
       }
 
       // Always set the set data first
       setSet(data);
+      setIsLoading(false);
 
       // Check if password is required
       if (data.password_hash) {
         // Check if user already has access
         if (user) {
-          const hasAccess = await sharedSetsService.hasAccess(data.id);
-          if (hasAccess) {
-            setPasswordVerified(true);
-            setIsAlreadyAdded(true);
-            return;
+          try {
+            const hasAccess = await sharedSetsService.hasAccess(data.id);
+            if (hasAccess) {
+              setPasswordVerified(true);
+              setIsAlreadyAdded(true);
+              return;
+            }
+          } catch (err) {
+            // If hasAccess fails, continue to show password modal
+            console.error('Error checking access:', err);
           }
         }
         // Password required - show modal
@@ -63,13 +70,17 @@ export default function SharedSetPage() {
 
       // No password required - check if already added
       if (user) {
-        const hasAccess = await sharedSetsService.hasAccess(data.id);
-        setIsAlreadyAdded(hasAccess);
+        try {
+          const hasAccess = await sharedSetsService.hasAccess(data.id);
+          setIsAlreadyAdded(hasAccess);
+        } catch (err) {
+          // Ignore error, just don't mark as added
+          console.error('Error checking access:', err);
+        }
       }
     } catch (err: any) {
       console.error('Failed to load set:', err);
       setError(err.message || 'Set non trouvé');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -136,7 +147,8 @@ export default function SharedSetPage() {
     );
   }
 
-  if (error || !set) {
+  // Show error only if we have an error and no set data
+  if (error && !set) {
     return (
       <div className="min-h-screen bg-dark-background-base flex items-center justify-center">
         <Card className="p-8 text-center">
@@ -149,10 +161,23 @@ export default function SharedSetPage() {
     );
   }
 
-  // If password required and not verified, show nothing (modal will show)
-  // But we still show the set info if it's loaded
-  if (set.password_hash && !passwordVerified && !passwordModalOpen) {
-    // Show the set but with password prompt
+  // If no set loaded and no error, show not found
+  if (!set) {
+    return (
+      <div className="min-h-screen bg-dark-background-base flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-[16px] text-white">Set non trouvé</p>
+          <Link href="/">
+            <Button className="mt-4">Retour à l'accueil</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  // If password required and not verified, show the set with password prompt
+  if (set.password_hash && !passwordVerified) {
+    // Show the set but with password prompt (don't show flashcards until password is verified)
     return (
       <>
         <div className="min-h-screen bg-dark-background-base">
@@ -178,7 +203,7 @@ export default function SharedSetPage() {
                 {set.password_hash && (
                   <div className="flex items-center text-[14px] text-brand-primary">
                     <Lock className="h-4 w-4 mr-1" />
-                    Protégé
+                    Protégé par mot de passe
                   </div>
                 )}
               </div>
@@ -198,12 +223,25 @@ export default function SharedSetPage() {
                 )}
               </div>
             </div>
+            <Card className="p-6 text-center">
+              <Lock className="h-12 w-12 text-brand-primary mx-auto mb-4" />
+              <p className="text-[16px] text-white mb-4">
+                Ce set est protégé par un mot de passe. Entrez le mot de passe pour voir le contenu et l'ajouter à votre profil.
+              </p>
+              {user && (
+                <Button onClick={() => setPasswordModalOpen(true)}>
+                  <Lock className="h-4 w-4 mr-2" />
+                  Entrer le mot de passe
+                </Button>
+              )}
+            </Card>
           </div>
         </div>
         <PasswordPromptModal
           isOpen={passwordModalOpen}
           onClose={() => {
             setPasswordModalOpen(false);
+            // Don't redirect, just close the modal so user can see the set info
           }}
           onSubmit={handlePasswordSubmit}
           setTitle={set.title}
