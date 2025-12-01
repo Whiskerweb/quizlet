@@ -189,6 +189,8 @@ const DotGrid = ({
   }, [proximity, baseColor, activeRgb, baseRgb, circlePath]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     buildGrid();
 
     let ro: ResizeObserver | null = null;
@@ -199,18 +201,14 @@ const DotGrid = ({
         ro.observe(wrapperRef.current);
       }
     } else {
-      if (typeof window !== 'undefined') {
-        window.addEventListener('resize', buildGrid);
-      }
+      window.addEventListener('resize', buildGrid);
     }
 
     return () => {
       if (ro) {
         ro.disconnect();
       } else {
-        if (typeof window !== 'undefined') {
-          window.removeEventListener('resize', buildGrid);
-        }
+        window.removeEventListener('resize', buildGrid);
       }
     };
   }, [buildGrid]);
