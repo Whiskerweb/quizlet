@@ -358,7 +358,7 @@ export default function SharedSetPage() {
                   <Link href="/dashboard" className="w-full sm:w-auto">
                     <Button variant="outline" className="w-full sm:w-auto text-[13px] sm:text-[14px] h-10 sm:h-11">
                       <Check className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Déjà ajouté - Voir mes sets</span>
+                      <span className="hidden sm:inline">Déjà ajouté - Voir mes Cardz</span>
                       <span className="sm:hidden">Déjà ajouté</span>
                     </Button>
                   </Link>
@@ -369,7 +369,7 @@ export default function SharedSetPage() {
                     className="w-full sm:w-auto text-[13px] sm:text-[14px] h-10 sm:h-11"
                   >
                     <Share2 className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Ajouter à mes sets</span>
+                    <span className="hidden sm:inline">Ajouter à mes Cardz</span>
                     <span className="sm:hidden">Ajouter</span>
                   </Button>
                 )
@@ -416,7 +416,7 @@ export default function SharedSetPage() {
             </div>
           ) : (
             <Card variant="emptyState" className="text-center py-10 sm:py-12 border border-[rgba(255,255,255,0.06)]">
-              <p className="text-[14px] sm:text-[16px] text-white">Aucune flashcard dans ce set</p>
+              <p className="text-[14px] sm:text-[16px] text-white">Aucune cardz dans ce set</p>
             </Card>
           )}
         </div>

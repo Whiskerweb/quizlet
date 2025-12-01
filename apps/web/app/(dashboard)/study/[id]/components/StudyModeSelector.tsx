@@ -14,7 +14,7 @@ export function StudyModeSelector({ currentMode, onModeChange }: StudyModeSelect
   const modes: { id: StudyMode; label: string; icon: any; description: string }[] = [
     {
       id: 'flashcard',
-      label: 'Flashcards',
+      label: 'Cardz',
       icon: BookOpen,
       description: 'Flip through cards',
     },

@@ -57,7 +57,7 @@ export default function FolderPage() {
   };
 
   const handleDeleteFolder = async () => {
-    if (!confirm(`Are you sure you want to delete the folder "${folder?.name}"? All sets will be moved to "Other Sets".`)) {
+    if (!confirm(`Are you sure you want to delete the folder "${folder?.name}"? All Cardz will be moved to "Other Cardz".`)) {
       return;
     }
 
@@ -100,7 +100,7 @@ export default function FolderPage() {
             <div>
               <h1 className="text-[28px] font-bold text-white">{folder.name}</h1>
               <p className="text-[16px] text-dark-text-secondary">
-                {folder.sets.length} {folder.sets.length === 1 ? 'set' : 'sets'}
+                {folder.sets.length} {folder.sets.length === 1 ? 'Cardz' : 'Cardz'}
               </p>
             </div>
           </div>
@@ -118,9 +118,9 @@ export default function FolderPage() {
       {folder.sets.length === 0 ? (
         <Card variant="emptyState" className="text-center py-12">
           <Folder className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-          <h3 className="text-[16px] text-white mb-2">No sets in this folder</h3>
+          <h3 className="text-[16px] text-white mb-2">No Cardz in this folder</h3>
           <p className="text-[16px] text-white mb-4">
-            Drag sets here from the dashboard to organize them
+            Drag Cardz here from the dashboard to organize them
           </p>
           <Link href="/dashboard">
             <Button>Go to Dashboard</Button>

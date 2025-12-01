@@ -119,7 +119,7 @@ export default function SetDetailPage() {
       </div>
 
       <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-[20px] font-semibold text-dark-text-primary">Flashcards</h2>
+        <h2 className="text-[20px] font-semibold text-dark-text-primary">Cardz</h2>
         <div className="flex gap-2">
           <Link href={`/sets/${setId}/edit`}>
             <Button size="sm" variant="outline">
@@ -137,7 +137,7 @@ export default function SetDetailPage() {
 
       {set.flashcards.length === 0 ? (
         <Card variant="emptyState" className="text-center py-12">
-          <p className="text-[16px] text-white mb-4">No flashcards yet</p>
+          <p className="text-[16px] text-white mb-4">No cardz yet</p>
           <Link href={`/sets/${setId}/flashcards/new`}>
             <Button>Add Your First Card</Button>
           </Link>
@@ -172,8 +172,8 @@ export default function SetDetailPage() {
                         await flashcardsService.delete(card.id);
                         await loadSet();
                       } catch (error) {
-                        console.error('Failed to delete flashcard:', error);
-                        alert('Failed to delete flashcard');
+                        console.error('Failed to delete cardz:', error);
+                        alert('Failed to delete cardz');
                       } finally {
                         setDeletingCardId(null);
                       }

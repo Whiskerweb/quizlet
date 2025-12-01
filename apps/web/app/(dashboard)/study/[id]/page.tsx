@@ -196,6 +196,29 @@ export default function StudyPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
+  // Keyboard shortcuts for flashcard mode
+  useEffect(() => {
+    if (mode !== 'flashcard' || !currentCard) return;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        setIsFlipped(!isFlipped);
+      } else if (e.key === 'ArrowLeft' && isFlipped) {
+        e.preventDefault();
+        handleAnswer(false);
+      } else if (e.key === 'ArrowRight' && isFlipped) {
+        e.preventDefault();
+        handleAnswer(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [mode, isFlipped, currentCard]);
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -208,7 +231,7 @@ export default function StudyPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="text-center py-12">
-          <p className="text-gray-600 mb-4">No flashcards in this set</p>
+          <p className="text-gray-600 mb-4">No cardz in this set</p>
           <Button onClick={() => router.push(`/sets/${setId}`)}>
             Back to Set
           </Button>
@@ -244,7 +267,7 @@ export default function StudyPage() {
   if (!flashcards || flashcards.length === 0 || !currentCard || !sessionState) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <p>No flashcards available</p>
+        <p>No cardz available</p>
       </div>
     );
   }
@@ -320,7 +343,15 @@ export default function StudyPage() {
                   text={currentCard.front || 'No front text'} 
                   className="text-3xl md:text-4xl font-bold text-white break-words whitespace-pre-wrap leading-relaxed" 
                 />
-                <p className="text-sm text-dark-text-muted mt-8">Click to flip</p>
+                <div className="mt-8 flex flex-col items-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsFlipped(true)}
+                    className="w-full sm:w-auto"
+                  >
+                    Flip Card
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -329,26 +360,37 @@ export default function StudyPage() {
                   text={currentCard.back || 'No back text'} 
                   className="text-3xl md:text-4xl font-bold text-white break-words whitespace-pre-wrap leading-relaxed" 
                 />
-                <div className="flex justify-center space-x-4 mt-8">
-                  <Button
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAnswer(false);
-                    }}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Incorrect
-                  </Button>
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAnswer(true);
-                    }}
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    Correct
-                  </Button>
+                <div className="mt-8 space-y-4">
+                  <div className="flex flex-col items-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsFlipped(false)}
+                      className="w-full sm:w-auto"
+                    >
+                      Show Front
+                    </Button>
+                  </div>
+                  <div className="flex justify-center space-x-4 mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAnswer(false);
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Incorrect
+                    </Button>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAnswer(true);
+                      }}
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Correct
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -380,13 +422,10 @@ export default function StudyPage() {
       </Card>
 
       {mode === 'flashcard' && (
-        <div className="mt-4 text-center">
-          <Button
-            variant="outline"
-            onClick={() => setIsFlipped(!isFlipped)}
-          >
-            {isFlipped ? 'Show Front' : 'Flip Card'}
-          </Button>
+        <div className="mt-6 text-center">
+          <p className="text-xs text-dark-text-muted">
+            Raccourcis : <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Entrée</kbd> pour retourner • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">←</kbd> Incorrect • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">→</kbd> Correct
+          </p>
         </div>
       )}
     </div>

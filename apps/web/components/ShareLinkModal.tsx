@@ -77,7 +77,7 @@ export function ShareLinkModal({
           {hasPassword && (
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-[14px] text-yellow-800">
-                ⚠️ Ce set est protégé par un mot de passe. Les personnes qui accèdent au lien devront saisir le mot de passe pour voir les flashcards.
+                ⚠️ Ce set est protégé par un mot de passe. Les personnes qui accèdent au lien devront saisir le mot de passe pour voir les cardz.
               </p>
             </div>
           )}

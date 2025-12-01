@@ -47,7 +47,7 @@ export default function NewFlashcardPage() {
       });
       router.push(`/sets/${setId}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create flashcard');
+      setError(err.response?.data?.message || 'Failed to create cardz');
     } finally {
       setIsLoading(false);
     }
@@ -55,11 +55,11 @@ export default function NewFlashcardPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Add New Flashcard</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Add New Cardz</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-[16px] text-white">Flashcard Details</CardTitle>
+          <CardTitle className="text-[16px] text-white">Cardz Details</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
           {error && (
@@ -126,7 +126,7 @@ export default function NewFlashcardPage() {
 
           <div className="flex space-x-4">
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Creating...' : 'Create Flashcard'}
+              {isLoading ? 'Creating...' : 'Create Cardz'}
             </Button>
             <Button
               type="button"

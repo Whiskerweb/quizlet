@@ -43,13 +43,13 @@ export default function SearchPage() {
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <h1 className="text-[24px] sm:text-[28px] lg:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">
-          Search Sets
+          Search Cardz
         </h1>
 
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Input
-              placeholder="Search for sets..."
+              placeholder="Search for Cardz..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -72,7 +72,7 @@ export default function SearchPage() {
           </div>
         ) : hasSearched && sets.length === 0 ? (
           <Card className="text-center py-12 sm:py-16 border border-gray-200">
-            <p className="text-gray-600 text-[14px] sm:text-[15px]">No sets found</p>
+            <p className="text-gray-600 text-[14px] sm:text-[15px]">No Cardz found</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">

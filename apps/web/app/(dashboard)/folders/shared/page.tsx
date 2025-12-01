@@ -64,9 +64,9 @@ export default function SharedSetsFolderPage() {
           <div className="flex items-center gap-3">
             <Share2 className="h-6 w-6" style={{ color: '#8B8FBE' }} />
             <div>
-              <h1 className="text-[28px] font-bold text-white">Sets partagés</h1>
+              <h1 className="text-[28px] font-bold text-white">Cardz partagés</h1>
               <p className="text-[16px] text-dark-text-secondary">
-                {sharedSets.length} {sharedSets.length === 1 ? 'set' : 'sets'}
+                {sharedSets.length} {sharedSets.length === 1 ? 'Cardz' : 'Cardz'}
               </p>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function SharedSetsFolderPage() {
           <Share2 className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
           <h3 className="text-[16px] text-white mb-2">Aucun set partagé</h3>
           <p className="text-[16px] text-white mb-4">
-            Les sets que vous ajoutez depuis les profils d'autres utilisateurs apparaîtront ici
+            Les Cardz que vous ajoutez depuis les profils d'autres utilisateurs apparaîtront ici
           </p>
           <Link href="/dashboard">
             <Button>Retour au dashboard</Button>

@@ -107,7 +107,7 @@ function RegisterForm() {
       <div className="flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-64px)]">
         <Card className="w-full max-w-md border border-gray-200 shadow-sm">
           <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
-            <CardTitle className="text-[20px] sm:text-[24px] font-bold text-gray-900">
+            <CardTitle className="text-[20px] sm:text-[24px] font-bold text-white">
               Create your account
             </CardTitle>
           </CardHeader>
@@ -216,7 +216,7 @@ export default function RegisterPage() {
         <div className="flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-64px)]">
           <Card className="w-full max-w-md border border-gray-200 shadow-sm">
             <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
-              <CardTitle className="text-[20px] sm:text-[24px] font-bold text-gray-900">
+              <CardTitle className="text-[20px] sm:text-[24px] font-bold text-white">
                 Create your account
               </CardTitle>
             </CardHeader>

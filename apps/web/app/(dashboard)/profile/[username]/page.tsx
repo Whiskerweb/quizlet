@@ -187,7 +187,7 @@ export default function ProfilePage() {
           <div>
             <h1 className="text-[28px] font-bold text-white">{profile.username}</h1>
             <p className="text-[16px] text-dark-text-secondary">
-              {publicSets.length} {publicSets.length === 1 ? 'set public' : 'sets publics'}
+              {publicSets.length} {publicSets.length === 1 ? 'Cardz public' : 'Cardz publics'}
             </p>
           </div>
         </div>
@@ -206,7 +206,7 @@ export default function ProfilePage() {
           >
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
-              <span>Sets publics</span>
+              <span>Cardz publics</span>
             </div>
           </button>
           {user && (
@@ -222,7 +222,7 @@ export default function ProfilePage() {
             >
               <div className="flex items-center gap-2">
                 <Share2 className="h-4 w-4" />
-                <span>Sets partagés</span>
+                <span>Cardz partagés</span>
               </div>
             </button>
           )}
@@ -237,7 +237,7 @@ export default function ProfilePage() {
               <BookOpen className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
               <h3 className="text-[16px] text-white mb-2">Aucun set public</h3>
               <p className="text-[16px] text-white">
-                {isOwnProfile ? 'Rendez vos sets publics pour qu\'ils apparaissent ici' : 'Cet utilisateur n\'a pas de sets publics'}
+                {isOwnProfile ? 'Rendez vos Cardz publics pour qu\'ils apparaissent ici' : 'Cet utilisateur n\'a pas de Cardz publics'}
               </p>
             </Card>
           ) : (
@@ -292,7 +292,7 @@ export default function ProfilePage() {
               <Share2 className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
               <h3 className="text-[16px] text-white mb-2">Aucun set partagé</h3>
               <p className="text-[16px] text-white">
-                Les sets que vous ajoutez depuis les profils d'autres utilisateurs apparaîtront ici
+                Les Cardz que vous ajoutez depuis les profils d'autres utilisateurs apparaîtront ici
               </p>
             </Card>
           ) : (

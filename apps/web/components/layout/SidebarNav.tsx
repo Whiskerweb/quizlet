@@ -237,7 +237,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                       ? 'bg-dark-semantic-navActiveBackground text-white shadow-sm'
                       : 'text-dark-text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
                   )}
-                  title={!isOpen ? 'Sets partagés' : undefined}
+                  title={!isOpen ? 'Cardz partagés' : undefined}
                 >
                   <Share2 className={cn(
                     'flex-shrink-0 transition-colors',
@@ -254,7 +254,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                         ? 'font-semibold text-white'
                         : 'font-medium text-dark-text-secondary group-hover:text-white'
                     )}>
-                      Sets partagés
+                      Cardz partagés
                     </span>
                   )}
                 </Link>
@@ -339,7 +339,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
               'text-dark-text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-white',
               isCreatingSet && 'opacity-50 cursor-not-allowed'
             )}
-            title={!isOpen ? 'Créer des flashcards' : undefined}
+            title={!isOpen ? 'Créer des cardz' : undefined}
           >
             <Sparkles className={cn(
               'flex-shrink-0 transition-colors',
@@ -348,7 +348,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
             )} />
             {isOpen && (
               <span className="text-[14px] sm:text-[15px] font-medium whitespace-nowrap transition-colors text-dark-text-secondary group-hover:text-white">
-                {isCreatingSet ? 'Création...' : 'Créer des flashcards'}
+                {isCreatingSet ? 'Création...' : 'Créer des cardz'}
               </span>
             )}
           </button>

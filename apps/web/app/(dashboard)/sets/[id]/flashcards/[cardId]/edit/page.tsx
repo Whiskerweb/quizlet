@@ -62,8 +62,8 @@ export default function EditFlashcardPage() {
         audioUrl: flashcard.audio_url || '',
       });
     } catch (err: any) {
-      setError('Failed to load flashcard');
-      console.error('Failed to load flashcard:', err);
+      setError('Failed to load cardz');
+      console.error('Failed to load cardz:', err);
     } finally {
       setIsLoading(false);
     }
@@ -82,20 +82,20 @@ export default function EditFlashcardPage() {
       });
       router.push(`/sets/${setId}`);
     } catch (err: any) {
-      setError(err.message || 'Failed to update flashcard');
+      setError(err.message || 'Failed to update cardz');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this flashcard?')) return;
+    if (!confirm('Are you sure you want to delete this cardz?')) return;
 
     try {
       await flashcardsService.delete(cardId);
       router.push(`/sets/${setId}`);
     } catch (err: any) {
-      setError(err.message || 'Failed to delete flashcard');
+      setError(err.message || 'Failed to delete cardz');
     }
   };
 
@@ -109,11 +109,11 @@ export default function EditFlashcardPage() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-dark-text-primary mb-6">Edit Flashcard</h1>
+      <h1 className="text-[28px] font-bold text-dark-text-primary mb-6">Edit Cardz</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-[16px] text-white">Flashcard Details</CardTitle>
+          <CardTitle className="text-[16px] text-white">Cardz Details</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
           {error && (

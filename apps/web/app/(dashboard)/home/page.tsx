@@ -289,7 +289,7 @@ export default function HomePage() {
             <Card className="p-4 sm:p-5 lg:p-6">
               <div className="flex items-center justify-between mb-2">
                 <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary" />
-                <span className="text-[14px] sm:text-[16px] text-white">Sets</span>
+                <span className="text-[14px] sm:text-[16px] text-white">Cardz</span>
               </div>
               <div className="text-[20px] sm:text-[24px] lg:text-[28px] font-bold text-white">
                 {stats.totalSets}
@@ -298,7 +298,7 @@ export default function HomePage() {
             <Card className="p-4 sm:p-5 lg:p-6">
               <div className="flex items-center justify-between mb-2">
                 <Target className="h-4 w-4 sm:h-5 sm:w-5 text-brand-secondaryTeal" />
-                <span className="text-[14px] sm:text-[16px] text-white">Flashcards</span>
+                <span className="text-[14px] sm:text-[16px] text-white">Cardz</span>
               </div>
               <div className="text-[20px] sm:text-[24px] lg:text-[28px] font-bold text-white">
                 {stats.totalFlashcards}
@@ -349,7 +349,7 @@ export default function HomePage() {
               <Link href="/dashboard">
                 <Button className="w-full justify-start" variant="secondary">
                   <Target className="h-4 w-4" />
-                  Voir mes sets
+                  Voir mes Cardz
                 </Button>
               </Link>
               {stats.recentSets.length > 0 && (
@@ -508,8 +508,8 @@ export default function HomePage() {
               },
               {
                 id: 'flashcard-master',
-                title: 'Maître des flashcards',
-                description: 'Créez 100 flashcards',
+                title: 'Maître des cardz',
+                description: 'Créez 100 cardz',
                 icon: Target,
                 unlocked: stats.totalFlashcards >= 100,
                 color: 'from-brand-secondaryTeal to-brand-primary',

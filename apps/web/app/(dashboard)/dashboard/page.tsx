@@ -72,7 +72,7 @@ export default function DashboardPage() {
   };
 
   const handleDeleteFolder = async (folderId: string) => {
-    if (!confirm('Are you sure you want to delete this folder? Sets will be moved out of the folder.')) return;
+    if (!confirm('Are you sure you want to delete this folder? Cardz will be moved out of the folder.')) return;
     
     try {
       await foldersService.delete(folderId);
@@ -126,7 +126,7 @@ export default function DashboardPage() {
             Welcome back, {profile?.username}!
           </h1>
           <p className="text-[14px] sm:text-[16px] text-dark-text-secondary mt-1">
-            Manage your study sets
+            Manage your study Cardz
           </p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
@@ -172,13 +172,13 @@ export default function DashboardPage() {
 
       {isLoading ? (
         <div className="text-center py-12">
-          <p className="text-dark-text-secondary">Loading your sets...</p>
+          <p className="text-dark-text-secondary">Loading your Cardz...</p>
         </div>
       ) : folders.length === 0 && setsWithoutFolder.length === 0 ? (
         <Card variant="emptyState" className="text-center py-12">
           <BookOpen className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
           <h3 className="text-[16px] text-white mb-2">
-            No sets yet
+            No Cardz yet
           </h3>
           <p className="text-[16px] text-white mb-4">
             Create your first study set to get started
@@ -264,7 +264,7 @@ export default function DashboardPage() {
                 ))}
                 {folder.sets.length === 0 && (
                   <div className="col-span-full text-center py-8 text-dark-text-muted">
-                    <p>Drag sets here to organize them</p>
+                    <p>Drag Cardz here to organize them</p>
                   </div>
                 )}
               </div>
@@ -274,7 +274,7 @@ export default function DashboardPage() {
           {/* Sets without folder */}
           {setsWithoutFolder.length > 0 && (
             <div>
-              <h2 className="text-[20px] font-semibold text-dark-text-primary mb-4">Other Sets</h2>
+              <h2 className="text-[20px] font-semibold text-dark-text-primary mb-4">Other Cardz</h2>
               <div
                 onDragOver={(e) => handleDragOver(e, null)}
                 onDragLeave={handleDragLeave}

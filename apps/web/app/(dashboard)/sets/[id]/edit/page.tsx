@@ -127,8 +127,8 @@ export default function EditSetPage() {
       // Optionally reload to ensure consistency
       await loadSet();
     } catch (error) {
-      console.error('Failed to delete flashcard:', error);
-      alert('Failed to delete flashcard');
+      console.error('Failed to delete cardz:', error);
+      alert('Failed to delete cardz');
     }
   };
 
@@ -338,7 +338,7 @@ export default function EditSetPage() {
       {/* Import Button */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-[20px] font-semibold text-dark-text-primary mb-1">Flashcards</h2>
+          <h2 className="text-[20px] font-semibold text-dark-text-primary mb-1">Cardz</h2>
           <p className="text-[13px] text-dark-text-secondary">Gérez vos cartes ou importez-les en masse</p>
         </div>
         <Button onClick={() => setIsImportModalOpen(true)}>
