@@ -194,21 +194,23 @@ const DotGrid = ({
     buildGrid();
 
     let ro: ResizeObserver | null = null;
+    const win = window as Window & typeof globalThis;
+    const hasResizeObserver = 'ResizeObserver' in win;
 
-    if ('ResizeObserver' in window) {
+    if (hasResizeObserver) {
       ro = new ResizeObserver(buildGrid);
       if (wrapperRef.current) {
         ro.observe(wrapperRef.current);
       }
     } else {
-      window.addEventListener('resize', buildGrid);
+      win.addEventListener('resize', buildGrid);
     }
 
     return () => {
       if (ro) {
         ro.disconnect();
-      } else {
-        window.removeEventListener('resize', buildGrid);
+      } else if (!hasResizeObserver) {
+        win.removeEventListener('resize', buildGrid);
       }
     };
   }, [buildGrid]);
