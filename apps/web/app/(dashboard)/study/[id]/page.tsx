@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { setsService } from '@/lib/supabase/sets';
 import { studyService } from '@/lib/supabase/study';
@@ -34,11 +34,21 @@ interface Flashcard {
   audioUrl?: string;
 }
 
+interface ModeMemory {
+  sessionState: StudySessionState | null;
+  currentCard: CardReview | null;
+  isFlipped: boolean;
+  sessionId: string | null;
+  flashcards: Flashcard[];
+  matchCompleted: boolean;
+}
+
 export default function StudyPage() {
   const params = useParams();
   const router = useRouter();
   const setId = params.id as string;
   const [mode, setMode] = useState<StudyMode>('flashcard');
+  const previousModeRef = useRef<StudyMode>('flashcard');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionState, setSessionState] = useState<StudySessionState | null>(null);
   const [currentCard, setCurrentCard] = useState<CardReview | null>(null);
@@ -50,6 +60,13 @@ export default function StudyPage() {
   const [matchCompleted, setMatchCompleted] = useState(false);
   const [showSettings, setShowSettings] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
+  // Memory system: store state for each mode
+  const [modeMemory, setModeMemory] = useState<Record<StudyMode, ModeMemory>>({
+    flashcard: { sessionState: null, currentCard: null, isFlipped: false, sessionId: null, flashcards: [], matchCompleted: false },
+    quiz: { sessionState: null, currentCard: null, isFlipped: false, sessionId: null, flashcards: [], matchCompleted: false },
+    writing: { sessionState: null, currentCard: null, isFlipped: false, sessionId: null, flashcards: [], matchCompleted: false },
+    match: { sessionState: null, currentCard: null, isFlipped: false, sessionId: null, flashcards: [], matchCompleted: false },
+  });
 
   useEffect(() => {
     loadSet();
@@ -126,6 +143,21 @@ export default function StudyPage() {
       if (nextCard) {
         setCurrentCard(nextCard);
         setIsFlipped(false);
+        
+        // Update memory with new state
+        setTimeout(() => {
+          setModeMemory(prev => ({
+            ...prev,
+            [mode]: {
+              sessionState: nextState,
+              currentCard: nextCard,
+              isFlipped: false,
+              sessionId,
+              flashcards,
+              matchCompleted,
+            },
+          }));
+        }, 0);
       } else {
         // All cards mastered - this should not happen if isSessionComplete check above works
         await completeSession();
@@ -156,6 +188,21 @@ export default function StudyPage() {
 
     setSessionState(updatedState);
     setMatchCompleted(true);
+    
+    // Update memory for match mode
+    setTimeout(() => {
+      setModeMemory(prev => ({
+        ...prev,
+        match: {
+          sessionState: updatedState,
+          currentCard,
+          isFlipped,
+          sessionId,
+          flashcards,
+          matchCompleted: true,
+        },
+      }));
+    }, 0);
     
     // Check if all mastered
     if (isSessionComplete(updatedState)) {
@@ -211,6 +258,19 @@ export default function StudyPage() {
         mode,
       });
       setSessionId(session.id);
+      
+      // Save initial state to memory for this mode
+      setModeMemory(prev => ({
+        ...prev,
+        [mode]: {
+          sessionState: initialState,
+          currentCard: firstCard,
+          isFlipped: false,
+          sessionId: session.id,
+          flashcards: cardsToUse,
+          matchCompleted: false,
+        },
+      }));
     } catch (error) {
       console.error('Failed to start session:', error);
     }
@@ -220,31 +280,105 @@ export default function StudyPage() {
     router.push(`/sets/${setId}`);
   };
 
-  useEffect(() => {
-    // Reset when mode changes (only if already started)
-    if (hasStarted && flashcards.length > 0) {
-      // Reinitialize session state for new mode
-      const initialState = initializeSession(flashcards);
+  // Helper function to update memory for current mode
+  const updateModeMemory = () => {
+    if (hasStarted && sessionState) {
+      setModeMemory(prev => ({
+        ...prev,
+        [mode]: {
+          sessionState,
+          currentCard,
+          isFlipped,
+          sessionId,
+          flashcards,
+          matchCompleted,
+        },
+      }));
+    }
+  };
+
+  // Save current state to memory before changing mode
+  const saveCurrentModeState = (currentMode: StudyMode) => {
+    if (hasStarted && sessionState && currentCard) {
+      setModeMemory(prev => ({
+        ...prev,
+        [currentMode]: {
+          sessionState,
+          currentCard,
+          isFlipped,
+          sessionId,
+          flashcards,
+          matchCompleted,
+        },
+      }));
+    }
+  };
+
+  // Restore state from memory when switching to a mode
+  const restoreModeState = async (targetMode: StudyMode) => {
+    const savedState = modeMemory[targetMode];
+    
+    if (savedState && savedState.sessionState && savedState.flashcards.length > 0) {
+      // Restore from memory - use the flashcards from memory (they may be shuffled differently)
+      setFlashcards(savedState.flashcards);
+      setSessionState(savedState.sessionState);
+      setCurrentCard(savedState.currentCard);
+      setIsFlipped(savedState.isFlipped);
+      setSessionId(savedState.sessionId);
+      setMatchCompleted(savedState.matchCompleted);
+    } else if (hasStarted && originalFlashcards.length > 0) {
+      // Initialize new session for this mode if no memory exists
+      // Use original flashcards (not shuffled) for new mode
+      const cardsToUse = [...originalFlashcards];
+      const initialState = initializeSession(cardsToUse);
       setSessionState(initialState);
       const firstCard = getNextCard(initialState);
       setCurrentCard(firstCard);
       setIsFlipped(false);
       setMatchCompleted(false);
+      setFlashcards(cardsToUse);
       
-      // Restart session for new mode
-      const restartSession = async () => {
-        try {
-          const session = await studyService.startSession({
-            setId,
-            mode,
-          });
-          setSessionId(session.id);
-        } catch (error) {
-          console.error('Failed to start session:', error);
-        }
-      };
-      restartSession();
+      // Start new session for this mode
+      try {
+        const session = await studyService.startSession({
+          setId,
+          mode: targetMode,
+        });
+        setSessionId(session.id);
+        // Update memory with new session
+        setModeMemory(prev => ({
+          ...prev,
+          [targetMode]: {
+            sessionState: initialState,
+            currentCard: firstCard,
+            isFlipped: false,
+            sessionId: session.id,
+            flashcards: cardsToUse,
+            matchCompleted: false,
+          },
+        }));
+      } catch (error) {
+        console.error('Failed to start session:', error);
+      }
     }
+  };
+
+  // Wrapper function to handle mode changes with memory
+  const handleModeChange = (newMode: StudyMode) => {
+    if (hasStarted && mode !== newMode) {
+      // Save current state before switching
+      saveCurrentModeState(mode);
+      previousModeRef.current = mode;
+    }
+    setMode(newMode);
+  };
+
+  useEffect(() => {
+    // Only handle mode changes if already started
+    if (!hasStarted) return;
+
+    // Restore or initialize state for the new mode
+    restoreModeState(mode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, hasStarted]);
 
@@ -255,7 +389,14 @@ export default function StudyPage() {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        setIsFlipped(!isFlipped);
+        const newFlipped = !isFlipped;
+        setIsFlipped(newFlipped);
+        // Update memory with flipped state
+        setTimeout(() => {
+          if (sessionState && currentCard) {
+            updateModeMemory();
+          }
+        }, 0);
       } else if (e.key === 'ArrowLeft' && isFlipped) {
         e.preventDefault();
         handleAnswer(false);
@@ -343,7 +484,7 @@ export default function StudyPage() {
       <div className="min-h-screen bg-dark-background-base flex flex-col">
         {/* Top bar with mode selector centered - below search bar */}
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-10">
-          <StudyModeSelector currentMode={mode} onModeChange={setMode} />
+          <StudyModeSelector currentMode={mode} onModeChange={handleModeChange} />
         </div>
 
         {/* Main content - full screen */}
@@ -418,7 +559,10 @@ export default function StudyPage() {
                 <div className="mt-8 flex flex-col items-center">
                   <Button
                     variant="outline"
-                    onClick={() => setIsFlipped(true)}
+                    onClick={() => {
+                      setIsFlipped(true);
+                      setTimeout(updateModeMemory, 0);
+                    }}
                     className="w-full sm:w-auto"
                   >
                     Flip Card
@@ -436,7 +580,10 @@ export default function StudyPage() {
                   <div className="flex flex-col items-center">
                     <Button
                       variant="outline"
-                      onClick={() => setIsFlipped(false)}
+                      onClick={() => {
+                        setIsFlipped(false);
+                        setTimeout(updateModeMemory, 0);
+                      }}
                       className="w-full sm:w-auto"
                     >
                       Show Front
