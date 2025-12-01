@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/Button';
-import { BookOpen, FileText, Zap, List } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { BookOpen, FileText, Zap, List, ChevronDown } from 'lucide-react';
 
 type StudyMode = 'flashcard' | 'quiz' | 'writing' | 'match';
 
@@ -11,6 +11,9 @@ interface StudyModeSelectorProps {
 }
 
 export function StudyModeSelector({ currentMode, onModeChange }: StudyModeSelectorProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const modes: { id: StudyMode; label: string; icon: any; description: string }[] = [
     {
       id: 'flashcard',
@@ -38,33 +41,69 @@ export function StudyModeSelector({ currentMode, onModeChange }: StudyModeSelect
     },
   ];
 
+  const currentModeData = modes.find(m => m.id === currentMode) || modes[0];
+  const CurrentIcon = currentModeData.icon;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
   return (
-    <div className="mb-6">
-      <h3 className="text-sm font-medium text-white mb-3">Study Mode</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {modes.map((mode) => {
-          const Icon = mode.icon;
-          const isActive = currentMode === mode.id;
-          
-          return (
-            <button
-              key={mode.id}
-              onClick={() => onModeChange(mode.id)}
-              className={`
-                p-4 rounded-lg border-2 transition-all text-left text-white
-                ${isActive 
-                  ? 'border-brand-primary bg-[rgba(96,165,250,0.1)]' 
-                  : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:border-[rgba(255,255,255,0.18)] text-white'
-                }
-              `}
-            >
-              <Icon className={`h-5 w-5 mb-2 ${isActive ? 'text-brand-primary' : 'text-white'}`} />
-              <div className="font-semibold text-sm text-white">{mode.label}</div>
-              <div className={`text-xs mt-1 ${isActive ? 'text-brand-primary' : 'text-white'}`}>{mode.description}</div>
-            </button>
-          );
-        })}
-      </div>
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:bg-[rgba(255,255,255,0.06)] transition-colors text-white"
+      >
+        <CurrentIcon className="h-4 w-4" />
+        <span className="text-sm font-medium">{currentModeData.label}</span>
+        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-2 w-56 rounded-lg border border-[rgba(255,255,255,0.12)] bg-dark-background-card shadow-lg z-50">
+          <div className="p-2">
+            {modes.map((mode) => {
+              const Icon = mode.icon;
+              const isActive = currentMode === mode.id;
+              
+              return (
+                <button
+                  key={mode.id}
+                  onClick={() => {
+                    onModeChange(mode.id);
+                    setIsOpen(false);
+                  }}
+                  className={`
+                    w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left
+                    ${isActive 
+                      ? 'bg-[rgba(96,165,250,0.1)] text-brand-primary' 
+                      : 'text-white hover:bg-[rgba(255,255,255,0.06)]'
+                    }
+                  `}
+                >
+                  <Icon className="h-4 w-4" />
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{mode.label}</div>
+                    <div className="text-xs opacity-70">{mode.description}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

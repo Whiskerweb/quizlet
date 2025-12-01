@@ -7,8 +7,9 @@ import { studyService } from '@/lib/supabase/study';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormattedText } from '@/components/FormattedText';
-import { Check, X } from 'lucide-react';
+import { Check, X, Settings } from 'lucide-react';
 import { StudyModeSelector } from './components/StudyModeSelector';
+import { StudySettings } from './components/StudySettings';
 import { QuizMode } from './components/QuizMode';
 import { WritingMode } from './components/WritingMode';
 import { MatchMode } from './components/MatchMode';
@@ -43,9 +44,12 @@ export default function StudyPage() {
   const [currentCard, setCurrentCard] = useState<CardReview | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [originalFlashcards, setOriginalFlashcards] = useState<Flashcard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCompleted, setIsCompleted] = useState(false);
   const [matchCompleted, setMatchCompleted] = useState(false);
+  const [showSettings, setShowSettings] = useState(true);
+  const [hasStarted, setHasStarted] = useState(false);
 
   useEffect(() => {
     loadSet();
@@ -61,14 +65,11 @@ export default function StudyPage() {
           card => card && typeof card.front === 'string' && typeof card.back === 'string'
         );
         if (validFlashcards.length > 0) {
+          setOriginalFlashcards(validFlashcards);
           setFlashcards(validFlashcards);
-          // Initialize session state
-          const initialState = initializeSession(validFlashcards);
-          setSessionState(initialState);
-          const firstCard = getNextCard(initialState);
-          setCurrentCard(firstCard);
         } else {
           setFlashcards([]);
+          setOriginalFlashcards([]);
         }
       } else {
         setFlashcards([]);
@@ -175,16 +176,53 @@ export default function StudyPage() {
     }
   };
 
-  useEffect(() => {
-    if (flashcards.length > 0 && !sessionId) {
-      startSession();
+  const handleStartStudy = async (options: { shuffle: boolean; startFrom: number }) => {
+    let cardsToUse = [...originalFlashcards];
+    
+    // Shuffle if requested
+    if (options.shuffle) {
+      cardsToUse = [...cardsToUse].sort(() => Math.random() - 0.5);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flashcards, mode]);
+    
+    // Start from specific card if requested
+    if (options.startFrom > 1) {
+      const startIndex = options.startFrom - 1;
+      cardsToUse = [
+        ...cardsToUse.slice(startIndex),
+        ...cardsToUse.slice(0, startIndex)
+      ];
+    }
+    
+    setFlashcards(cardsToUse);
+    
+    // Initialize session state
+    const initialState = initializeSession(cardsToUse);
+    setSessionState(initialState);
+    const firstCard = getNextCard(initialState);
+    setCurrentCard(firstCard);
+    
+    setShowSettings(false);
+    setHasStarted(true);
+    
+    // Start session
+    try {
+      const session = await studyService.startSession({
+        setId,
+        mode,
+      });
+      setSessionId(session.id);
+    } catch (error) {
+      console.error('Failed to start session:', error);
+    }
+  };
+
+  const handleCancelSettings = () => {
+    router.push(`/sets/${setId}`);
+  };
 
   useEffect(() => {
-    // Reset when mode changes
-    if (sessionId && flashcards.length > 0 && sessionState) {
+    // Reset when mode changes (only if already started)
+    if (hasStarted && flashcards.length > 0) {
       // Reinitialize session state for new mode
       const initialState = initializeSession(flashcards);
       setSessionState(initialState);
@@ -192,9 +230,23 @@ export default function StudyPage() {
       setCurrentCard(firstCard);
       setIsFlipped(false);
       setMatchCompleted(false);
+      
+      // Restart session for new mode
+      const restartSession = async () => {
+        try {
+          const session = await studyService.startSession({
+            setId,
+            mode,
+          });
+          setSessionId(session.id);
+        } catch (error) {
+          console.error('Failed to start session:', error);
+        }
+      };
+      restartSession();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
+  }, [mode, hasStarted]);
 
   // Keyboard shortcuts for flashcard mode
   useEffect(() => {
@@ -227,7 +279,7 @@ export default function StudyPage() {
     );
   }
 
-  if (flashcards.length === 0) {
+  if (flashcards.length === 0 && !isLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="text-center py-12">
@@ -237,6 +289,17 @@ export default function StudyPage() {
           </Button>
         </Card>
       </div>
+    );
+  }
+
+  // Show settings screen before starting
+  if (showSettings && originalFlashcards.length > 0) {
+    return (
+      <StudySettings
+        totalCards={originalFlashcards.length}
+        onStart={handleStartStudy}
+        onCancel={handleCancelSettings}
+      />
     );
   }
 
@@ -277,65 +340,74 @@ export default function StudyPage() {
   // Match mode - show all flashcards at once
   if (mode === 'match') {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <StudyModeSelector currentMode={mode} onModeChange={setMode} />
-        
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-600">
-              Match all pairs
-            </span>
-          </div>
+      <div className="min-h-screen bg-dark-background-base flex flex-col">
+        {/* Top bar with mode selector centered - below search bar */}
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-10">
+          <StudyModeSelector currentMode={mode} onModeChange={setMode} />
         </div>
 
-        <Card className="p-6">
-          <MatchMode
-            flashcards={flashcards}
-            onComplete={handleMatchComplete}
-          />
-        </Card>
+        {/* Main content - full screen */}
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-full max-w-6xl">
+            <Card className="p-6">
+              <MatchMode
+                flashcards={flashcards}
+                onComplete={handleMatchComplete}
+              />
+            </Card>
 
-        {matchCompleted && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg text-center">
-            <p className="text-green-900 font-semibold">All matched! Great job!</p>
+            {matchCompleted && (
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+                <p className="text-green-900 font-semibold">All matched! Great job!</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <StudyModeSelector currentMode={mode} onModeChange={setMode} />
-
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-gray-600">
-            {progress.masteredCount} / {progress.totalCards} mastered
-            {progress.incorrectCount > 0 && (
-              <span className="ml-2 text-orange-600">
-                ({progress.incorrectCount} to review)
-              </span>
-            )}
-          </span>
-          <span className="text-sm text-gray-600 font-semibold">{progress.progress}%</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-brand-primary h-2 rounded-full transition-all"
-            style={{ width: `${progress.progress}%` }}
-          />
-        </div>
-        {progress.needsReview && (
-          <p className="text-xs text-orange-600 mt-2">
-            ⚠️ You need to master all cards before completing. Incorrect cards will be reviewed again.
-          </p>
-        )}
+    <div className="min-h-screen bg-dark-background-base flex flex-col">
+      {/* Top bar with mode selector centered - below search bar */}
+      <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-10">
+        <StudyModeSelector currentMode={mode} onModeChange={setMode} />
       </div>
 
-      <Card className="min-h-[400px] flex items-center justify-center p-8">
-        {mode === 'flashcard' && (
-          <div className="text-center w-full max-w-2xl">
+      {/* Main content - full screen centered */}
+      <div className="flex-1 flex items-center justify-center p-4 pt-20">
+        <div className="w-full max-w-4xl">
+          <Card className="min-h-[500px] flex flex-col p-8">
+            {/* Progress bar integrated in card */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-white">
+                  {progress.masteredCount} / {progress.totalCards} maîtrisées
+                  {progress.incorrectCount > 0 && (
+                    <span className="ml-2 text-orange-400">
+                      ({progress.incorrectCount} à revoir)
+                    </span>
+                  )}
+                </span>
+                <span className="text-sm text-white font-semibold">{progress.progress}%</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div
+                  className="bg-brand-primary h-2 rounded-full transition-all"
+                  style={{ width: `${progress.progress}%` }}
+                />
+              </div>
+              {progress.needsReview && (
+                <p className="text-xs text-orange-400 mt-2">
+                  ⚠️ Vous devez maîtriser toutes les cartes avant de terminer.
+                </p>
+              )}
+            </div>
+
+            {/* Card content */}
+            <div className="flex-1 flex items-center justify-center">
+              {mode === 'flashcard' && (
+                <div className="text-center w-full max-w-2xl">
             {!isFlipped ? (
               <div className="space-y-4">
                 <p className="text-xs uppercase tracking-wide text-dark-text-muted mb-6">Front</p>
@@ -393,41 +465,44 @@ export default function StudyPage() {
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-        )}
+                )}
+                </div>
+              )}
 
-        {mode === 'quiz' && (
-          <QuizMode
-            flashcard={{
-              id: currentCard.flashcardId,
-              front: currentCard.front,
-              back: currentCard.back,
-            }}
-            allFlashcards={flashcards}
-            onAnswer={handleAnswer}
-          />
-        )}
+              {mode === 'quiz' && (
+                <QuizMode
+                  flashcard={{
+                    id: currentCard.flashcardId,
+                    front: currentCard.front,
+                    back: currentCard.back,
+                  }}
+                  allFlashcards={flashcards}
+                  onAnswer={handleAnswer}
+                />
+              )}
 
-        {mode === 'writing' && (
-          <WritingMode
-            flashcard={{
-              id: currentCard.flashcardId,
-              front: currentCard.front,
-              back: currentCard.back,
-            }}
-            onAnswer={handleAnswer}
-          />
-        )}
-      </Card>
+              {mode === 'writing' && (
+                <WritingMode
+                  flashcard={{
+                    id: currentCard.flashcardId,
+                    front: currentCard.front,
+                    back: currentCard.back,
+                  }}
+                  onAnswer={handleAnswer}
+                />
+              )}
+            </div>
+          </Card>
 
-      {mode === 'flashcard' && (
-        <div className="mt-6 text-center">
-          <p className="text-xs text-dark-text-muted">
-            Raccourcis : <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Entrée</kbd> pour retourner • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">←</kbd> Incorrect • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">→</kbd> Correct
-          </p>
+          {mode === 'flashcard' && (
+            <div className="mt-6 text-center">
+              <p className="text-xs text-dark-text-muted">
+                Raccourcis : <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Entrée</kbd> pour retourner • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">←</kbd> Incorrect • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">→</kbd> Correct
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
