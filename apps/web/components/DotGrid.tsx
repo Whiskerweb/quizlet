@@ -191,19 +191,23 @@ const DotGrid = ({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
+    // Store window in a const to help TypeScript's type narrowing
+    const win: Window = window;
+    
     buildGrid();
 
-    const win = window;
     let ro: ResizeObserver | null = null;
     let useResizeObserver = false;
 
-    if ('ResizeObserver' in win) {
+    if (typeof ResizeObserver !== 'undefined') {
       useResizeObserver = true;
       ro = new ResizeObserver(buildGrid);
       if (wrapperRef.current) {
         ro.observe(wrapperRef.current);
       }
-    } else {
+    }
+    
+    if (!useResizeObserver) {
       win.addEventListener('resize', buildGrid);
     }
 
