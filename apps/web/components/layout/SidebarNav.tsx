@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, BookOpen, Folder, Sparkles, Share2, Menu, X, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
@@ -113,8 +114,8 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
         className={cn(
           'fixed left-0 top-0 h-screen bg-dark-background-sidebar border-r border-[rgba(255,255,255,0.06)] flex flex-col z-50 transition-all duration-300 ease-in-out',
           sidebarWidthClass,
-          isMobile && !isOpen && '-translate-x-full',
-          isMobile && isOpen && 'translate-x-0',
+          isMobile && !isOpen && '-translate-x-full opacity-0 pointer-events-none',
+          isMobile && isOpen && 'translate-x-0 opacity-100 pointer-events-auto',
           // Hide border when completely closed on mobile
           isMobile && !isOpen && 'border-0'
         )}
@@ -127,8 +128,15 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
         )}>
           {isOpen ? (
             <Link href="/home" className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0 group">
-              <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-brand-primary/10 flex items-center justify-center group-hover:bg-brand-primary/20 transition-colors">
-                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary" />
+              <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center transition-opacity group-hover:opacity-80">
+                <Image 
+                  src="/logo2.png" 
+                  alt="CARDZ Logo" 
+                  width={36} 
+                  height={36}
+                  className="object-contain"
+                  priority
+                />
               </div>
               <span className="text-[18px] sm:text-[20px] lg:text-[22px] font-bold text-white whitespace-nowrap truncate">
                 CARDZ
@@ -136,8 +144,15 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
             </Link>
           ) : (
             <Link href="/home" className="flex items-center justify-center w-full group">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-brand-primary/10 flex items-center justify-center group-hover:bg-brand-primary/20 transition-colors">
-                <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-brand-primary" />
+              <div className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center transition-opacity group-hover:opacity-80">
+                <Image 
+                  src="/logo2.png" 
+                  alt="CARDZ Logo" 
+                  width={44} 
+                  height={44}
+                  className="object-contain"
+                  priority
+                />
               </div>
             </Link>
           )}

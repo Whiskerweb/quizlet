@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '../ui/Button';
 import { BookOpen, LogOut, User } from 'lucide-react';
@@ -27,7 +28,16 @@ export function Navbar() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2">
-                <BookOpen className="h-6 w-6 text-brand-primary" />
+                <div className="w-6 h-6 flex items-center justify-center">
+                  <Image 
+                    src="/images/logo.png" 
+                    alt="CARDZ Logo" 
+                    width={24} 
+                    height={24}
+                    className="object-contain"
+                    priority
+                  />
+                </div>
                 <span className="text-xl font-bold text-gray-900">CARDZ</span>
               </Link>
             </div>
@@ -48,7 +58,16 @@ export function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <BookOpen className="h-6 w-6 text-brand-primary" />
+              <div className="w-6 h-6 flex items-center justify-center">
+                <Image 
+                  src="/images/logo.png" 
+                  alt="CARDZ Logo" 
+                  width={24} 
+                  height={24}
+                  className="object-contain"
+                  priority
+                />
+              </div>
               <span className="text-xl font-bold text-gray-900">CARDZ</span>
             </Link>
           </div>

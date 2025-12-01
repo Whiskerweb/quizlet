@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { 
   BookOpen, 
@@ -87,8 +88,15 @@ export default function HomePage() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
             <Link href="/" className="flex items-center space-x-2 group">
-              <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center group-hover:bg-brand-primary/20 transition-colors">
-                <BookOpen className="h-5 w-5 text-brand-primary" />
+              <div className="w-10 h-10 flex items-center justify-center transition-opacity group-hover:opacity-80">
+                <Image 
+                  src="/images/logo.png" 
+                  alt="CARDZ Logo" 
+                  width={40} 
+                  height={40}
+                  className="object-contain"
+                  priority
+                />
               </div>
               <span className="text-xl sm:text-2xl font-bold text-gray-900">CARDZ</span>
             </Link>
@@ -442,7 +450,15 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 sm:gap-12 mb-8 sm:mb-12">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <BookOpen className="h-6 w-6 text-brand-primary" />
+                <div className="w-6 h-6 flex items-center justify-center">
+                  <Image 
+                    src="/images/logo.png" 
+                    alt="CARDZ Logo" 
+                    width={24} 
+                    height={24}
+                    className="object-contain"
+                  />
+                </div>
                 <span className="text-xl font-bold">CARDZ</span>
               </div>
               <p className="text-gray-400 text-sm sm:text-base">
