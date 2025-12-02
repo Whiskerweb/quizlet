@@ -52,14 +52,19 @@ export const flashcardsService = {
     if (setError || !set) throw new Error('Set not found or access denied');
 
     // Get max order
-    const { data: existingCards } = await supabaseBrowser
+    const { data: existingCardsData } = await supabaseBrowser
       .from('flashcards')
       .select('order')
       .eq('set_id', setId)
       .order('order', { ascending: false })
       .limit(1);
 
-    const order = existingCards && existingCards.length > 0 ? existingCards[0].order + 1 : 0;
+    // Type assertion needed because TypeScript may not infer the type correctly from partial select
+    const existingCards = existingCardsData as Array<{ order: number }> | null;
+    
+    // Calculate order in a typesafe way
+    const latest = existingCards?.[0];
+    const order = typeof latest?.order === 'number' ? latest.order + 1 : 0;
 
     const { data, error } = await supabaseBrowser
       .from('flashcards')
@@ -172,14 +177,19 @@ export const flashcardsService = {
     if (setError || !set) throw new Error('Set not found or access denied');
 
     // Get max order
-    const { data: existingCards } = await supabaseBrowser
+    const { data: existingCardsData } = await supabaseBrowser
       .from('flashcards')
       .select('order')
       .eq('set_id', setId)
       .order('order', { ascending: false })
       .limit(1);
 
-    const startOrder = existingCards && existingCards.length > 0 ? existingCards[0].order + 1 : 0;
+    // Type assertion needed because TypeScript may not infer the type correctly from partial select
+    const existingCards = existingCardsData as Array<{ order: number }> | null;
+    
+    // Calculate startOrder in a typesafe way
+    const latest = existingCards?.[0];
+    const startOrder = typeof latest?.order === 'number' ? latest.order + 1 : 0;
 
     // Create all flashcards
     const flashcardsToInsert = cards.map((card, index) => ({
