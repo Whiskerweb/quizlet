@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/store/authStore';
+import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -88,6 +89,22 @@ function LoginForm() {
                 {error}
               </div>
             )}
+
+            {/* Bouton de connexion Google */}
+            <GoogleLoginButton 
+              redirectTo={redirectUrl}
+              className="mb-4"
+            />
+
+            {/* Séparateur */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-dark-background-card text-gray-500 dark:text-dark-text-muted">Ou</span>
+              </div>
+            </div>
 
             <div>
               <label htmlFor="email" className="block text-[13px] sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
