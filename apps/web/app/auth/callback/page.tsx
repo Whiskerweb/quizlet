@@ -68,8 +68,8 @@ function AuthCallbackContent() {
         });
 
         // ÉTAPE 2 : Récupération du profil utilisateur
-        // Le trigger handle_new_user() devrait créer automatiquement le profil,
-        // mais on vérifie quand même et on le crée si nécessaire
+        // Le trigger handle_new_user() devrait créer automatiquement le profil lors de la création de l'utilisateur,
+        // mais on vérifie quand même au cas où le trigger n'aurait pas fonctionné
         let profile = null;
         const { data: existingProfile, error: profileError } = await supabaseClient
           .from('profiles')
@@ -85,20 +85,22 @@ function AuthCallbackContent() {
           errorCode: profileError?.code,
         });
 
+        // Si le profil n'existe pas, on le crée via la fonction RPC
+        // Cette fonction bypass RLS et gère automatiquement les conflits de username
         if (profileError || !existingProfile) {
-          // Si le profil n'existe pas encore, on le crée via la fonction RPC
-          // Cette fonction bypass RLS et gère les conflits de username
           console.warn('[OAuth Callback] Profile not found, creating one via RPC...', profileError);
           
-          // Générer un username à partir de l'email ou utiliser un username par défaut
+          // Générer un username à partir de l'email (ex: laronce29@gmail.com → laronce29)
+          // Si pas d'email, utiliser un username par défaut basé sur l'ID utilisateur
           const baseUsername = user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`;
           
           // Utiliser la fonction RPC create_or_update_profile qui bypass RLS
-          // C'est la même fonction utilisée pour les utilisateurs email/password
+          // C'est la même fonction utilisée pour les utilisateurs email/password lors de l'inscription
           const { error: rpcError } = await supabaseClient.rpc('create_or_update_profile', {
             user_id: user.id,
             user_email: user.email || '',
             user_username: baseUsername,
+            // Récupérer first_name et last_name depuis les métadonnées Google si disponibles
             user_first_name: user.user_metadata?.first_name || user.user_metadata?.name?.split(' ')[0] || null,
             user_last_name: user.user_metadata?.last_name || user.user_metadata?.name?.split(' ').slice(1).join(' ') || null,
           });
@@ -108,10 +110,10 @@ function AuthCallbackContent() {
             throw new Error(`Failed to create profile: ${rpcError.message}`);
           }
 
-          // Attendre un peu pour que le profil soit créé
+          // Attendre un peu pour que le profil soit créé et disponible
           await new Promise(resolve => setTimeout(resolve, 300));
 
-          // Récupérer le profil créé
+          // Récupérer le profil créé pour vérifier qu'il existe bien
           const { data: newProfile, error: fetchError } = await supabaseClient
             .from('profiles')
             .select('*')
@@ -128,6 +130,7 @@ function AuthCallbackContent() {
             username: profile.username,
           });
         } else {
+          // Le profil existe déjà, on l'utilise tel quel
           profile = existingProfile;
           console.log('[OAuth Callback] Profile found:', {
             profileId: profile.id,
@@ -135,9 +138,10 @@ function AuthCallbackContent() {
           });
         }
 
-        // ÉTAPE 3 : Vérifier que le profil existe avant de continuer
+        // Vérification de sécurité : s'assurer que le profil existe avant de continuer
+        // Cette vérification ne devrait jamais échouer si le code précédent fonctionne correctement
         if (!profile) {
-          throw new Error('Profil non trouvé après création.');
+          throw new Error('Profil non trouvé après vérification.');
         }
 
         // ÉTAPE 4 : Mise à jour du store avec l'utilisateur et le profil

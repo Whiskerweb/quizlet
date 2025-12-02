@@ -18,6 +18,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const { setUser, setProfile, setLoading, user, profile, logout } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false); // État local pour vérifier l'autorisation
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const supabase = createClient();
@@ -134,12 +135,19 @@ export default function DashboardLayout({
         return;
       }
       
+      // Mettre à jour le store avec le profil
       setProfile(profile);
       
       // ÉTAPE 5 : Autoriser l'accès au dashboard
+      // On utilise un état local plutôt que de dépendre du store pour éviter les race conditions
+      setIsAuthorized(true);
       setLoading(false);
       setIsChecking(false);
-      console.log('[Dashboard Layout] Auth check complete, allowing access to dashboard');
+      console.log('[Dashboard Layout] Auth check complete, allowing access to dashboard', {
+        userId: sessionUser.id,
+        profileId: profile.id,
+        username: profile.username,
+      });
     };
 
     checkAuth();
@@ -150,7 +158,8 @@ export default function DashboardLayout({
     window.location.href = '/login';
   };
 
-  // Show nothing while checking to avoid hydration mismatch
+  // GARDE 1 : Afficher un loader pendant la vérification de l'authentification
+  // On évite les problèmes d'hydratation en ne rendant rien tant que la vérification n'est pas terminée
   if (isChecking) {
     return (
       <div className="min-h-screen bg-dark-background-base flex items-center justify-center app-shell">
@@ -159,17 +168,27 @@ export default function DashboardLayout({
     );
   }
 
-  // Vérification finale : si pas d'utilisateur ou pas de profil après le check, ne rien afficher
-  // (la redirection vers /login est en cours)
-  // On vérifie à la fois le store ET la session pour être sûr
+  // GARDE 2 : Vérification finale de l'autorisation
+  // On utilise l'état local `isAuthorized` plutôt que le store pour éviter les race conditions
+  // Si `isAuthorized` est false, cela signifie que :
+  // - Soit la vérification a échoué (pas de session ou pas de profil)
+  // - Soit la redirection vers /login est en cours
+  // Dans ce cas, on ne rend rien (la redirection va se produire)
+  if (!isAuthorized) {
+    console.log('[Dashboard Layout] Not authorized, redirecting to login');
+    return null;
+  }
+
+  // GARDE 3 : Vérification de sécurité supplémentaire sur le store
+  // Si le store n'a pas été mis à jour (ce qui ne devrait pas arriver si isAuthorized est true),
+  // on affiche quand même le dashboard car la session Supabase existe
+  // Cette vérification est juste une sécurité supplémentaire, pas une condition bloquante
   if (!user || !profile) {
-    console.log('[Dashboard Layout] Final check failed:', {
+    console.warn('[Dashboard Layout] Store not updated but authorized, continuing anyway', {
       hasUser: !!user,
       hasProfile: !!profile,
-      userId: user?.id,
-      profileId: profile?.id,
     });
-    return null;
+    // On continue quand même car isAuthorized est true, ce qui signifie que la session existe
   }
 
   const sidebarWidth = isSidebarOpen ? (isMobile ? '260px' : '260px') : (isMobile ? '0px' : '80px');
