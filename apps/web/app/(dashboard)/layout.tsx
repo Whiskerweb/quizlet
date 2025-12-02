@@ -42,62 +42,104 @@ export default function DashboardLayout({
   useEffect(() => {
     const checkAuth = async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
       
-      if (user) {
-        setUser(user);
-        
-        // Fetch profile
-        let { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        // Si le profil n'existe pas, on le crée via la fonction RPC
-        // Cela peut arriver si le trigger handle_new_user() n'a pas fonctionné
-        if (profileError || !profile) {
-          console.warn('Profile not found in dashboard, creating one...', profileError);
-          
-          // Générer un username à partir de l'email ou utiliser un username par défaut
-          const baseUsername = user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`;
-          
-          // Utiliser la fonction RPC create_or_update_profile qui bypass RLS
-          const { error: rpcError } = await supabase.rpc('create_or_update_profile', {
-            user_id: user.id,
-            user_email: user.email || '',
-            user_username: baseUsername,
-            user_first_name: user.user_metadata?.first_name || user.user_metadata?.name?.split(' ')[0] || null,
-            user_last_name: user.user_metadata?.last_name || user.user_metadata?.name?.split(' ').slice(1).join(' ') || null,
-          });
-
-          if (rpcError) {
-            console.error('Error creating profile via RPC:', rpcError);
-            // On continue quand même, l'utilisateur pourra utiliser l'app
-          } else {
-            // Récupérer le profil créé
-            const { data: newProfile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', user.id)
-              .single();
-            
-            if (newProfile) {
-              profile = newProfile;
-            }
-          }
-        }
-        
-        if (profile) {
-          setProfile(profile);
-        }
-      } else {
+      // ÉTAPE 1 : Vérifier la session Supabase directement
+      // On ne dépend pas du store pour cette vérification critique
+      const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser();
+      
+      console.log('[Dashboard Layout] Session check:', {
+        hasUser: !!sessionUser,
+        userId: sessionUser?.id,
+        userEmail: sessionUser?.email,
+        error: sessionError?.message,
+      });
+      
+      // Si pas de session → redirect vers login
+      if (!sessionUser || sessionError) {
+        console.log('[Dashboard Layout] No session found, redirecting to login');
         router.push('/login');
         return;
       }
       
+      // ÉTAPE 2 : Mettre à jour le store avec l'utilisateur
+      setUser(sessionUser);
+      
+      // ÉTAPE 3 : Vérifier et récupérer le profil
+      let { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', sessionUser.id)
+        .single();
+      
+      console.log('[Dashboard Layout] Profile check:', {
+        hasProfile: !!profile,
+        profileId: profile?.id,
+        profileUsername: profile?.username,
+        error: profileError?.message,
+        errorCode: profileError?.code,
+      });
+      
+      // Si le profil n'existe pas, on le crée via la fonction RPC
+      if (profileError || !profile) {
+        console.warn('[Dashboard Layout] Profile not found, creating one via RPC...', profileError);
+        
+        // Générer un username à partir de l'email ou utiliser un username par défaut
+        const baseUsername = sessionUser.email?.split('@')[0] || `user_${sessionUser.id.slice(0, 8)}`;
+        
+        // Utiliser la fonction RPC create_or_update_profile qui bypass RLS
+        const { error: rpcError } = await supabase.rpc('create_or_update_profile', {
+          user_id: sessionUser.id,
+          user_email: sessionUser.email || '',
+          user_username: baseUsername,
+          user_first_name: sessionUser.user_metadata?.first_name || sessionUser.user_metadata?.name?.split(' ')[0] || null,
+          user_last_name: sessionUser.user_metadata?.last_name || sessionUser.user_metadata?.name?.split(' ').slice(1).join(' ') || null,
+        });
+
+        if (rpcError) {
+          console.error('[Dashboard Layout] Error creating profile via RPC:', rpcError);
+          // Si la création échoue, on redirige vers login car on ne peut pas continuer sans profil
+          router.push('/login');
+          return;
+        }
+        
+        // Attendre un peu pour que le profil soit créé
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Récupérer le profil créé
+        const { data: newProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', sessionUser.id)
+          .single();
+        
+        if (fetchError || !newProfile) {
+          console.error('[Dashboard Layout] Failed to fetch created profile:', fetchError);
+          // Si on ne peut pas récupérer le profil, on redirige vers login
+          router.push('/login');
+          return;
+        }
+        
+        profile = newProfile;
+        console.log('[Dashboard Layout] Profile created successfully:', {
+          profileId: profile.id,
+          username: profile.username,
+        });
+      }
+      
+      // ÉTAPE 4 : Mettre à jour le store avec le profil
+      // On vérifie que le profil existe avant de continuer
+      if (!profile) {
+        console.error('[Dashboard Layout] No profile available, redirecting to login');
+        router.push('/login');
+        return;
+      }
+      
+      setProfile(profile);
+      
+      // ÉTAPE 5 : Autoriser l'accès au dashboard
       setLoading(false);
       setIsChecking(false);
+      console.log('[Dashboard Layout] Auth check complete, allowing access to dashboard');
     };
 
     checkAuth();
@@ -117,8 +159,16 @@ export default function DashboardLayout({
     );
   }
 
-  // If no user after checking, show nothing (redirect is happening)
-  if (!user) {
+  // Vérification finale : si pas d'utilisateur ou pas de profil après le check, ne rien afficher
+  // (la redirection vers /login est en cours)
+  // On vérifie à la fois le store ET la session pour être sûr
+  if (!user || !profile) {
+    console.log('[Dashboard Layout] Final check failed:', {
+      hasUser: !!user,
+      hasProfile: !!profile,
+      userId: user?.id,
+      profileId: profile?.id,
+    });
     return null;
   }
 

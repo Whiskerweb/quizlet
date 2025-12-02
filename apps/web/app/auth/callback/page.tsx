@@ -56,11 +56,18 @@ function AuthCallbackContent() {
       hasProcessed = true;
       
       try {
+        // ÉTAPE 1 : Vérifier que la session et l'utilisateur existent
         if (!session || !user) {
           throw new Error('Session non trouvée après authentification.');
         }
 
-        // Récupération du profil utilisateur
+        console.log('[OAuth Callback] Processing session:', {
+          userId: user.id,
+          userEmail: user.email,
+          hasSession: !!session,
+        });
+
+        // ÉTAPE 2 : Récupération du profil utilisateur
         // Le trigger handle_new_user() devrait créer automatiquement le profil,
         // mais on vérifie quand même et on le crée si nécessaire
         let profile = null;
@@ -70,10 +77,18 @@ function AuthCallbackContent() {
           .eq('id', user.id)
           .single();
 
+        console.log('[OAuth Callback] Profile check:', {
+          hasProfile: !!existingProfile,
+          profileId: existingProfile?.id,
+          profileUsername: existingProfile?.username,
+          error: profileError?.message,
+          errorCode: profileError?.code,
+        });
+
         if (profileError || !existingProfile) {
           // Si le profil n'existe pas encore, on le crée via la fonction RPC
           // Cette fonction bypass RLS et gère les conflits de username
-          console.warn('Profile not found, creating one via RPC...', profileError);
+          console.warn('[OAuth Callback] Profile not found, creating one via RPC...', profileError);
           
           // Générer un username à partir de l'email ou utiliser un username par défaut
           const baseUsername = user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`;
@@ -89,7 +104,7 @@ function AuthCallbackContent() {
           });
 
           if (rpcError) {
-            console.error('Error creating profile via RPC:', rpcError);
+            console.error('[OAuth Callback] Error creating profile via RPC:', rpcError);
             throw new Error(`Failed to create profile: ${rpcError.message}`);
           }
 
@@ -108,29 +123,46 @@ function AuthCallbackContent() {
           }
 
           profile = newProfile;
+          console.log('[OAuth Callback] Profile created successfully:', {
+            profileId: profile.id,
+            username: profile.username,
+          });
         } else {
           profile = existingProfile;
+          console.log('[OAuth Callback] Profile found:', {
+            profileId: profile.id,
+            username: profile.username,
+          });
         }
 
-        // Mise à jour du store avec l'utilisateur et le profil
+        // ÉTAPE 3 : Vérifier que le profil existe avant de continuer
+        if (!profile) {
+          throw new Error('Profil non trouvé après création.');
+        }
+
+        // ÉTAPE 4 : Mise à jour du store avec l'utilisateur et le profil
+        // On s'assure que le store est bien mis à jour avant la redirection
         setUser(user);
         setProfile(profile);
+        
+        console.log('[OAuth Callback] Store updated:', {
+          userId: user.id,
+          profileId: profile.id,
+          username: profile.username,
+        });
 
-        // Récupération de l'URL de redirection depuis les query params
-        // Par défaut, on redirige vers /dashboard
+        // ÉTAPE 5 : Attendre un peu pour s'assurer que le store est bien mis à jour
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // ÉTAPE 6 : Redirection vers le dashboard
         const redirectTo = searchParams.get('redirect_to') || '/dashboard';
+        console.log('[OAuth Callback] Redirecting to:', redirectTo);
         
-        // Utiliser router.replace pour éviter d'ajouter une entrée dans l'historique
-        // et forcer la redirection vers le dashboard
         setIsLoading(false);
-        
-        // Petite pause pour s'assurer que le store est mis à jour
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
         router.replace(redirectTo);
         router.refresh();
       } catch (err: any) {
-        console.error('Error processing session:', err);
+        console.error('[OAuth Callback] Error processing session:', err);
         setError(err.message || 'Erreur lors de la connexion. Veuillez réessayer.');
         setIsLoading(false);
         
