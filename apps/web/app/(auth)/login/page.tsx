@@ -64,7 +64,8 @@ function LoginForm() {
 
       setUser(authData.user);
       setProfile(profile);
-      router.push(redirectUrl);
+      // Utiliser replace pour éviter d'ajouter une entrée dans l'historique
+      router.replace(redirectUrl);
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');

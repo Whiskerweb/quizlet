@@ -22,7 +22,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { supabaseClient } from '@/lib/supabase/supabaseClient';
 import { useAuthStore } from '@/store/authStore';
 
 function AuthCallbackContent() {
@@ -31,15 +31,14 @@ function AuthCallbackContent() {
   const { setUser, setProfile } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient(); // Utiliser le client SSR pour la synchronisation des cookies
 
   useEffect(() => {
     /**
      * Fonction principale qui traite le callback OAuth
      * 
      * IMPORTANT : Supabase OAuth redirige avec un hash fragment (#access_token=...)
-     * Le client Supabase doit traiter ce hash pour extraire la session.
-     * On utilise onAuthStateChange pour écouter quand la session est disponible.
+     * Il faut attendre que Supabase traite ce hash avant de pouvoir récupérer la session.
+     * On utilise onAuthStateChange pour détecter quand la session est disponible.
      * 
      * Étapes :
      * 1. Vérification initiale de la session (au cas où elle serait déjà disponible)
@@ -49,14 +48,12 @@ function AuthCallbackContent() {
      * 5. Redirection vers la page demandée ou le dashboard
      */
     
-    let timeoutId: NodeJS.Timeout;
     let hasProcessed = false; // Pour éviter de traiter la session plusieurs fois
     
     // Fonction pour traiter la session une fois qu'elle est disponible
     const processSession = async (session: any, user: any) => {
       if (hasProcessed) return; // Éviter les doubles traitements
       hasProcessed = true;
-      clearTimeout(timeoutId);
       
       try {
         if (!session || !user) {
@@ -64,7 +61,7 @@ function AuthCallbackContent() {
         }
 
         // Récupération du profil utilisateur
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await supabaseClient
           .from('profiles')
           .select('*')
           .eq('id', user.id)
@@ -74,7 +71,7 @@ function AuthCallbackContent() {
           // Si le profil n'existe pas encore, on le crée
           console.warn('Profile not found, creating one...', profileError);
           
-          const { data: newProfile, error: createError } = await supabase
+          const { data: newProfile, error: createError } = await supabaseClient
             .from('profiles')
             .insert({
               id: user.id,
@@ -97,83 +94,59 @@ function AuthCallbackContent() {
         }
 
         // Récupération de l'URL de redirection
-        const urlParams = new URLSearchParams(window.location.hash.substring(1));
-        const redirectTo = searchParams.get('redirect_to') || urlParams.get('redirect_to') || '/dashboard';
+        const redirectTo = searchParams.get('redirect_to') || '/dashboard';
         
-        // Attendre un peu pour que le store soit bien mis à jour
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        // Redirection complète
-        window.location.href = redirectTo;
+        // Utiliser router.replace pour éviter d'ajouter une entrée dans l'historique
+        // et forcer la redirection
+        setIsLoading(false);
+        router.replace(redirectTo);
+        router.refresh();
       } catch (err: any) {
-        console.error('Error handling OAuth callback:', err);
-        clearTimeout(timeoutId);
+        console.error('Error processing session:', err);
         setError(err.message || 'Erreur lors de la connexion. Veuillez réessayer.');
         setIsLoading(false);
         
         setTimeout(() => {
-          router.push('/login');
+          router.replace('/login');
         }, 3000);
       }
     };
     
-    // Vérification initiale de la session (au cas où elle serait déjà disponible)
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    // Vérification initiale de la session
+    supabaseClient.auth.getSession().then(({ data: { session }, error }) => {
       if (!error && session && session.user) {
         processSession(session, session.user);
       }
     });
     
-    // Tentative d'extraction manuelle du hash fragment si présent
-    // Supabase OAuth redirige avec #access_token=... dans l'URL
-    if (typeof window !== 'undefined' && window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      
-      if (accessToken && refreshToken) {
-        // On a les tokens dans le hash, on peut créer la session manuellement
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        }).then(({ data: { session }, error }) => {
-          if (!error && session && session.user) {
-            processSession(session, session.user);
-          } else if (error) {
-            console.error('Error setting session from hash:', error);
-          }
-        });
-      }
-    }
-    
-    // Timeout de sécurité : si aucune session n'est détectée après 10 secondes, on affiche une erreur
-    timeoutId = setTimeout(() => {
-      if (isLoading && !hasProcessed) {
-        setError('Timeout : la session n\'a pas pu être récupérée. Veuillez réessayer.');
-        setIsLoading(false);
-        setTimeout(() => {
-          router.push('/login');
-        }, 3000);
-      }
-    }, 10000);
-
     // Écoute des changements d'authentification
     // Cela permet de détecter quand Supabase a traité le hash fragment de l'URL
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
       // On s'intéresse uniquement aux événements SIGNED_IN et TOKEN_REFRESHED
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.user) {
         await processSession(session, session.user);
       }
     });
 
+    // Timeout de sécurité : si aucune session n'est détectée après 10 secondes
+    const timeoutId = setTimeout(() => {
+      if (isLoading && !hasProcessed) {
+        setError('Timeout : la session n\'a pas pu être récupérée. Veuillez réessayer.');
+        setIsLoading(false);
+        setTimeout(() => {
+          router.replace('/login');
+        }, 3000);
+      }
+    }, 10000);
+
     // Nettoyage : désabonnement de l'écoute et annulation du timeout
     return () => {
       subscription.unsubscribe();
       clearTimeout(timeoutId);
     };
-  }, [router, searchParams, setUser, setProfile, supabase, isLoading]);
+  }, [router, searchParams, setUser, setProfile, isLoading]);
 
   // Affichage pendant le chargement
   if (isLoading) {
