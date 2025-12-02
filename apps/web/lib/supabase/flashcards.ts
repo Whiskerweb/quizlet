@@ -83,7 +83,8 @@ export const flashcardsService = {
     if (error) throw error;
 
     // Update set stats
-    await supabaseBrowser.rpc('increment_flashcard_count', { set_id_param: setId });
+    // Type assertion needed because TypeScript may not have the correct RPC function signature in Database types
+    await (supabaseBrowser.rpc as any)('increment_flashcard_count', { set_id_param: setId });
 
     return data as Flashcard;
   },
@@ -101,8 +102,9 @@ export const flashcardsService = {
 
     if (!flashcard) throw new Error('Flashcard not found');
 
-    const { data, error } = await supabaseBrowser
-      .from('flashcards')
+    // Type assertion needed because TypeScript may not infer the type correctly from .from('flashcards')
+    const { data, error } = await (supabaseBrowser
+      .from('flashcards') as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -117,13 +119,16 @@ export const flashcardsService = {
     if (!session?.user) throw new Error('Not authenticated');
 
     // Get flashcard to get set_id
-    const { data: flashcard } = await supabaseBrowser
+    const { data: flashcardData } = await supabaseBrowser
       .from('flashcards')
       .select('set_id')
       .eq('id', id)
       .single();
 
-    if (!flashcard) throw new Error('Flashcard not found');
+    if (!flashcardData) throw new Error('Flashcard not found');
+
+    // Type assertion needed because TypeScript may not infer the type correctly from partial select
+    const flashcard = flashcardData as { set_id: string };
 
     const { error } = await supabaseBrowser
       .from('flashcards')
@@ -133,7 +138,8 @@ export const flashcardsService = {
     if (error) throw error;
 
     // Update set stats
-    await supabaseBrowser.rpc('decrement_flashcard_count', { set_id_param: flashcard.set_id });
+    // Type assertion needed because TypeScript may not have the correct RPC function signature in Database types
+    await (supabaseBrowser.rpc as any)('decrement_flashcard_count', { set_id_param: flashcard.set_id });
   },
 
   async reorder(setId: string, flashcardIds: string[]) {
@@ -153,9 +159,10 @@ export const flashcardsService = {
     if (!set) throw new Error('Set not found or access denied');
 
     // Update order for each flashcard
+    // Type assertion needed because TypeScript may not infer the type correctly from .from('flashcards')
     const updates = flashcardIds.map((id, index) =>
-      supabaseBrowser
-        .from('flashcards')
+      (supabaseBrowser
+        .from('flashcards') as any)
         .update({ order: index })
         .eq('id', id)
         .eq('set_id', setId)
@@ -212,7 +219,8 @@ export const flashcardsService = {
     if (error) throw error;
 
     // Update set stats (the function automatically counts the flashcards)
-    await supabaseBrowser.rpc('increment_flashcard_count', { 
+    // Type assertion needed because TypeScript may not have the correct RPC function signature in Database types
+    await (supabaseBrowser.rpc as any)('increment_flashcard_count', { 
       set_id_param: setId
     });
 
