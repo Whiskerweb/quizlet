@@ -62,14 +62,23 @@ export function GoogleLoginButton({
     try {
       // Appel à l'API Supabase pour initier l'authentification OAuth
       // provider: 'google' indique qu'on veut utiliser Google comme fournisseur
-      // options.redirectTo: URL où l'utilisateur sera redirigé après l'authentification
+      // 
+      // IMPORTANT : redirectTo doit pointer vers l'URL de callback de production
       // Cette URL doit correspondre à celle configurée dans Supabase Dashboard
+      // (Authentication > URL Configuration > Redirect URLs)
+      // 
+      // En production : https://cardz.dev/auth/callback
+      // En développement : http://localhost:3000/auth/callback
+      const callbackUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://cardz.dev/auth/callback'
+        : `${window.location.origin}/auth/callback`;
+      
       const { data, error: oauthError } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
           // URL de callback : où l'utilisateur sera redirigé après l'authentification Google
           // Cette page va traiter la réponse de Google et connecter l'utilisateur
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl,
           // Optionnel : on peut passer des paramètres de requête pour savoir où rediriger après
           queryParams: {
             redirect_to: redirectTo,

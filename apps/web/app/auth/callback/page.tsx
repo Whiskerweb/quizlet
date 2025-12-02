@@ -37,15 +37,15 @@ function AuthCallbackContent() {
      * Fonction principale qui traite le callback OAuth
      * 
      * IMPORTANT : Supabase OAuth redirige avec un hash fragment (#access_token=...)
-     * Il faut attendre que Supabase traite ce hash avant de pouvoir récupérer la session.
-     * On utilise onAuthStateChange pour détecter quand la session est disponible.
+     * Le client Supabase détecte automatiquement ce hash et crée la session.
      * 
      * Étapes :
-     * 1. Vérification initiale de la session (au cas où elle serait déjà disponible)
-     * 2. Écoute des changements d'authentification via onAuthStateChange
-     * 3. Quand une session est détectée, récupération du profil utilisateur
-     * 4. Mise à jour du store d'authentification
-     * 5. Redirection vers la page demandée ou le dashboard
+     * 1. Au montage du composant, on vérifie immédiatement si une session existe
+     * 2. Si oui → on récupère le profil et on redirige vers /dashboard
+     * 3. Si non → on écoute les changements d'authentification via onAuthStateChange
+     * 4. Quand une session est détectée, récupération du profil utilisateur
+     * 5. Mise à jour du store d'authentification
+     * 6. Redirection vers /dashboard (ou la page demandée via query param)
      */
     
     let hasProcessed = false; // Pour éviter de traiter la session plusieurs fois
@@ -93,12 +93,17 @@ function AuthCallbackContent() {
           setProfile(profile);
         }
 
-        // Récupération de l'URL de redirection
+        // Récupération de l'URL de redirection depuis les query params
+        // Par défaut, on redirige vers /dashboard
         const redirectTo = searchParams.get('redirect_to') || '/dashboard';
         
         // Utiliser router.replace pour éviter d'ajouter une entrée dans l'historique
-        // et forcer la redirection
+        // et forcer la redirection vers le dashboard
         setIsLoading(false);
+        
+        // Petite pause pour s'assurer que le store est mis à jour
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         router.replace(redirectTo);
         router.refresh();
       } catch (err: any) {
@@ -112,20 +117,22 @@ function AuthCallbackContent() {
       }
     };
     
-    // Vérification initiale de la session
+    // Étape 1 : Vérification immédiate de la session
+    // Supabase peut avoir déjà traité le hash fragment au moment où cette page se charge
     supabaseClient.auth.getSession().then(({ data: { session }, error }) => {
       if (!error && session && session.user) {
         processSession(session, session.user);
       }
     });
     
-    // Écoute des changements d'authentification
-    // Cela permet de détecter quand Supabase a traité le hash fragment de l'URL
+    // Étape 2 : Écoute des changements d'authentification
+    // Cela permet de détecter quand Supabase traite le hash fragment de l'URL
+    // et crée la session (événement SIGNED_IN)
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
-      // On s'intéresse uniquement aux événements SIGNED_IN et TOKEN_REFRESHED
-      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.user) {
+      // On s'intéresse uniquement à l'événement SIGNED_IN (connexion réussie)
+      if (event === 'SIGNED_IN' && session && session.user) {
         await processSession(session, session.user);
       }
     });
