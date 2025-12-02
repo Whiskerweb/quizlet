@@ -37,53 +37,33 @@ function AuthCallbackContent() {
     /**
      * Fonction principale qui traite le callback OAuth
      * 
+     * IMPORTANT : Supabase OAuth redirige avec un hash fragment (#access_token=...)
+     * Le client Supabase doit traiter ce hash pour extraire la session.
+     * On utilise onAuthStateChange pour écouter quand la session est disponible.
+     * 
      * Étapes :
-     * 1. Récupération de la session depuis l'URL (Supabase le fait automatiquement)
-     * 2. Vérification que l'utilisateur est bien authentifié
-     * 3. Récupération du profil utilisateur depuis la base de données
+     * 1. Vérification initiale de la session (au cas où elle serait déjà disponible)
+     * 2. Écoute des changements d'authentification via onAuthStateChange
+     * 3. Quand une session est détectée, récupération du profil utilisateur
      * 4. Mise à jour du store d'authentification
      * 5. Redirection vers la page demandée ou le dashboard
      */
-    const handleCallback = async () => {
+    
+    let timeoutId: NodeJS.Timeout;
+    let hasProcessed = false; // Pour éviter de traiter la session plusieurs fois
+    
+    // Fonction pour traiter la session une fois qu'elle est disponible
+    const processSession = async (session: any, user: any) => {
+      if (hasProcessed) return; // Éviter les doubles traitements
+      hasProcessed = true;
+      clearTimeout(timeoutId);
+      
       try {
-        // Étape 1 : Récupération de la session
-        // Supabase a automatiquement échangé le code d'autorisation contre une session
-        // getSession() récupère la session actuelle depuis les cookies/localStorage
-        // On utilise getUser() qui est plus fiable pour les callbacks OAuth
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          throw userError;
-        }
-
-        // Étape 2 : Vérification que l'utilisateur est authentifié
-        if (!user) {
-          throw new Error('Aucune session trouvée. Veuillez réessayer.');
-        }
-
-        // Récupération de la session complète pour avoir l'access_token
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          throw sessionError;
-        }
-        
-        if (!session) {
+        if (!session || !user) {
           throw new Error('Session non trouvée après authentification.');
         }
 
-        if (sessionError) {
-          throw sessionError;
-        }
-
-        // Étape 2 : Vérification que l'utilisateur est authentifié
-        if (!session || !session.user) {
-          throw new Error('Aucune session trouvée. Veuillez réessayer.');
-        }
-
-        // Étape 3 : Récupération du profil utilisateur
-        // Le profil est stocké dans la table 'profiles' de Supabase
-        // Il est créé automatiquement lors de la première connexion via un trigger
+        // Récupération du profil utilisateur
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -92,10 +72,8 @@ function AuthCallbackContent() {
 
         if (profileError) {
           // Si le profil n'existe pas encore, on le crée
-          // Cela peut arriver si le trigger n'a pas encore été exécuté
           console.warn('Profile not found, creating one...', profileError);
           
-          // Création d'un profil par défaut
           const { data: newProfile, error: createError } = await supabase
             .from('profiles')
             .insert({
@@ -111,42 +89,69 @@ function AuthCallbackContent() {
             throw createError;
           }
 
-          // Mise à jour du store avec le nouveau profil
           setUser(user);
           setProfile(newProfile);
         } else {
-          // Mise à jour du store avec le profil existant
           setUser(user);
           setProfile(profile);
         }
 
-        // Étape 4 : Redirection vers la page demandée
-        // On récupère l'URL de redirection depuis les paramètres de requête
-        // Si aucune URL n'est fournie, on redirige vers le dashboard
-        const redirectTo = searchParams.get('redirect_to') || '/dashboard';
+        // Récupération de l'URL de redirection
+        const urlParams = new URLSearchParams(window.location.hash.substring(1));
+        const redirectTo = searchParams.get('redirect_to') || urlParams.get('redirect_to') || '/dashboard';
         
         // Attendre un peu pour que le store soit bien mis à jour
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
-        // Redirection complète avec window.location.href pour forcer un rechargement
-        // Cela garantit que tous les composants sont rechargés avec la nouvelle session
+        // Redirection complète
         window.location.href = redirectTo;
       } catch (err: any) {
-        // En cas d'erreur, on affiche un message et on redirige vers la page de login
         console.error('Error handling OAuth callback:', err);
+        clearTimeout(timeoutId);
         setError(err.message || 'Erreur lors de la connexion. Veuillez réessayer.');
         setIsLoading(false);
         
-        // Redirection vers la page de login après 3 secondes
         setTimeout(() => {
           router.push('/login');
         }, 3000);
       }
     };
+    
+    // Vérification initiale de la session (au cas où elle serait déjà disponible)
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!error && session && session.user) {
+        processSession(session, session.user);
+      }
+    });
+    
+    // Timeout de sécurité : si aucune session n'est détectée après 5 secondes, on affiche une erreur
+    timeoutId = setTimeout(() => {
+      if (isLoading && !hasProcessed) {
+        setError('Timeout : la session n\'a pas pu être récupérée. Veuillez réessayer.');
+        setIsLoading(false);
+        setTimeout(() => {
+          router.push('/login');
+        }, 3000);
+      }
+    }, 5000);
 
-    // Appel de la fonction de traitement du callback
-    handleCallback();
-  }, [router, searchParams, setUser, setProfile, supabase]);
+    // Écoute des changements d'authentification
+    // Cela permet de détecter quand Supabase a traité le hash fragment de l'URL
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // On s'intéresse uniquement aux événements SIGNED_IN et TOKEN_REFRESHED
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.user) {
+        await processSession(session, session.user);
+      }
+    });
+
+    // Nettoyage : désabonnement de l'écoute et annulation du timeout
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeoutId);
+    };
+  }, [router, searchParams, setUser, setProfile, supabase, isLoading]);
 
   // Affichage pendant le chargement
   if (isLoading) {
