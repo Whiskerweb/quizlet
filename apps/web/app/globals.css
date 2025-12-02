@@ -8,7 +8,7 @@
   }
   
   body {
-    @apply bg-dark-background-base text-dark-text-primary font-base;
+    @apply bg-dark-background-base text-dark-text-primary;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   }
   
