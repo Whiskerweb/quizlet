@@ -24,13 +24,14 @@ export default function PublicSetsPage() {
 
   const limit = 20;
 
-  const loadPublicSets = useCallback(async () => {
+  const loadPublicSets = useCallback(async (pageOverride?: number) => {
     try {
       setIsLoading(true);
+      const pageToUse = pageOverride !== undefined ? pageOverride : currentPage;
       const result = await setsService.getPublicSetsWithoutPassword({
         search: searchQuery || undefined,
         subject: selectedSubject || undefined,
-        page: currentPage,
+        page: pageToUse,
         limit,
       });
       setPublicSets(result.sets);
@@ -62,18 +63,24 @@ export default function PublicSetsPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
-    loadPublicSets();
+    // Load with page 1 explicitly to avoid stale closure issue
+    loadPublicSets(1);
   };
 
   const handleSubjectChange = (subject: string) => {
     setSelectedSubject(subject);
     setCurrentPage(1);
+    // Load with page 1 explicitly to avoid stale closure issue
+    loadPublicSets(1);
   };
 
   const clearFilters = () => {
     setSelectedSubject('');
     setSearchQuery('');
     setCurrentPage(1);
+    // Load with page 1 explicitly to avoid stale closure issue
+    // Note: useEffect will also trigger, but this ensures immediate load with correct params
+    loadPublicSets(1);
   };
 
   const totalPages = Math.ceil(totalCount / limit);
@@ -194,6 +201,7 @@ export default function PublicSetsPage() {
                   onClick={() => {
                     setSearchQuery('');
                     setCurrentPage(1);
+                    loadPublicSets(1);
                   }}
                   className="hover:text-brand-primary/80"
                 >
@@ -215,7 +223,11 @@ export default function PublicSetsPage() {
               : 'Il n\'y a pas encore de cardz publics sans mot de passe.'}
           </p>
           {searchQuery && (
-            <Button onClick={() => { setSearchQuery(''); setCurrentPage(1); }}>
+            <Button onClick={() => { 
+              setSearchQuery(''); 
+              setCurrentPage(1);
+              loadPublicSets(1);
+            }}>
               Réinitialiser la recherche
             </Button>
           )}
