@@ -51,7 +51,7 @@ export default function SetDetailPage() {
   };
 
   const handleSavePassword = async (password: string | null) => {
-    const passwordHash = password ? hashPassword(password) : null;
+    const passwordHash = password ? await hashPassword(password) : null;
     await setsService.update(setId, { password_hash: passwordHash });
     await loadSet();
   };
