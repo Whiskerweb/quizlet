@@ -26,16 +26,16 @@ export default function FolderPage() {
       const folderData = await foldersService.getOne(folderId);
       
       // Get sets in this folder using Supabase directly
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = supabaseBrowser;
-      const { data: { user } } = await supabase.auth.getUser();
+      const { supabaseBrowser } = await import('@/lib/supabaseBrowserClient');
+      const { data: { session } } = await supabaseBrowser.auth.getSession();
+      const user = session?.user;
       
       if (!user) {
         router.push('/login');
         return;
       }
 
-      const { data: folderSets, error } = await supabase
+      const { data: folderSets, error } = await supabaseBrowser
         .from('sets')
         .select('*')
         .eq('user_id', user.id)
