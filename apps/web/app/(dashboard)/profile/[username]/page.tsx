@@ -73,13 +73,22 @@ export default function ProfilePage() {
         return;
       }
 
-      setProfile(profileData);
+      // Type assertion needed because TypeScript may not infer the type correctly from Supabase query
+      const typedProfileData = profileData as Profile;
+      
+      setProfile(typedProfileData);
 
       // Load public sets for this user
+      // Garde : on vérifie que typedProfileData existe avant d'utiliser son id
+      if (!typedProfileData) {
+        console.error('Profile data is null');
+        return;
+      }
+
       const { data: setsData, error: setsError } = await supabase
         .from('sets')
         .select('*')
-        .eq('user_id', profileData.id)
+        .eq('user_id', typedProfileData.id)
         .eq('is_public', true)
         .order('created_at', { ascending: false });
 
