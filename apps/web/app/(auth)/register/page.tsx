@@ -69,7 +69,8 @@ function RegisterForm() {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Use RPC function to create/update profile (bypasses RLS)
-      const { error: profileError } = await supabase.rpc('create_or_update_profile', {
+      // Note: TypeScript doesn't know about this RPC function, so we use 'as any' to bypass type checking
+      const { error: profileError } = await supabase.rpc('create_or_update_profile' as any, {
         user_id: authData.user.id,
         user_email: data.email,
         user_username: data.username,
