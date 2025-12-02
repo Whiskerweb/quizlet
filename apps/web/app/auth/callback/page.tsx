@@ -61,37 +61,60 @@ function AuthCallbackContent() {
         }
 
         // Récupération du profil utilisateur
-        const { data: profile, error: profileError } = await supabaseClient
+        // Le trigger handle_new_user() devrait créer automatiquement le profil,
+        // mais on vérifie quand même et on le crée si nécessaire
+        let profile = null;
+        const { data: existingProfile, error: profileError } = await supabaseClient
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
 
-        if (profileError) {
-          // Si le profil n'existe pas encore, on le crée
-          console.warn('Profile not found, creating one...', profileError);
+        if (profileError || !existingProfile) {
+          // Si le profil n'existe pas encore, on le crée via la fonction RPC
+          // Cette fonction bypass RLS et gère les conflits de username
+          console.warn('Profile not found, creating one via RPC...', profileError);
           
-          const { data: newProfile, error: createError } = await supabaseClient
-            .from('profiles')
-            .insert({
-              id: user.id,
-              email: user.email || '',
-              username: user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`,
-              is_premium: false,
-            })
-            .select()
-            .single();
+          // Générer un username à partir de l'email ou utiliser un username par défaut
+          const baseUsername = user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`;
+          
+          // Utiliser la fonction RPC create_or_update_profile qui bypass RLS
+          // C'est la même fonction utilisée pour les utilisateurs email/password
+          const { error: rpcError } = await supabaseClient.rpc('create_or_update_profile', {
+            user_id: user.id,
+            user_email: user.email || '',
+            user_username: baseUsername,
+            user_first_name: user.user_metadata?.first_name || user.user_metadata?.name?.split(' ')[0] || null,
+            user_last_name: user.user_metadata?.last_name || user.user_metadata?.name?.split(' ').slice(1).join(' ') || null,
+          });
 
-          if (createError) {
-            throw createError;
+          if (rpcError) {
+            console.error('Error creating profile via RPC:', rpcError);
+            throw new Error(`Failed to create profile: ${rpcError.message}`);
           }
 
-          setUser(user);
-          setProfile(newProfile);
+          // Attendre un peu pour que le profil soit créé
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+          // Récupérer le profil créé
+          const { data: newProfile, error: fetchError } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (fetchError || !newProfile) {
+            throw new Error(`Failed to fetch created profile: ${fetchError?.message || 'Profile not found'}`);
+          }
+
+          profile = newProfile;
         } else {
-          setUser(user);
-          setProfile(profile);
+          profile = existingProfile;
         }
+
+        // Mise à jour du store avec l'utilisateur et le profil
+        setUser(user);
+        setProfile(profile);
 
         // Récupération de l'URL de redirection depuis les query params
         // Par défaut, on redirige vers /dashboard

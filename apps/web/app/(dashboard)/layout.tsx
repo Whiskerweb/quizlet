@@ -46,12 +46,47 @@ export default function DashboardLayout({
       
       if (user) {
         setUser(user);
+        
         // Fetch profile
-        const { data: profile } = await supabase
+        let { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
+        
+        // Si le profil n'existe pas, on le crée via la fonction RPC
+        // Cela peut arriver si le trigger handle_new_user() n'a pas fonctionné
+        if (profileError || !profile) {
+          console.warn('Profile not found in dashboard, creating one...', profileError);
+          
+          // Générer un username à partir de l'email ou utiliser un username par défaut
+          const baseUsername = user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`;
+          
+          // Utiliser la fonction RPC create_or_update_profile qui bypass RLS
+          const { error: rpcError } = await supabase.rpc('create_or_update_profile', {
+            user_id: user.id,
+            user_email: user.email || '',
+            user_username: baseUsername,
+            user_first_name: user.user_metadata?.first_name || user.user_metadata?.name?.split(' ')[0] || null,
+            user_last_name: user.user_metadata?.last_name || user.user_metadata?.name?.split(' ').slice(1).join(' ') || null,
+          });
+
+          if (rpcError) {
+            console.error('Error creating profile via RPC:', rpcError);
+            // On continue quand même, l'utilisateur pourra utiliser l'app
+          } else {
+            // Récupérer le profil créé
+            const { data: newProfile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .single();
+            
+            if (newProfile) {
+              profile = newProfile;
+            }
+          }
+        }
         
         if (profile) {
           setProfile(profile);
