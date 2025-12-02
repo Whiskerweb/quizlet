@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { setsService } from '@/lib/supabase/sets';
@@ -24,11 +24,7 @@ export default function PublicSetsPage() {
 
   const limit = 20;
 
-  useEffect(() => {
-    loadPublicSets();
-  }, [currentPage, searchQuery, selectedSubject]);
-
-  const loadPublicSets = async () => {
+  const loadPublicSets = useCallback(async () => {
     try {
       setIsLoading(true);
       const result = await setsService.getPublicSetsWithoutPassword({
@@ -44,7 +40,11 @@ export default function PublicSetsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, searchQuery, selectedSubject]);
+
+  useEffect(() => {
+    loadPublicSets();
+  }, [loadPublicSets]);
 
   const handleAddSet = async (setId: string) => {
     setIsAddingSet(setId);
@@ -233,7 +233,7 @@ export default function PublicSetsPage() {
                   </div>
                   <div className="flex items-center gap-2 text-[12px] text-dark-text-muted mb-2">
                     <User className="h-3 w-3" />
-                    <span>Par {set.profiles?.username || 'Unknown'}</span>
+                    <span>Par {(set.profiles || set.user)?.username || 'Unknown'}</span>
                   </div>
                   <p className="text-[16px] text-white line-clamp-2 mt-2">
                     {set.description || 'No description'}

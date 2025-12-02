@@ -20,6 +20,11 @@ export interface SetWithFlashcards extends Set {
     username: string;
     avatar?: string | null;
   };
+  profiles?: {
+    id: string;
+    username: string;
+    avatar?: string | null;
+  };
 }
 
 export const setsService = {
