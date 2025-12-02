@@ -121,6 +121,9 @@ export default function HomePage() {
         .select('flashcard_id, next_review')
         .eq('user_id', user.id)
         .lte('next_review', new Date().toISOString());
+      
+      // Type assertion needed because TypeScript may not infer the type correctly
+      const typedCardsToReview = (cardsToReview || []) as Array<{ flashcard_id: string; next_review: string }>;
 
       const xp = calculateXP(typedUserStats);
       const { level, xpToNextLevel, currentLevelXP } = calculateLevel(xp);
@@ -137,7 +140,7 @@ export default function HomePage() {
         averageScore: typedUserStats?.average_score || 0,
         streak,
         recentSets: recentSets || [],
-        setsToReview: new Set(cardsToReview?.map(c => c.flashcard_id) || []).size,
+        setsToReview: new Set(typedCardsToReview.map(c => c.flashcard_id)).size,
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
