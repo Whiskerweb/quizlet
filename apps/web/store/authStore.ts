@@ -2,7 +2,6 @@
 
 import { create } from 'zustand';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
-import { ensureCurrentUserProfile } from '@/lib/utils/ensureProfile';
 import type { User } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
 
@@ -30,9 +29,44 @@ export const useAuthStore = create<AuthState>((set, get) => {
       if (session?.user) {
         set({ user: session.user });
         
-        // Ensure profile exists (creates it if missing)
-        const profile = await ensureCurrentUserProfile();
-        set({ profile });
+        // Load profile
+        const { data: profileData } = await supabaseBrowser
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        
+        if (profileData) {
+          set({ profile: profileData as Profile });
+        } else {
+          // Profile doesn't exist, try to create it
+          const email = session.user.email || '';
+          const emailUsername = email.split('@')[0];
+          const baseUsername = emailUsername || `user_${session.user.id.substring(0, 8)}`;
+
+          try {
+            await (supabaseBrowser.rpc as any)('create_or_update_profile', {
+              user_id: session.user.id,
+              user_email: email,
+              user_username: baseUsername,
+              user_first_name: null,
+              user_last_name: null,
+            });
+
+            // Reload profile after creation
+            const { data: newProfileData } = await supabaseBrowser
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
+            
+            if (newProfileData) {
+              set({ profile: newProfileData as Profile });
+            }
+          } catch (error) {
+            console.error('Failed to create profile:', error);
+          }
+        }
       } else {
         set({ user: null, profile: null });
       }
@@ -52,9 +86,43 @@ export const useAuthStore = create<AuthState>((set, get) => {
     if (event === 'SIGNED_IN' && session?.user) {
       set({ user: session.user });
       
-      // Ensure profile exists (creates it if missing)
-      const profile = await ensureCurrentUserProfile();
-      set({ profile });
+      // Load or create profile
+      const { data: profileData } = await supabaseBrowser
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      
+      if (profileData) {
+        set({ profile: profileData as Profile });
+      } else {
+        // Try to create profile
+        const email = session.user.email || '';
+        const emailUsername = email.split('@')[0];
+        const baseUsername = emailUsername || `user_${session.user.id.substring(0, 8)}`;
+
+        try {
+          await (supabaseBrowser.rpc as any)('create_or_update_profile', {
+            user_id: session.user.id,
+            user_email: email,
+            user_username: baseUsername,
+            user_first_name: null,
+            user_last_name: null,
+          });
+
+          const { data: newProfileData } = await supabaseBrowser
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          
+          if (newProfileData) {
+            set({ profile: newProfileData as Profile });
+          }
+        } catch (error) {
+          console.error('Failed to create profile:', error);
+        }
+      }
     } else if (event === 'SIGNED_OUT') {
       set({ user: null, profile: null });
     }
@@ -75,9 +143,15 @@ export const useAuthStore = create<AuthState>((set, get) => {
       }
 
       try {
-        // Ensure profile exists (creates it if missing)
-        const profile = await ensureCurrentUserProfile();
-        set({ profile });
+        const { data: profileData } = await supabaseBrowser
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+        
+        if (profileData) {
+          set({ profile: profileData as Profile });
+        }
       } catch (error) {
         console.error('Failed to load profile:', error);
         set({ profile: null });
@@ -89,7 +163,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     },
     isAuthenticated: () => {
       const state = get();
-      return state.user !== null && state.profile !== null;
+      return state.user !== null;
     },
   };
 });

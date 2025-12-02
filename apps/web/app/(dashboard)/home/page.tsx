@@ -42,11 +42,17 @@ interface HomeStats {
 
 export default function HomePage() {
   const router = useRouter();
-  const { profile, user, loadProfile } = useAuthStore();
+  const { profile, user } = useAuthStore();
   const [isCreatingSet, setIsCreatingSet] = useState(false);
   const [stats, setStats] = useState<HomeStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'recent' | 'review' | 'achievements'>('overview');
+
+  useEffect(() => {
+    if (user) {
+      loadStats();
+    }
+  }, [user]);
 
   const calculateXP = (userStats: UserStats | null): number => {
     if (!userStats) return 0;
@@ -79,12 +85,17 @@ export default function HomePage() {
       
       if (!user) return;
 
-      // Get user stats
-      const { data: userStats } = await supabase
+      // Get user stats - use maybeSingle() to handle case where no stats exist yet
+      const { data: userStats, error: userStatsError } = await supabase
         .from('user_stats')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+      
+      // Handle error (PGRST116 means no rows found, which is OK for new users)
+      if (userStatsError && userStatsError.code !== 'PGRST116') {
+        console.error('Failed to load user stats:', userStatsError);
+      }
       
       // Type assertion needed because TypeScript may not infer the type correctly
       const typedUserStats = userStats as UserStats | null;
@@ -133,11 +144,26 @@ export default function HomePage() {
         totalSessions: typedUserStats?.total_sessions || 0,
         averageScore: typedUserStats?.average_score || 0,
         streak,
-        recentSets: recentSets || [],
+        recentSets: (recentSets || []) as Set[],
         setsToReview: new Set(typedCardsToReview.map(c => c.flashcard_id)).size,
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
+      // Set default stats on error to prevent infinite loading
+      setStats({
+        totalXP: 0,
+        level: 1,
+        xpToNextLevel: 100,
+        currentLevelXP: 0,
+        totalSets: 0,
+        totalFlashcards: 0,
+        totalStudyTime: 0,
+        totalSessions: 0,
+        averageScore: 0,
+        streak: 0,
+        recentSets: [],
+        setsToReview: 0,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -182,19 +208,6 @@ export default function HomePage() {
     
     return streak;
   };
-
-  useEffect(() => {
-    if (user) {
-      // Ensure profile exists before loading stats
-      if (!profile) {
-        loadProfile().then(() => {
-          loadStats();
-        });
-      } else {
-        loadStats();
-      }
-    }
-  }, [user, profile, loadProfile]);
 
   if (isLoading) {
     return (

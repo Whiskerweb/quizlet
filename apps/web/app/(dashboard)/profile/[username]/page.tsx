@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
 import { Card } from '@/components/ui/Card';
@@ -14,26 +14,68 @@ type Set = Database['public']['Tables']['sets']['Row'];
 
 export default function ProfilePage() {
   const params = useParams();
-  const username = params.username as string;
-  const { user: currentUser, profile: currentProfile, loadProfile } = useAuthStore();
+  const router = useRouter();
+  const usernameParam = params.username as string;
+  const { user: currentUser, profile: currentProfile } = useAuthStore();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [sets, setSets] = useState<Set[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
   useEffect(() => {
     loadProfileData();
-  }, [username, currentUser, currentProfile]);
+  }, [usernameParam, currentUser, currentProfile]);
 
   const loadProfileData = async () => {
     try {
       setIsLoading(true);
 
-      // If viewing own profile, use current profile from store
-      if (currentUser && currentProfile && currentProfile.username === username) {
-        setProfile(currentProfile);
-        setIsOwnProfile(true);
-        await loadUserSets(currentUser.id);
+      // If username is "me", use current user's profile
+      if (usernameParam === 'me') {
+        if (!currentUser) {
+          // Not authenticated, redirect to login
+          router.push('/login');
+          return;
+        }
+
+        // Try to get current user's profile by user ID
+        const { data: profileData, error: profileError } = await supabaseBrowser
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('Failed to load profile:', profileError);
+          setProfile(null);
+          setIsLoading(false);
+          return;
+        }
+
+        if (!profileData) {
+          // Profile doesn't exist, try to create it
+          await createProfileForUser(currentUser.id, currentUser.email || '');
+          // Reload after creation
+          const { data: newProfileData } = await supabaseBrowser
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+          
+          if (newProfileData) {
+            setProfile(newProfileData as Profile);
+            setIsOwnProfile(true);
+            await loadUserSets(currentUser.id);
+          } else {
+            setProfile(null);
+          }
+        } else {
+          setProfile(profileData as Profile);
+          setIsOwnProfile(true);
+          await loadUserSets(currentUser.id);
+        }
+        
         setIsLoading(false);
         return;
       }
@@ -42,11 +84,17 @@ export default function ProfilePage() {
       const { data: profileData, error: profileError } = await supabaseBrowser
         .from('profiles')
         .select('*')
-        .eq('username', username)
-        .single();
+        .eq('username', usernameParam)
+        .maybeSingle();
 
-      if (profileError || !profileData) {
+      if (profileError) {
         console.error('Profile not found:', profileError);
+        setProfile(null);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!profileData) {
         setProfile(null);
         setIsLoading(false);
         return;
@@ -61,6 +109,68 @@ export default function ProfilePage() {
       console.error('Failed to load profile:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const createProfileForUser = async (userId: string, userEmail: string): Promise<void> => {
+    try {
+      setIsCreatingProfile(true);
+      
+      // Generate username from email
+      const emailUsername = userEmail.split('@')[0];
+      const baseUsername = emailUsername || `user_${userId.substring(0, 8)}`;
+
+      // Try to create profile using RPC function if it exists
+      try {
+        await (supabaseBrowser.rpc as any)('create_or_update_profile', {
+          user_id: userId,
+          user_email: userEmail,
+          user_username: baseUsername,
+          user_first_name: null,
+          user_last_name: null,
+        });
+      } catch (rpcError) {
+        // If RPC function doesn't exist or fails, try direct insert
+        console.warn('RPC function failed, trying direct insert:', rpcError);
+
+        // Check for username conflicts and generate a unique one
+        let finalUsername = baseUsername;
+        let counter = 0;
+        let usernameExists = true;
+
+        while (usernameExists && counter < 100) {
+          const { data: conflictCheck } = await supabaseBrowser
+            .from('profiles')
+            .select('id')
+            .eq('username', finalUsername)
+            .limit(1);
+
+          if (!conflictCheck || conflictCheck.length === 0) {
+            usernameExists = false;
+          } else {
+            counter++;
+            finalUsername = `${baseUsername}_${counter}`;
+          }
+        }
+
+        // Insert the profile
+        const { error: insertError } = await supabaseBrowser
+          .from('profiles')
+          .insert({
+            id: userId,
+            email: userEmail,
+            username: finalUsername,
+          });
+
+        if (insertError) {
+          throw insertError;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to create profile:', error);
+      throw error;
+    } finally {
+      setIsCreatingProfile(false);
     }
   };
 
@@ -84,7 +194,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isCreatingProfile) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <p className="text-white">Chargement...</p>
@@ -97,9 +207,16 @@ export default function ProfilePage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="p-8 text-center">
           <h2 className="text-xl font-bold text-white mb-2">Profil introuvable</h2>
-          <p className="text-dark-text-secondary">
-            Aucun profil trouvé avec le nom d'utilisateur "{username}".
+          <p className="text-dark-text-secondary mb-4">
+            {usernameParam === 'me'
+              ? 'Votre profil n\'a pas pu être créé. Veuillez réessayer.'
+              : `Aucun profil trouvé avec le nom d'utilisateur "${usernameParam}".`}
           </p>
+          {usernameParam === 'me' && (
+            <Button onClick={() => loadProfileData()}>
+              Réessayer
+            </Button>
+          )}
         </Card>
       </div>
     );

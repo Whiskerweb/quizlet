@@ -10,14 +10,14 @@ export const setsService = {
       .from('sets')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Failed to get set:', error);
       return null;
     }
 
-    return data as Set;
+    return data as Set | null;
   },
 
   async create(set: Omit<SetInsert, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'share_id'>): Promise<Set> {
