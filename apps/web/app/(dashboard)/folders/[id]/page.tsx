@@ -27,7 +27,7 @@ export default function FolderPage() {
       
       // Get sets in this folder using Supabase directly
       const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
+      const supabase = supabaseBrowser;
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {

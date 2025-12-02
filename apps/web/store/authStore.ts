@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createClient } from '@/lib/supabase/client';
+import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import type { User } from '@supabase/supabase-js';
 
 interface Profile {
@@ -32,8 +32,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     setProfile: (profile) => set({ profile }),
     setLoading: (loading) => set({ loading }),
     logout: async () => {
-      const supabase = createClient();
-      await supabase.auth.signOut();
+      await supabaseBrowser.auth.signOut();
       set({ user: null, profile: null });
     },
     isAuthenticated: () => {

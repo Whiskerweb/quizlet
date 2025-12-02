@@ -123,3 +123,6 @@ Pour chaque page, vérifier :
 - [ ] Tous les éléments cliquables ont une taille minimale de 44px
 
 
+
+
+

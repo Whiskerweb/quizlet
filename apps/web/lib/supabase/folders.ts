@@ -1,4 +1,11 @@
-import { createClient } from './client';
+/**
+ * Service pour gérer les dossiers (folders)
+ * 
+ * IMPORTANT : Ce service utilise supabaseBrowser, l'instance unique de client Supabase.
+ * Cela garantit que toutes les requêtes utilisent la même session utilisateur.
+ */
+
+import { supabaseBrowser } from '../supabaseBrowserClient';
 import type { Database } from './types';
 
 type Folder = Database['public']['Tables']['folders']['Row'];
@@ -11,11 +18,15 @@ export interface FolderWithSets extends Folder {
 
 export const foldersService = {
   async getAll() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    // Vérifier la session avant de faire la requête
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    console.log('[Folders service] getAll - current session', session?.user?.id);
+    
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('folders')
       .select('*')
       .eq('user_id', user.id)
@@ -26,8 +37,7 @@ export const foldersService = {
   },
 
   async getOne(id: string) {
-    const supabase = createClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('folders')
       .select('*')
       .eq('id', id)
@@ -38,14 +48,18 @@ export const foldersService = {
   },
 
   async getWithSets() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    // Vérifier la session avant de faire la requête
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    console.log('[Folders service] getWithSets - current session', session?.user?.id);
+    
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
     // Try to get folders (might fail if table doesn't exist)
     let folders: Folder[] = [];
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseBrowser
         .from('folders')
         .select('*')
         .eq('user_id', user.id)
@@ -60,7 +74,7 @@ export const foldersService = {
     }
 
     // Get all sets
-    const { data: sets, error: setsError } = await supabase
+    const { data: sets, error: setsError } = await supabaseBrowser
       .from('sets')
       .select('*')
       .eq('user_id', user.id)
@@ -90,12 +104,16 @@ export const foldersService = {
   },
 
   async create(folder: Omit<FolderInsert, 'id' | 'user_id' | 'created_at' | 'updated_at'>) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    // Vérifier la session avant de faire la requête
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    console.log('[Folders service] create - current session', session?.user?.id);
+    
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
     // Get max order
-    const { data: existingFolders } = await supabase
+    const { data: existingFolders } = await supabaseBrowser
       .from('folders')
       .select('order')
       .eq('user_id', user.id)
@@ -104,7 +122,7 @@ export const foldersService = {
 
     const order = existingFolders && existingFolders.length > 0 ? existingFolders[0].order + 1 : 0;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('folders')
       .insert({
         ...folder,
@@ -119,11 +137,12 @@ export const foldersService = {
   },
 
   async update(id: string, updates: FolderUpdate) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('folders')
       .update(updates)
       .eq('id', id)
@@ -136,19 +155,20 @@ export const foldersService = {
   },
 
   async delete(id: string) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
     // Remove folder_id from all sets in this folder
-    await supabase
+    await supabaseBrowser
       .from('sets')
       .update({ folder_id: null })
       .eq('folder_id', id)
       .eq('user_id', user.id);
 
     // Delete folder
-    const { error } = await supabase
+    const { error } = await supabaseBrowser
       .from('folders')
       .delete()
       .eq('id', id)
@@ -158,12 +178,13 @@ export const foldersService = {
   },
 
   async addSetToFolder(setId: string, folderId: string | null) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
     // Verify set ownership
-    const { data: set } = await supabase
+    const { data: set } = await supabaseBrowser
       .from('sets')
       .select('id')
       .eq('id', setId)
@@ -174,7 +195,7 @@ export const foldersService = {
 
     // If folderId is provided, verify folder ownership
     if (folderId) {
-      const { data: folder } = await supabase
+      const { data: folder } = await supabaseBrowser
         .from('folders')
         .select('id')
         .eq('id', folderId)
@@ -184,7 +205,7 @@ export const foldersService = {
       if (!folder) throw new Error('Folder not found or access denied');
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('sets')
       .update({ folder_id: folderId })
       .eq('id', setId)

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { createClient } from '@/lib/supabase/client';
+import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
 import { setsService } from '@/lib/supabase/sets';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -59,7 +59,7 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       setIsLoading(true);
-      const supabase = createClient();
+      const supabase = supabaseBrowser;
       
       // Load profile
       const { data: profileData, error: profileError } = await supabase

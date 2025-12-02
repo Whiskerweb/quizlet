@@ -10,7 +10,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
-import { createClient } from '@/lib/supabase/client';
+import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
 
@@ -30,7 +30,7 @@ function RegisterForm() {
   const { setUser, setProfile } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createClient();
+  const supabase = supabaseBrowser;
   
   // Get redirect URL from query params
   const redirectUrl = searchParams.get('redirect') || '/dashboard';

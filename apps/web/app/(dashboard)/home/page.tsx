@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { createClient } from '@/lib/supabase/client';
+import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { createSetAndRedirect } from '@/lib/utils/createSetAndRedirect';
@@ -81,7 +81,7 @@ export default function HomePage() {
   const loadStats = async () => {
     try {
       setIsLoading(true);
-      const supabase = createClient();
+      const supabase = supabaseBrowser;
       
       if (!user) return;
 

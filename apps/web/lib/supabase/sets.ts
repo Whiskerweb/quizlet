@@ -1,4 +1,11 @@
-import { createClient } from './client';
+/**
+ * Service pour gérer les sets (Cardz)
+ * 
+ * IMPORTANT : Ce service utilise supabaseBrowser, l'instance unique de client Supabase.
+ * Cela garantit que toutes les requêtes utilisent la même session utilisateur.
+ */
+
+import { supabaseBrowser } from '../supabaseBrowserClient';
 import type { Database } from './types';
 
 type Set = Database['public']['Tables']['sets']['Row'];
@@ -17,8 +24,7 @@ export interface SetWithFlashcards extends Set {
 
 export const setsService = {
   async getAll(query?: { search?: string; tag?: string; page?: number; limit?: number }) {
-    const supabase = createClient();
-    let queryBuilder = supabase
+    let queryBuilder = supabaseBrowser
       .from('sets')
       .select(`
         *,
@@ -61,8 +67,7 @@ export const setsService = {
   },
 
   async getOne(id: string) {
-    const supabase = createClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('sets')
       .select(`
         *,
@@ -135,11 +140,15 @@ export const setsService = {
   },
 
   async getMySets() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    // Vérifier la session avant de faire la requête
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    console.log('[Sets service] getMySets - current session', session?.user?.id);
+    
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('sets')
       .select('*')
       .eq('user_id', user.id)
@@ -150,11 +159,15 @@ export const setsService = {
   },
 
   async create(set: Omit<SetInsert, 'id' | 'user_id' | 'created_at' | 'updated_at'>) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    // Vérifier la session avant de faire la requête
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    console.log('[Sets service] create - current session', session?.user?.id);
+    
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('sets')
       .insert({
         ...set,
@@ -166,7 +179,7 @@ export const setsService = {
     if (error) throw error;
 
     // Create set stats
-    await supabase.from('set_stats').insert({
+    await supabaseBrowser.from('set_stats').insert({
       set_id: data.id,
     });
 
@@ -174,11 +187,12 @@ export const setsService = {
   },
 
   async update(id: string, updates: SetUpdate) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('sets')
       .update(updates)
       .eq('id', id)
@@ -191,11 +205,12 @@ export const setsService = {
   },
 
   async delete(id: string) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
-    const { error } = await supabase
+    const { error } = await supabaseBrowser
       .from('sets')
       .delete()
       .eq('id', id)
@@ -205,16 +220,17 @@ export const setsService = {
   },
 
   async duplicate(id: string) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
     // Get original set
     const original = await this.getOne(id);
     if (!original) throw new Error('Set not found');
 
     // Create new set
-    const { data: newSet, error: setError } = await supabase
+    const { data: newSet, error: setError } = await supabaseBrowser
       .from('sets')
       .insert({
         title: `${original.title} (Copy)`,
@@ -240,7 +256,7 @@ export const setsService = {
         set_id: newSet.id,
       }));
 
-      const { error: cardsError } = await supabase
+      const { error: cardsError } = await supabaseBrowser
         .from('flashcards')
         .insert(flashcards);
 
@@ -248,7 +264,7 @@ export const setsService = {
     }
 
     // Create set stats
-    await supabase.from('set_stats').insert({
+    await supabaseBrowser.from('set_stats').insert({
       set_id: newSet.id,
     });
 

@@ -1,4 +1,11 @@
-import { createClient } from './client';
+/**
+ * Service pour gérer les flashcards (cardz)
+ * 
+ * IMPORTANT : Ce service utilise supabaseBrowser, l'instance unique de client Supabase.
+ * Cela garantit que toutes les requêtes utilisent la même session utilisateur.
+ */
+
+import { supabaseBrowser } from '../supabaseBrowserClient';
 import type { Database } from './types';
 
 type Flashcard = Database['public']['Tables']['flashcards']['Row'];
@@ -7,8 +14,7 @@ type FlashcardUpdate = Database['public']['Tables']['flashcards']['Update'];
 
 export const flashcardsService = {
   async getAll(setId: string) {
-    const supabase = createClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('flashcards')
       .select('*')
       .eq('set_id', setId)
@@ -19,8 +25,7 @@ export const flashcardsService = {
   },
 
   async getOne(id: string) {
-    const supabase = createClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('flashcards')
       .select('*')
       .eq('id', id)
@@ -31,12 +36,13 @@ export const flashcardsService = {
   },
 
   async create(setId: string, flashcard: Omit<FlashcardInsert, 'id' | 'set_id' | 'created_at' | 'updated_at'>) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
     // Verify set ownership
-    const { data: set, error: setError } = await supabase
+    const { data: set, error: setError } = await supabaseBrowser
       .from('sets')
       .select('id')
       .eq('id', setId)
@@ -46,7 +52,7 @@ export const flashcardsService = {
     if (setError || !set) throw new Error('Set not found or access denied');
 
     // Get max order
-    const { data: existingCards } = await supabase
+    const { data: existingCards } = await supabaseBrowser
       .from('flashcards')
       .select('order')
       .eq('set_id', setId)
@@ -55,7 +61,7 @@ export const flashcardsService = {
 
     const order = existingCards && existingCards.length > 0 ? existingCards[0].order + 1 : 0;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('flashcards')
       .insert({
         ...flashcard,
@@ -68,18 +74,17 @@ export const flashcardsService = {
     if (error) throw error;
 
     // Update set stats
-    await supabase.rpc('increment_flashcard_count', { set_id_param: setId });
+    await supabaseBrowser.rpc('increment_flashcard_count', { set_id_param: setId });
 
     return data as Flashcard;
   },
 
   async update(id: string, updates: FlashcardUpdate) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
 
     // Verify ownership through set
-    const { data: flashcard } = await supabase
+    const { data: flashcard } = await supabaseBrowser
       .from('flashcards')
       .select('set_id, sets!inner(user_id)')
       .eq('id', id)
@@ -87,7 +92,7 @@ export const flashcardsService = {
 
     if (!flashcard) throw new Error('Flashcard not found');
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('flashcards')
       .update(updates)
       .eq('id', id)
@@ -99,12 +104,11 @@ export const flashcardsService = {
   },
 
   async delete(id: string) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
 
     // Get flashcard to get set_id
-    const { data: flashcard } = await supabase
+    const { data: flashcard } = await supabaseBrowser
       .from('flashcards')
       .select('set_id')
       .eq('id', id)
@@ -112,7 +116,7 @@ export const flashcardsService = {
 
     if (!flashcard) throw new Error('Flashcard not found');
 
-    const { error } = await supabase
+    const { error } = await supabaseBrowser
       .from('flashcards')
       .delete()
       .eq('id', id);
@@ -120,16 +124,17 @@ export const flashcardsService = {
     if (error) throw error;
 
     // Update set stats
-    await supabase.rpc('decrement_flashcard_count', { set_id_param: flashcard.set_id });
+    await supabaseBrowser.rpc('decrement_flashcard_count', { set_id_param: flashcard.set_id });
   },
 
   async reorder(setId: string, flashcardIds: string[]) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
     // Verify set ownership
-    const { data: set } = await supabase
+    const { data: set } = await supabaseBrowser
       .from('sets')
       .select('id')
       .eq('id', setId)
@@ -140,7 +145,7 @@ export const flashcardsService = {
 
     // Update order for each flashcard
     const updates = flashcardIds.map((id, index) =>
-      supabase
+      supabaseBrowser
         .from('flashcards')
         .update({ order: index })
         .eq('id', id)
@@ -151,12 +156,13 @@ export const flashcardsService = {
   },
 
   async import(setId: string, cards: { term: string; definition: string }[]) {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+    
+    const user = session.user;
 
     // Verify set ownership
-    const { data: set, error: setError } = await supabase
+    const { data: set, error: setError } = await supabaseBrowser
       .from('sets')
       .select('id')
       .eq('id', setId)
@@ -166,7 +172,7 @@ export const flashcardsService = {
     if (setError || !set) throw new Error('Set not found or access denied');
 
     // Get max order
-    const { data: existingCards } = await supabase
+    const { data: existingCards } = await supabaseBrowser
       .from('flashcards')
       .select('order')
       .eq('set_id', setId)
@@ -183,7 +189,7 @@ export const flashcardsService = {
       order: startOrder + index,
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('flashcards')
       .insert(flashcardsToInsert)
       .select();
@@ -191,7 +197,7 @@ export const flashcardsService = {
     if (error) throw error;
 
     // Update set stats (the function automatically counts the flashcards)
-    await supabase.rpc('increment_flashcard_count', { 
+    await supabaseBrowser.rpc('increment_flashcard_count', { 
       set_id_param: setId
     });
 

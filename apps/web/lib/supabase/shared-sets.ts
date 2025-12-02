@@ -1,4 +1,11 @@
-import { createClient } from './client';
+/**
+ * Service pour gérer les sets partagés
+ * 
+ * IMPORTANT : Ce service utilise supabaseBrowser, l'instance unique de client Supabase.
+ * Cela garantit que toutes les requêtes utilisent la même session utilisateur.
+ */
+
+import { supabaseBrowser } from '../supabaseBrowserClient';
 import type { Database } from './types';
 
 // Simple hash function using Web Crypto API (more secure than simple hash)
@@ -66,14 +73,14 @@ export function verifyPassword(password: string, hash: string): boolean {
 export const sharedSetsService = {
   // Get all shared sets for the current user
   async getMySharedSets(): Promise<SharedSetWithDetails[]> {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) {
       throw new Error('User not authenticated');
     }
+    
+    const user = session.user;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('shared_sets')
       .select(`
         *,
@@ -107,15 +114,15 @@ export const sharedSetsService = {
 
   // Share a set with the current user (after password verification)
   async shareSet(setId: string, password?: string): Promise<SharedSet> {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) {
       throw new Error('User not authenticated');
     }
+    
+    const user = session.user;
 
     // First, check if the set exists and verify password if needed
-    const { data: set, error: setError } = await supabase
+    const { data: set, error: setError } = await supabaseBrowser
       .from('sets')
       .select('*')
       .eq('id', setId)
@@ -141,7 +148,7 @@ export const sharedSetsService = {
     }
 
     // Check if already shared
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseBrowser
       .from('shared_sets')
       .select('*')
       .eq('set_id', setId)
@@ -153,7 +160,7 @@ export const sharedSetsService = {
     }
 
     // Create shared set entry
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('shared_sets')
       .insert({
         set_id: setId,
@@ -169,14 +176,14 @@ export const sharedSetsService = {
 
   // Remove a shared set
   async removeSharedSet(sharedSetId: string): Promise<void> {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) {
       throw new Error('User not authenticated');
     }
+    
+    const user = session.user;
 
-    const { error } = await supabase
+    const { error } = await supabaseBrowser
       .from('shared_sets')
       .delete()
       .eq('id', sharedSetId)
@@ -187,9 +194,7 @@ export const sharedSetsService = {
 
   // Check if a set requires a password
   async checkSetPassword(setId: string): Promise<boolean> {
-    const supabase = createClient();
-    
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('sets')
       .select('password_hash')
       .eq('id', setId)
@@ -204,14 +209,14 @@ export const sharedSetsService = {
 
   // Check if user already has access to a set
   async hasAccess(setId: string): Promise<boolean> {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) {
       return false;
     }
+    
+    const user = session.user;
 
-    const { data } = await supabase
+    const { data } = await supabaseBrowser
       .from('shared_sets')
       .select('id')
       .eq('set_id', setId)
@@ -228,15 +233,15 @@ export const sharedSetsService = {
     avatar: string | null;
     added_at: string;
   }>> {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) {
       throw new Error('User not authenticated');
     }
+    
+    const user = session.user;
 
     // Verify user owns the set
-    const { data: setData } = await supabase
+    const { data: setData } = await supabaseBrowser
       .from('sets')
       .select('user_id')
       .eq('id', setId)
@@ -246,7 +251,7 @@ export const sharedSetsService = {
       throw new Error('You do not own this set');
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseBrowser
       .from('shared_sets')
       .select(`
         user_id,
