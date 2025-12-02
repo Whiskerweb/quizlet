@@ -42,3 +42,4 @@ GRANT EXECUTE ON FUNCTION public.create_or_update_profile TO authenticated;
 
 
 
+

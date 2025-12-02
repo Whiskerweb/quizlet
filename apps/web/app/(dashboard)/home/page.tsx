@@ -42,17 +42,11 @@ interface HomeStats {
 
 export default function HomePage() {
   const router = useRouter();
-  const { profile, user } = useAuthStore();
+  const { profile, user, loadProfile } = useAuthStore();
   const [isCreatingSet, setIsCreatingSet] = useState(false);
   const [stats, setStats] = useState<HomeStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'recent' | 'review' | 'achievements'>('overview');
-
-  useEffect(() => {
-    if (user) {
-      loadStats();
-    }
-  }, [user]);
 
   const calculateXP = (userStats: UserStats | null): number => {
     if (!userStats) return 0;
@@ -188,6 +182,19 @@ export default function HomePage() {
     
     return streak;
   };
+
+  useEffect(() => {
+    if (user) {
+      // Ensure profile exists before loading stats
+      if (!profile) {
+        loadProfile().then(() => {
+          loadStats();
+        });
+      } else {
+        loadStats();
+      }
+    }
+  }, [user, profile, loadProfile]);
 
   if (isLoading) {
     return (

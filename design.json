@@ -83,12 +83,12 @@
       "colors": {
         "description": "Two primary themes: dark app shell (study experience) and light marketing/landing pages. Both use the same brand blue and complementary accents.",
         "brand": {
-          "primary": "#60A5FA",
-          "primarySoft": "#93C5FD",
-          "primaryDark": "#3B82F6",
-          "secondaryTeal": "#67E8F9",
-          "accentYellow": "#FCD34D",
-          "accentPink": "#F472B6"
+          "primary": "#4255FF",
+          "primarySoft": "#5468FF",
+          "primaryDark": "#1B2BFF",
+          "secondaryTeal": "#3FD3FF",
+          "accentYellow": "#FFD95A",
+          "accentPink": "#FF5FA2"
         },
         "darkTheme": {
           "background": {

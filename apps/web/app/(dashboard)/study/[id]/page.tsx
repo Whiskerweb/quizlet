@@ -126,54 +126,30 @@ export default function StudyPage() {
 
       // Update session state
       const updatedState = recordAnswer(sessionState, flashcardId, isCorrect);
-      console.log('[Study] Answer recorded:', { flashcardId, isCorrect, updatedState });
+      setSessionState(updatedState);
 
       // Check if session is complete
       if (isSessionComplete(updatedState)) {
-        console.log('[Study] Session complete');
-        setSessionState(updatedState);
         await completeSession();
         return;
       }
 
       // Move to next card
       const nextState = moveToNext(updatedState);
-      console.log('[Study] Moved to next:', { currentIndex: nextState.currentIndex, previousCardId: flashcardId });
+      setSessionState(nextState);
       
       // Get next card (will prioritize incorrect ones if needed)
-      // Pass current card ID to ensure we don't get the same card
-      let nextCard = getNextCard(nextState, flashcardId);
-      console.log('[Study] Next card (first attempt):', nextCard?.flashcardId);
-      
-      // If we got the same card or null, try incrementing index until we find a different card
-      let attempts = 0;
-      let finalState = nextState;
-      while ((!nextCard || nextCard.flashcardId === flashcardId) && attempts < 10) {
-        finalState = {
-          ...finalState,
-          currentIndex: finalState.currentIndex + 1,
-        };
-        nextCard = getNextCard(finalState, flashcardId);
-        attempts++;
-        console.log('[Study] Next card (attempt', attempts, '):', nextCard?.flashcardId, 'index:', finalState.currentIndex);
-      }
-      
-      // Update state with final state
-      setSessionState(finalState);
-      console.log('[Study] Final state:', { currentIndex: finalState.currentIndex, nextCardId: nextCard?.flashcardId });
-      
-      if (nextCard && nextCard.flashcardId !== flashcardId) {
-        console.log('[Study] Setting new card:', nextCard.flashcardId);
-        // Use functional updates to ensure we're using the latest state
-        setCurrentCard(() => nextCard);
-        setIsFlipped(() => false);
+      const nextCard = getNextCard(nextState);
+      if (nextCard) {
+        setCurrentCard(nextCard);
+        setIsFlipped(false);
         
         // Update memory with new state
         setTimeout(() => {
           setModeMemory(prev => ({
             ...prev,
             [mode]: {
-              sessionState: finalState,
+              sessionState: nextState,
               currentCard: nextCard,
               isFlipped: false,
               sessionId,
@@ -183,8 +159,7 @@ export default function StudyPage() {
           }));
         }, 0);
       } else {
-        // All cards mastered or no more cards available
-        console.log('[Study] No more cards available, completing session');
+        // All cards mastered - this should not happen if isSessionComplete check above works
         await completeSession();
       }
     } catch (error) {
@@ -271,9 +246,7 @@ export default function StudyPage() {
     const initialState = initializeSession(cardsToUse);
     setSessionState(initialState);
     const firstCard = getNextCard(initialState);
-    if (firstCard) {
-      setCurrentCard(firstCard);
-    }
+    setCurrentCard(firstCard);
     
     setShowSettings(false);
     setHasStarted(true);
@@ -360,9 +333,7 @@ export default function StudyPage() {
       const initialState = initializeSession(cardsToUse);
       setSessionState(initialState);
       const firstCard = getNextCard(initialState);
-      if (firstCard) {
-        setCurrentCard(firstCard);
-      }
+      setCurrentCard(firstCard);
       setIsFlipped(false);
       setMatchCompleted(false);
       setFlashcards(cardsToUse);
