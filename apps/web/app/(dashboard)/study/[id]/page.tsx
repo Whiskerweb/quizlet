@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { setsService } from '@/lib/supabase/sets';
 import { studyService } from '@/lib/supabase/study';
@@ -111,7 +111,7 @@ export default function StudyPage() {
     }
   };
 
-  const handleAnswer = async (isCorrect: boolean, timeSpent: number = 0) => {
+  const handleAnswer = useCallback(async (isCorrect: boolean, timeSpent: number = 0) => {
     if (!sessionId || !sessionState || !currentCard) return;
 
     const flashcardId = currentCard.flashcardId;
@@ -165,7 +165,7 @@ export default function StudyPage() {
     } catch (error) {
       console.error('Failed to submit answer:', error);
     }
-  };
+  }, [sessionId, sessionState, currentCard, mode, flashcards, matchCompleted]);
 
   const handleMatchComplete = async (correctCount: number, totalTime: number) => {
     if (!sessionId || !sessionState) return;
@@ -281,7 +281,7 @@ export default function StudyPage() {
   };
 
   // Helper function to update memory for current mode
-  const updateModeMemory = () => {
+  const updateModeMemory = useCallback(() => {
     if (hasStarted && sessionState) {
       setModeMemory(prev => ({
         ...prev,
@@ -295,7 +295,7 @@ export default function StudyPage() {
         },
       }));
     }
-  };
+  }, [hasStarted, sessionState, mode, currentCard, isFlipped, sessionId, flashcards, matchCompleted]);
 
   // Save current state to memory before changing mode
   const saveCurrentModeState = (currentMode: StudyMode) => {
@@ -410,7 +410,7 @@ export default function StudyPage() {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [mode, isFlipped, currentCard]);
+  }, [mode, isFlipped, currentCard, handleAnswer, sessionState, updateModeMemory]);
 
   if (isLoading) {
     return (
