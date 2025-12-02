@@ -22,7 +22,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 
 function AuthCallbackContent() {
@@ -31,6 +31,7 @@ function AuthCallbackContent() {
   const { setUser, setProfile } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient(); // Utiliser le client SSR pour la synchronisation des cookies
 
   useEffect(() => {
     /**
@@ -48,7 +49,28 @@ function AuthCallbackContent() {
         // Étape 1 : Récupération de la session
         // Supabase a automatiquement échangé le code d'autorisation contre une session
         // getSession() récupère la session actuelle depuis les cookies/localStorage
-        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        // On utilise getUser() qui est plus fiable pour les callbacks OAuth
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          throw userError;
+        }
+
+        // Étape 2 : Vérification que l'utilisateur est authentifié
+        if (!user) {
+          throw new Error('Aucune session trouvée. Veuillez réessayer.');
+        }
+
+        // Récupération de la session complète pour avoir l'access_token
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          throw sessionError;
+        }
+        
+        if (!session) {
+          throw new Error('Session non trouvée après authentification.');
+        }
 
         if (sessionError) {
           throw sessionError;
@@ -62,10 +84,10 @@ function AuthCallbackContent() {
         // Étape 3 : Récupération du profil utilisateur
         // Le profil est stocké dans la table 'profiles' de Supabase
         // Il est créé automatiquement lors de la première connexion via un trigger
-        const { data: profile, error: profileError } = await supabaseClient
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', session.user.id)
+          .eq('id', user.id)
           .single();
 
         if (profileError) {
@@ -74,12 +96,12 @@ function AuthCallbackContent() {
           console.warn('Profile not found, creating one...', profileError);
           
           // Création d'un profil par défaut
-          const { data: newProfile, error: createError } = await supabaseClient
+          const { data: newProfile, error: createError } = await supabase
             .from('profiles')
             .insert({
-              id: session.user.id,
-              email: session.user.email || '',
-              username: session.user.email?.split('@')[0] || `user_${session.user.id.slice(0, 8)}`,
+              id: user.id,
+              email: user.email || '',
+              username: user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`,
               is_premium: false,
             })
             .select()
@@ -90,11 +112,11 @@ function AuthCallbackContent() {
           }
 
           // Mise à jour du store avec le nouveau profil
-          setUser(session.user);
+          setUser(user);
           setProfile(newProfile);
         } else {
           // Mise à jour du store avec le profil existant
-          setUser(session.user);
+          setUser(user);
           setProfile(profile);
         }
 
@@ -103,9 +125,12 @@ function AuthCallbackContent() {
         // Si aucune URL n'est fournie, on redirige vers le dashboard
         const redirectTo = searchParams.get('redirect_to') || '/dashboard';
         
-        // Redirection vers la page demandée
-        router.push(redirectTo);
-        router.refresh(); // Rafraîchir pour mettre à jour les données côté serveur
+        // Attendre un peu pour que le store soit bien mis à jour
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Redirection complète avec window.location.href pour forcer un rechargement
+        // Cela garantit que tous les composants sont rechargés avec la nouvelle session
+        window.location.href = redirectTo;
       } catch (err: any) {
         // En cas d'erreur, on affiche un message et on redirige vers la page de login
         console.error('Error handling OAuth callback:', err);
@@ -121,7 +146,7 @@ function AuthCallbackContent() {
 
     // Appel de la fonction de traitement du callback
     handleCallback();
-  }, [router, searchParams, setUser, setProfile]);
+  }, [router, searchParams, setUser, setProfile, supabase]);
 
   // Affichage pendant le chargement
   if (isLoading) {
