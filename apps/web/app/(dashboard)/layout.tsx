@@ -1,29 +1,38 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+/**
+ * Layout du dashboard
+ * 
+ * Ce layout protège toutes les routes sous /dashboard en vérifiant l'authentification.
+ * 
+ * Logique simplifiée :
+ * 1. Vérifie la session avec getSession()
+ * 2. Si session présente → autorise l'accès au dashboard
+ * 3. Si pas de session → redirige vers /login
+ * 
+ * IMPORTANT : On ne dépend pas du store Zustand pour décider si l'utilisateur est autorisé.
+ * La vérification se base uniquement sur getSession().
+ */
+
+import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { useAuthStore } from '@/store/authStore';
+import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { SidebarNav } from '@/components/layout/SidebarNav';
 import { TopSearchBar } from '@/components/layout/TopSearchBar';
 import { Button } from '@/components/ui/Button';
 import { User, LogOut, Menu } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const { setUser, setProfile, setLoading, user, profile, logout } = useAuthStore();
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(false); // État local pour vérifier l'autorisation
+  const { user, profile, logout } = useAuthStore();
+  const [checking, setChecking] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const supabase = createClient();
 
-  // Detect mobile and handle sidebar state
+  // Détection mobile et gestion de la sidebar
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024; // lg breakpoint
@@ -40,155 +49,51 @@ export default function DashboardLayout({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Vérification de l'authentification
   useEffect(() => {
-    const checkAuth = async () => {
-      setLoading(true);
+    const run = async () => {
+      // Récupération de la session Supabase
+      // getSession() récupère la session depuis localStorage/cookies
+      // C'est la source de vérité pour l'authentification côté client
+      const { data: { session }, error } = await supabaseBrowser.auth.getSession();
       
-      // ÉTAPE 1 : Vérifier la session Supabase directement
-      // On ne dépend pas du store pour cette vérification critique
-      const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser();
-      
-      console.log('[Dashboard Layout] Session check:', {
-        hasUser: !!sessionUser,
-        userId: sessionUser?.id,
-        userEmail: sessionUser?.email,
-        error: sessionError?.message,
+      console.log('[Dashboard Layout] session', { 
+        hasSession: !!session,
+        userId: session?.user?.id,
+        userEmail: session?.user?.email,
+        error: error?.message,
       });
-      
-      // Si pas de session → redirect vers login
-      if (!sessionUser || sessionError) {
-        console.log('[Dashboard Layout] No session found, redirecting to login');
-        router.push('/login');
-        return;
-      }
-      
-      // ÉTAPE 2 : Mettre à jour le store avec l'utilisateur
-      setUser(sessionUser);
-      
-      // ÉTAPE 3 : Vérifier et récupérer le profil
-      let { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', sessionUser.id)
-        .single();
-      
-      console.log('[Dashboard Layout] Profile check:', {
-        hasProfile: !!profile,
-        profileId: profile?.id,
-        profileUsername: profile?.username,
-        error: profileError?.message,
-        errorCode: profileError?.code,
-      });
-      
-      // Si le profil n'existe pas, on le crée via la fonction RPC
-      if (profileError || !profile) {
-        console.warn('[Dashboard Layout] Profile not found, creating one via RPC...', profileError);
-        
-        // Générer un username à partir de l'email ou utiliser un username par défaut
-        const baseUsername = sessionUser.email?.split('@')[0] || `user_${sessionUser.id.slice(0, 8)}`;
-        
-        // Utiliser la fonction RPC create_or_update_profile qui bypass RLS
-        const { error: rpcError } = await supabase.rpc('create_or_update_profile', {
-          user_id: sessionUser.id,
-          user_email: sessionUser.email || '',
-          user_username: baseUsername,
-          user_first_name: sessionUser.user_metadata?.first_name || sessionUser.user_metadata?.name?.split(' ')[0] || null,
-          user_last_name: sessionUser.user_metadata?.last_name || sessionUser.user_metadata?.name?.split(' ').slice(1).join(' ') || null,
-        });
 
-        if (rpcError) {
-          console.error('[Dashboard Layout] Error creating profile via RPC:', rpcError);
-          // Si la création échoue, on redirige vers login car on ne peut pas continuer sans profil
-          router.push('/login');
-          return;
-        }
-        
-        // Attendre un peu pour que le profil soit créé
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Récupérer le profil créé
-        const { data: newProfile, error: fetchError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', sessionUser.id)
-          .single();
-        
-        if (fetchError || !newProfile) {
-          console.error('[Dashboard Layout] Failed to fetch created profile:', fetchError);
-          // Si on ne peut pas récupérer le profil, on redirige vers login
-          router.push('/login');
-          return;
-        }
-        
-        profile = newProfile;
-        console.log('[Dashboard Layout] Profile created successfully:', {
-          profileId: profile.id,
-          username: profile.username,
-        });
-      }
-      
-      // ÉTAPE 4 : Mettre à jour le store avec le profil
-      // On vérifie que le profil existe avant de continuer
-      if (!profile) {
-        console.error('[Dashboard Layout] No profile available, redirecting to login');
-        router.push('/login');
+      // Si pas de session ou erreur → rediriger vers login
+      if (!session || error) {
+        console.log('[Dashboard Layout] No session, redirecting to /login');
+        router.replace('/login');
         return;
       }
-      
-      // Mettre à jour le store avec le profil
-      setProfile(profile);
-      
-      // ÉTAPE 5 : Autoriser l'accès au dashboard
-      // On utilise un état local plutôt que de dépendre du store pour éviter les race conditions
-      setIsAuthorized(true);
-      setLoading(false);
-      setIsChecking(false);
-      console.log('[Dashboard Layout] Auth check complete, allowing access to dashboard', {
-        userId: sessionUser.id,
-        profileId: profile.id,
-        username: profile.username,
-      });
+
+      // Session présente → autoriser l'accès au dashboard
+      // On ne vérifie pas le profil ici pour simplifier : si la session existe, l'accès est autorisé
+      // Le profil peut être vérifié/créé ailleurs si nécessaire
+      console.log('[Dashboard Layout] Session found, authorizing access to dashboard');
+      setAuthorized(true);
+      setChecking(false);
     };
 
-    checkAuth();
-  }, [router, setUser, setProfile, setLoading, supabase]);
+    run();
+  }, [router]);
 
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = '/login';
-  };
-
-  // GARDE 1 : Afficher un loader pendant la vérification de l'authentification
-  // On évite les problèmes d'hydratation en ne rendant rien tant que la vérification n'est pas terminée
-  if (isChecking) {
+  // GARDE 1 : Afficher un loader pendant la vérification
+  if (checking) {
     return (
       <div className="min-h-screen bg-dark-background-base flex items-center justify-center app-shell">
-        <p className="text-dark-text-secondary">Loading...</p>
+        <p className="text-dark-text-secondary">Chargement du dashboard…</p>
       </div>
     );
   }
 
-  // GARDE 2 : Vérification finale de l'autorisation
-  // On utilise l'état local `isAuthorized` plutôt que le store pour éviter les race conditions
-  // Si `isAuthorized` est false, cela signifie que :
-  // - Soit la vérification a échoué (pas de session ou pas de profil)
-  // - Soit la redirection vers /login est en cours
-  // Dans ce cas, on ne rend rien (la redirection va se produire)
-  if (!isAuthorized) {
-    console.log('[Dashboard Layout] Not authorized, redirecting to login');
-    return null;
-  }
-
-  // GARDE 3 : Vérification de sécurité supplémentaire sur le store
-  // Si le store n'a pas été mis à jour (ce qui ne devrait pas arriver si isAuthorized est true),
-  // on affiche quand même le dashboard car la session Supabase existe
-  // Cette vérification est juste une sécurité supplémentaire, pas une condition bloquante
-  if (!user || !profile) {
-    console.warn('[Dashboard Layout] Store not updated but authorized, continuing anyway', {
-      hasUser: !!user,
-      hasProfile: !!profile,
-    });
-    // On continue quand même car isAuthorized est true, ce qui signifie que la session existe
+  // GARDE 2 : Si pas autorisé, ne rien afficher (redirection en cours)
+  if (!authorized) {
+    return null; // redirect en cours
   }
 
   const sidebarWidth = isSidebarOpen ? (isMobile ? '260px' : '260px') : (isMobile ? '0px' : '80px');
@@ -226,20 +131,23 @@ export default function DashboardLayout({
           <TopSearchBar className="flex-1 min-w-0" />
           
           <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0">
-            <Link href={`/profile/${profile?.username}`}>
+            <Link href={`/profile/${profile?.username || 'me'}`}>
               <Button variant="ghost" size="sm" className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[999px] bg-dark-background-cardMuted border-2 border-[rgba(255,255,255,0.12)] flex items-center justify-center flex-shrink-0">
                   <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-dark-text-secondary" />
                 </div>
                 <span className="hidden md:inline text-[13px] sm:text-[14px] text-dark-text-secondary">
-                  {profile?.username}
+                  {profile?.username || user?.email?.split('@')[0] || 'User'}
                 </span>
               </Button>
             </Link>
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={handleLogout} 
+              onClick={async () => {
+                await logout();
+                window.location.href = '/login';
+              }} 
               className="flex-shrink-0 p-1.5 sm:p-2"
             >
               <LogOut className="h-4 w-4 sm:h-4 sm:w-4" />
@@ -257,4 +165,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-

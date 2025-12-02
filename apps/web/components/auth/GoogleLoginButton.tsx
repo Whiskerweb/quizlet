@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react';
-import { supabaseClient } from '@/lib/supabase/supabaseClient';
+import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { Button } from '@/components/ui/Button';
 
 interface GoogleLoginButtonProps {
@@ -73,7 +73,7 @@ export function GoogleLoginButton({
         ? 'https://cardz.dev/auth/callback'
         : `${window.location.origin}/auth/callback`;
       
-      const { data, error: oauthError } = await supabaseClient.auth.signInWithOAuth({
+      const { data, error: oauthError } = await supabaseBrowser.auth.signInWithOAuth({
         provider: 'google',
         options: {
           // URL de callback : où l'utilisateur sera redirigé après l'authentification Google
