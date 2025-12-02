@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { User, Mail, Calendar } from 'lucide-react';
 import type { Database } from '@/lib/supabase/types';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import Link from 'next/link';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -32,15 +33,19 @@ export default function ProfilePage() {
 
       // Get current user
       const {
-        data: { user: currentUser },
+        data: { user: currentUserRaw },
         error: userError,
       } = await supabaseBrowser.auth.getUser();
 
-      if (userError || !currentUser) {
+      if (userError || !currentUserRaw) {
         // Not authenticated, redirect to login
         router.push('/login');
         return;
       }
+
+      // Type assertion for currentUser
+      const currentUser = currentUserRaw as SupabaseUser;
+      const currentUserId: string = currentUser.id;
 
       // If username is "me", use current user's ID
       let profileQuery;
@@ -48,7 +53,7 @@ export default function ProfilePage() {
         profileQuery = supabaseBrowser
           .from('profiles')
           .select('*')
-          .eq('id', currentUser.id)
+          .eq('id', currentUserId)
           .maybeSingle();
       } else {
         profileQuery = supabaseBrowser
@@ -58,24 +63,25 @@ export default function ProfilePage() {
           .maybeSingle();
       }
 
-      const { data: profileData, error: profileError } = await profileQuery;
+      const { data: profileDataRaw, error: profileError } = await profileQuery;
 
       // Handle case where profile doesn't exist (PGRST116)
-      if (profileError?.code === 'PGRST116' || !profileData) {
+      if (profileError?.code === 'PGRST116' || !profileDataRaw) {
         // If it's "me" and profile doesn't exist, try to create it
         if (usernameParam === 'me') {
           await createProfileForUser(currentUser);
           // Reload profile after creation
-          const { data: newProfileData } = await supabaseBrowser
+          const { data: newProfileDataRaw } = await supabaseBrowser
             .from('profiles')
             .select('*')
-            .eq('id', currentUser.id)
+            .eq('id', currentUserId)
             .maybeSingle();
           
-          if (newProfileData) {
-            setProfile(newProfileData as Profile);
+          if (newProfileDataRaw) {
+            const newProfileData = newProfileDataRaw as Profile;
+            setProfile(newProfileData);
             setIsOwnProfile(true);
-            await loadUserSets(currentUser.id);
+            await loadUserSets(newProfileData.id);
           } else {
             setProfile(null);
           }
@@ -94,11 +100,15 @@ export default function ProfilePage() {
         return;
       }
 
-      setProfile(profileData as Profile);
-      setIsOwnProfile(currentUser.id === profileData.id);
+      // Type assertion for profileData
+      const profileData = profileDataRaw as Profile;
+      const profileId: string = profileData.id;
+
+      setProfile(profileData);
+      setIsOwnProfile(currentUserId === profileId);
 
       // Load sets for this profile
-      await loadUserSets(profileData.id);
+      await loadUserSets(profileId);
     } catch (error) {
       console.error('Failed to load profile:', error);
       setProfile(null);
@@ -152,15 +162,16 @@ export default function ProfilePage() {
         }
 
         // Insert the profile
-        const { error: insertError } = await supabaseBrowser
-          .from('profiles')
-          .insert({
-            id: user.id,
-            email: user.email || '',
-            username: finalUsername,
-            first_name: firstName,
-            last_name: lastName,
-          });
+        type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+        const insertData: ProfileInsert = {
+          id: user.id,
+          email: user.email || '',
+          username: finalUsername,
+          first_name: firstName,
+          last_name: lastName,
+        };
+        const { error: insertError } = await (supabaseBrowser.from('profiles') as any)
+          .insert(insertData);
 
         if (insertError) {
           throw insertError;
