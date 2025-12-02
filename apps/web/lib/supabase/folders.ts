@@ -113,22 +113,31 @@ export const foldersService = {
     const user = session.user;
 
     // Get max order
-    const { data: existingFolders } = await supabaseBrowser
+    const { data: existingFoldersData } = await supabaseBrowser
       .from('folders')
       .select('order')
       .eq('user_id', user.id)
       .order('order', { ascending: false })
       .limit(1);
 
-    const order = existingFolders && existingFolders.length > 0 ? existingFolders[0].order + 1 : 0;
+    // Type assertion needed because TypeScript may not infer the type correctly from partial select
+    const existingFolders = existingFoldersData as Array<{ order: number }> | null;
+    
+    // Calculate order in a typesafe way
+    const latest = existingFolders?.[0];
+    const order = typeof latest?.order === 'number' ? latest.order + 1 : 0;
+
+    // Build the insert object with explicit FolderInsert type
+    // TypeScript may not infer the type correctly from .from('folders'), so we type it explicitly
+    const insertData: FolderInsert = {
+      ...folder,
+      user_id: user.id,
+      order,
+    };
 
     const { data, error } = await supabaseBrowser
       .from('folders')
-      .insert({
-        ...folder,
-        user_id: user.id,
-        order,
-      })
+      .insert(insertData as any)
       .select()
       .single();
 
@@ -142,8 +151,9 @@ export const foldersService = {
     
     const user = session.user;
 
-    const { data, error } = await supabaseBrowser
-      .from('folders')
+    // Type assertion needed because TypeScript may not infer the type correctly from .from('folders')
+    const { data, error } = await (supabaseBrowser
+      .from('folders') as any)
       .update(updates)
       .eq('id', id)
       .eq('user_id', user.id)
@@ -161,8 +171,9 @@ export const foldersService = {
     const user = session.user;
 
     // Remove folder_id from all sets in this folder
-    await supabaseBrowser
-      .from('sets')
+    // Type assertion needed because TypeScript may not infer the type correctly from .from('sets')
+    await (supabaseBrowser
+      .from('sets') as any)
       .update({ folder_id: null })
       .eq('folder_id', id)
       .eq('user_id', user.id);
@@ -205,8 +216,9 @@ export const foldersService = {
       if (!folder) throw new Error('Folder not found or access denied');
     }
 
-    const { data, error } = await supabaseBrowser
-      .from('sets')
+    // Type assertion needed because TypeScript may not infer the type correctly from .from('sets')
+    const { data, error } = await (supabaseBrowser
+      .from('sets') as any)
       .update({ folder_id: folderId })
       .eq('id', setId)
       .select()

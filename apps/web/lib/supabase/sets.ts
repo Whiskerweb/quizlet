@@ -78,12 +78,15 @@ export const setsService = {
 
     if (error) throw error;
     
+    // Type assertion needed because TypeScript may not infer the type correctly from select with relations
+    const typedData = data as any;
+    
     // Sort flashcards by order
-    if (data.flashcards && Array.isArray(data.flashcards)) {
-      data.flashcards.sort((a: Flashcard, b: Flashcard) => (a.order || 0) - (b.order || 0));
+    if (typedData.flashcards && Array.isArray(typedData.flashcards)) {
+      typedData.flashcards.sort((a: Flashcard, b: Flashcard) => (a.order || 0) - (b.order || 0));
     }
     
-    return data as SetWithFlashcards;
+    return typedData as SetWithFlashcards;
   },
 
   async getByShareId(shareId: string) {
@@ -167,20 +170,28 @@ export const setsService = {
     
     const user = session.user;
 
+    // Build the insert object with explicit SetInsert type
+    // TypeScript may not infer the type correctly from .from('sets'), so we type it explicitly
+    const insertData: SetInsert = {
+      ...set,
+      user_id: user.id,
+    };
+
     const { data, error } = await supabaseBrowser
       .from('sets')
-      .insert({
-        ...set,
-        user_id: user.id,
-      })
+      .insert(insertData as any)
       .select()
       .single();
 
     if (error) throw error;
 
+    // Type assertion needed because TypeScript may not infer the type correctly
+    const typedData = data as Set;
+
     // Create set stats
-    await supabaseBrowser.from('set_stats').insert({
-      set_id: data.id,
+    // Type assertion needed because TypeScript may not infer the type correctly from .from('set_stats')
+    await (supabaseBrowser.from('set_stats') as any).insert({
+      set_id: typedData.id,
     });
 
     return data as Set;
@@ -192,8 +203,9 @@ export const setsService = {
     
     const user = session.user;
 
-    const { data, error } = await supabaseBrowser
-      .from('sets')
+    // Type assertion needed because TypeScript may not infer the type correctly from .from('sets')
+    const { data, error } = await (supabaseBrowser
+      .from('sets') as any)
       .update(updates)
       .eq('id', id)
       .eq('user_id', user.id)
@@ -230,20 +242,26 @@ export const setsService = {
     if (!original) throw new Error('Set not found');
 
     // Create new set
+    // Build the insert object with explicit SetInsert type
+    const newSetData: SetInsert = {
+      title: `${original.title} (Copy)`,
+      description: original.description,
+      is_public: false,
+      tags: original.tags,
+      language: original.language,
+      user_id: user.id,
+    };
+
     const { data: newSet, error: setError } = await supabaseBrowser
       .from('sets')
-      .insert({
-        title: `${original.title} (Copy)`,
-        description: original.description,
-        is_public: false,
-        tags: original.tags,
-        language: original.language,
-        user_id: user.id,
-      })
+      .insert(newSetData as any)
       .select()
       .single();
 
     if (setError) throw setError;
+
+    // Type assertion needed because TypeScript may not infer the type correctly
+    const typedNewSet = newSet as Set;
 
     // Duplicate flashcards
     if (original.flashcards && original.flashcards.length > 0) {
@@ -253,19 +271,21 @@ export const setsService = {
         image_url: card.image_url,
         audio_url: card.audio_url,
         order: index,
-        set_id: newSet.id,
+        set_id: typedNewSet.id,
       }));
 
+      // Type assertion needed because TypeScript may not infer the type correctly from .from('flashcards')
       const { error: cardsError } = await supabaseBrowser
         .from('flashcards')
-        .insert(flashcards);
+        .insert(flashcards as any);
 
       if (cardsError) throw cardsError;
     }
 
     // Create set stats
-    await supabaseBrowser.from('set_stats').insert({
-      set_id: newSet.id,
+    // Type assertion needed because TypeScript may not infer the type correctly from .from('set_stats')
+    await (supabaseBrowser.from('set_stats') as any).insert({
+      set_id: typedNewSet.id,
     });
 
     return newSet as Set;

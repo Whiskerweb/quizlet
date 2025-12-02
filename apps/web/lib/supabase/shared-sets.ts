@@ -122,15 +122,18 @@ export const sharedSetsService = {
     const user = session.user;
 
     // First, check if the set exists and verify password if needed
-    const { data: set, error: setError } = await supabaseBrowser
+    const { data: setData, error: setError } = await supabaseBrowser
       .from('sets')
       .select('*')
       .eq('id', setId)
       .single();
 
-    if (setError || !set) {
+    if (setError || !setData) {
       throw new Error('Set not found');
     }
+
+    // Type assertion needed because TypeScript may not infer the type correctly from select
+    const set = setData as Set;
 
     // Check if set is public
     if (!set.is_public) {
@@ -160,13 +163,16 @@ export const sharedSetsService = {
     }
 
     // Create shared set entry
+    // Build the insert object with explicit SharedSetInsert type
+    const insertData: SharedSetInsert = {
+      set_id: setId,
+      user_id: user.id,
+      shared_by_user_id: set.user_id,
+    };
+
     const { data, error } = await supabaseBrowser
       .from('shared_sets')
-      .insert({
-        set_id: setId,
-        user_id: user.id,
-        shared_by_user_id: set.user_id,
-      })
+      .insert(insertData as any)
       .select()
       .single();
 
@@ -194,17 +200,19 @@ export const sharedSetsService = {
 
   // Check if a set requires a password
   async checkSetPassword(setId: string): Promise<boolean> {
-    const { data, error } = await supabaseBrowser
+    const { data: setData, error } = await supabaseBrowser
       .from('sets')
       .select('password_hash')
       .eq('id', setId)
       .single();
 
-    if (error || !data) {
+    if (error || !setData) {
       return false;
     }
 
-    return !!data.password_hash;
+    // Type assertion needed because TypeScript may not infer the type correctly from partial select
+    const typedData = setData as { password_hash: string | null };
+    return !!typedData.password_hash;
   },
 
   // Check if user already has access to a set
@@ -247,7 +255,13 @@ export const sharedSetsService = {
       .eq('id', setId)
       .single();
 
-    if (!setData || setData.user_id !== user.id) {
+    if (!setData) {
+      throw new Error('You do not own this set');
+    }
+
+    // Type assertion needed because TypeScript may not infer the type correctly from partial select
+    const typedSetData = setData as { user_id: string };
+    if (typedSetData.user_id !== user.id) {
       throw new Error('You do not own this set');
     }
 
