@@ -91,6 +91,9 @@ export default function HomePage() {
         .select('*')
         .eq('user_id', user.id)
         .single();
+      
+      // Type assertion needed because TypeScript may not infer the type correctly
+      const typedUserStats = userStats as UserStats | null;
 
       // Get recent sets
       const { data: recentSets } = await supabase
@@ -119,7 +122,7 @@ export default function HomePage() {
         .eq('user_id', user.id)
         .lte('next_review', new Date().toISOString());
 
-      const xp = calculateXP(userStats);
+      const xp = calculateXP(typedUserStats);
       const { level, xpToNextLevel, currentLevelXP } = calculateLevel(xp);
 
       setStats({
@@ -127,11 +130,11 @@ export default function HomePage() {
         level,
         xpToNextLevel,
         currentLevelXP,
-        totalSets: userStats?.total_sets || 0,
-        totalFlashcards: userStats?.total_flashcards || 0,
-        totalStudyTime: userStats?.total_study_time || 0,
-        totalSessions: userStats?.total_sessions || 0,
-        averageScore: userStats?.average_score || 0,
+        totalSets: typedUserStats?.total_sets || 0,
+        totalFlashcards: typedUserStats?.total_flashcards || 0,
+        totalStudyTime: typedUserStats?.total_study_time || 0,
+        totalSessions: typedUserStats?.total_sessions || 0,
+        averageScore: typedUserStats?.average_score || 0,
         streak,
         recentSets: recentSets || [],
         setsToReview: new Set(cardsToReview?.map(c => c.flashcard_id) || []).size,
