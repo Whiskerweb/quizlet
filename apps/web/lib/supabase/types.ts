@@ -60,6 +60,7 @@ export interface Database {
           user_id: string
           folder_id: string | null
           password_hash: string | null
+          subject: string | null
           created_at: string
           updated_at: string
         }
@@ -75,6 +76,7 @@ export interface Database {
           user_id: string
           folder_id?: string | null
           password_hash?: string | null
+          subject?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -90,6 +92,7 @@ export interface Database {
           user_id?: string
           folder_id?: string | null
           password_hash?: string | null
+          subject?: string | null
           created_at?: string
           updated_at?: string
         }

@@ -193,3 +193,5 @@ Tous les gardes et conditions sont maintenant commentés pour expliquer :
 - ✅ Pas de dépendance sur des champs optionnels
 - ✅ Logs de debug pour tracer chaque étape
 
+
+

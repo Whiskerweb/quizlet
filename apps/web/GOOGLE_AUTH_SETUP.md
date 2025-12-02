@@ -121,3 +121,5 @@ import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
 - La clé `ANON_KEY` est publique mais limitée par les RLS (Row Level Security) de Supabase
 - Ne jamais exposer la clé `SERVICE_ROLE_KEY` côté client
 
+
+

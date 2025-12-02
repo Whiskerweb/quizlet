@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, BookOpen, Folder, Sparkles, Share2, Menu, X, ChevronLeft } from 'lucide-react';
+import { Home, BookOpen, Folder, Sparkles, Share2, Menu, X, ChevronLeft, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { foldersService } from '@/lib/supabase/folders';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
@@ -85,6 +85,9 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
     }
     if (href === '/dashboard') {
       return pathname === '/dashboard' || (pathname?.startsWith('/folders/') && pathname !== '/folders/shared');
+    }
+    if (href === '/public-sets') {
+      return pathname === '/public-sets';
     }
     return pathname?.startsWith(href);
   };
@@ -367,6 +370,39 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
               </span>
             )}
           </button>
+
+          {/* Public Sets - Always visible */}
+          <Link
+            href="/public-sets"
+            onClick={() => isMobile && setIsOpen(false)}
+            className={cn(
+              'flex items-center rounded-lg transition-all duration-[180ms] group mt-2',
+              isOpen ? 'gap-3 sm:gap-3.5 px-3 sm:px-4 h-10' : 'justify-center px-2 h-10',
+              pathname === '/public-sets'
+                ? 'bg-dark-semantic-navActiveBackground text-white shadow-sm'
+                : 'text-dark-text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
+            )}
+            title={!isOpen ? 'Cardz publique' : undefined}
+          >
+            <Globe className={cn(
+              'flex-shrink-0 transition-colors',
+              isOpen ? 'h-4.5 w-4.5 sm:h-5 sm:w-5' : 'h-5 w-5',
+              pathname === '/public-sets' 
+                ? 'text-white' 
+                : 'text-dark-text-secondary group-hover:text-white'
+            )} style={pathname === '/public-sets' ? {} : { color: '#8B8FBE' }} />
+            {isOpen && (
+              <span className={cn(
+                'truncate transition-colors',
+                'text-[14px] sm:text-[15px]',
+                pathname === '/public-sets'
+                  ? 'font-semibold text-white'
+                  : 'font-medium text-dark-text-secondary group-hover:text-white'
+              )}>
+                Cardz publique
+              </span>
+            )}
+          </Link>
         </div>
       </nav>
     </aside>

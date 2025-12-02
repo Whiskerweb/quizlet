@@ -66,6 +66,55 @@ export const setsService = {
     };
   },
 
+  // Get all public sets without password (for public browsing)
+  async getPublicSetsWithoutPassword(query?: { search?: string; tag?: string; subject?: string; page?: number; limit?: number }) {
+    let queryBuilder = supabaseBrowser
+      .from('sets')
+      .select(`
+        *,
+        profiles:user_id (
+          id,
+          username,
+          avatar
+        )
+      `)
+      .eq('is_public', true)
+      .is('password_hash', null) // Only sets without password
+      .order('created_at', { ascending: false });
+
+    if (query?.search) {
+      queryBuilder = queryBuilder.or(`title.ilike.%${query.search}%,description.ilike.%${query.search}%`);
+    }
+
+    if (query?.tag) {
+      queryBuilder = queryBuilder.contains('tags', [query.tag]);
+    }
+
+    if (query?.subject) {
+      queryBuilder = queryBuilder.eq('subject', query.subject);
+    }
+
+    const limit = query?.limit || 20;
+    const page = query?.page || 1;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    queryBuilder = queryBuilder.range(from, to);
+
+    const { data, error, count } = await queryBuilder;
+
+    if (error) throw error;
+
+    return {
+      sets: data as SetWithFlashcards[],
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+      },
+    };
+  },
+
   async getOne(id: string) {
     const { data, error } = await supabaseBrowser
       .from('sets')

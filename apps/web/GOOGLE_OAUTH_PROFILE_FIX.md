@@ -125,3 +125,5 @@ WHERE tablename = 'profiles';
 - ✅ Les utilisateurs peuvent accéder au dashboard sans problème
 - ✅ Les RLS policies permettent la lecture/mise à jour du profil
 
+
+

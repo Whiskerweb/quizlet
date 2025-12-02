@@ -143,3 +143,5 @@ Ce document explique le flux complet d'authentification OAuth avec Google dans l
 - **Store** : Utilisation de Zustand (`authStore`) pour gérer l'état d'authentification
 - **Suspense** : La page de callback utilise `Suspense` pour `useSearchParams()` (requis par Next.js 14)
 
+
+

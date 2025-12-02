@@ -5,27 +5,47 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { setsService } from '@/lib/supabase/sets';
 import { flashcardsService } from '@/lib/supabase/flashcards';
+import { sharedSetsService } from '@/lib/supabase/shared-sets';
 import type { SetWithFlashcards } from '@/lib/supabase/sets';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { FormattedText } from '@/components/FormattedText';
-import { Play, Edit, Trash2, Plus, Share2 } from 'lucide-react';
+import { Play, Edit, Trash2, Plus, Share2, Check } from 'lucide-react';
 import { ShareManageModal } from '@/components/ShareManageModal';
 import { hashPassword } from '@/lib/supabase/shared-sets';
+import { useAuthStore } from '@/store/authStore';
 
 export default function SetDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuthStore();
   const setId = params.id as string;
   const [set, setSet] = useState<SetWithFlashcards | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isAddingToCollection, setIsAddingToCollection] = useState(false);
+  const [isInCollection, setIsInCollection] = useState(false);
+  const [checkingCollection, setCheckingCollection] = useState(true);
 
   useEffect(() => {
     loadSet();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setId]);
+
+  useEffect(() => {
+    if (set && user && set.user_id !== user.id) {
+      // Only check collection if the set doesn't belong to the current user
+      checkIfInCollection();
+    } else if (set && user && set.user_id === user.id) {
+      // If it's the owner's set, it's not in their collection (it's their own set)
+      setIsInCollection(false);
+      setCheckingCollection(false);
+    } else {
+      setCheckingCollection(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [set, user]);
 
   const loadSet = async () => {
     try {
@@ -36,6 +56,47 @@ export default function SetDetailPage() {
       console.error('Failed to load set:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkIfInCollection = async () => {
+    if (!set || !user) return;
+    
+    try {
+      setCheckingCollection(true);
+      const hasAccess = await sharedSetsService.hasAccess(setId);
+      setIsInCollection(hasAccess);
+    } catch (error) {
+      console.error('Failed to check collection:', error);
+      setIsInCollection(false);
+    } finally {
+      setCheckingCollection(false);
+    }
+  };
+
+  const handleAddToCollection = async () => {
+    if (!set) return;
+    
+    setIsAddingToCollection(true);
+    try {
+      // Check if password is required
+      if (set.password_hash) {
+        const password = prompt('Ce cardz est protégé par un mot de passe. Veuillez entrer le mot de passe :');
+        if (!password) {
+          setIsAddingToCollection(false);
+          return;
+        }
+        await sharedSetsService.shareSet(setId, password);
+      } else {
+        await sharedSetsService.shareSet(setId);
+      }
+      setIsInCollection(true);
+      // Optionally redirect to shared sets
+      // router.push('/folders/shared');
+    } catch (error: any) {
+      alert(error.message || 'Erreur lors de l\'ajout du cardz à votre collection');
+    } finally {
+      setIsAddingToCollection(false);
     }
   };
 
@@ -61,6 +122,11 @@ export default function SetDetailPage() {
     await loadSet();
   };
 
+  const handleSaveSubject = async (subject: string | null) => {
+    await setsService.update(setId, { subject });
+    await loadSet();
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -77,6 +143,9 @@ export default function SetDetailPage() {
     );
   }
 
+  // Check if the set belongs to the current user
+  const isOwner = user && set.user_id === user.id;
+
   return (
     <>
       <div className="mb-6">
@@ -91,23 +160,50 @@ export default function SetDetailPage() {
             <Link href={`/study/${setId}`}>
               <Button>
                 <Play className="h-4 w-4" />
-                Study
+                Étudier
               </Button>
             </Link>
-            <Link href={`/sets/${setId}/edit`}>
-              <Button variant="outline">
-                <Edit className="h-4 w-4" />
-                Edit
-              </Button>
-            </Link>
-            <Button variant="outline" onClick={() => setIsShareModalOpen(true)}>
-              <Share2 className="h-4 w-4" />
-              Partager
-            </Button>
-            <Button variant="outline" onClick={handleDelete}>
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </Button>
+            {isOwner ? (
+              <>
+                <Link href={`/sets/${setId}/edit`}>
+                  <Button variant="outline">
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+                </Link>
+                <Button variant="outline" onClick={() => setIsShareModalOpen(true)}>
+                  <Share2 className="h-4 w-4" />
+                  Partager
+                </Button>
+                <Button variant="outline" onClick={handleDelete}>
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
+              </>
+            ) : (
+              <>
+                {checkingCollection ? (
+                  <Button variant="outline" disabled>
+                    Vérification...
+                  </Button>
+                ) : isInCollection ? (
+                  <Button variant="outline" disabled className="bg-green-500/20 border-green-500 text-green-500">
+                    <Check className="h-4 w-4 mr-2" />
+                    Dans votre collection
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={handleAddToCollection}
+                    disabled={isAddingToCollection}
+                    className="bg-brand-primary/20 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {isAddingToCollection ? 'Ajout...' : 'Ajouter à ma collection'}
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         </div>
 
@@ -120,27 +216,31 @@ export default function SetDetailPage() {
 
       <div className="mb-4 flex justify-between items-center">
         <h2 className="text-[20px] font-semibold text-dark-text-primary">Cardz</h2>
-        <div className="flex gap-2">
-          <Link href={`/sets/${setId}/edit`}>
-            <Button size="sm" variant="outline">
-              Importer
-            </Button>
-          </Link>
-          <Link href={`/sets/${setId}/flashcards/new`}>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Flashcard
-            </Button>
-          </Link>
-        </div>
+        {isOwner && (
+          <div className="flex gap-2">
+            <Link href={`/sets/${setId}/edit`}>
+              <Button size="sm" variant="outline">
+                Importer
+              </Button>
+            </Link>
+            <Link href={`/sets/${setId}/flashcards/new`}>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Flashcard
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
 
       {set.flashcards.length === 0 ? (
         <Card variant="emptyState" className="text-center py-12">
           <p className="text-[16px] text-white mb-4">No cardz yet</p>
-          <Link href={`/sets/${setId}/flashcards/new`}>
-            <Button>Add Your First Card</Button>
-          </Link>
+          {isOwner && (
+            <Link href={`/sets/${setId}/flashcards/new`}>
+              <Button>Add Your First Card</Button>
+            </Link>
+          )}
         </Card>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
@@ -155,48 +255,52 @@ export default function SetDetailPage() {
                   <span className="text-[16px] text-white">Back</span>
                   <FormattedText text={card.back} className="text-[16px] text-white mt-1" as="p" />
                 </div>
-                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link href={`/sets/${setId}/flashcards/${card.id}/edit`}>
-                    <Button size="sm" variant="outline">
-                      <Edit className="h-4 w-4" />
-                      Edit
+                {isOwner && (
+                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Link href={`/sets/${setId}/flashcards/${card.id}/edit`}>
+                      <Button size="sm" variant="outline">
+                        <Edit className="h-4 w-4" />
+                        Edit
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        if (!confirm('Are you sure you want to delete this flashcard?')) return;
+                        setDeletingCardId(card.id);
+                        try {
+                          await flashcardsService.delete(card.id);
+                          await loadSet();
+                        } catch (error) {
+                          console.error('Failed to delete cardz:', error);
+                          alert('Failed to delete cardz');
+                        } finally {
+                          setDeletingCardId(null);
+                        }
+                      }}
+                      disabled={deletingCardId === card.id}
+                      className="text-dark-states-danger border-dark-states-danger hover:bg-dark-background-cardMuted"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {deletingCardId === card.id ? 'Deleting...' : 'Delete'}
                     </Button>
-                  </Link>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={async () => {
-                      if (!confirm('Are you sure you want to delete this flashcard?')) return;
-                      setDeletingCardId(card.id);
-                      try {
-                        await flashcardsService.delete(card.id);
-                        await loadSet();
-                      } catch (error) {
-                        console.error('Failed to delete cardz:', error);
-                        alert('Failed to delete cardz');
-                      } finally {
-                        setDeletingCardId(null);
-                      }
-                    }}
-                    disabled={deletingCardId === card.id}
-                    className="text-dark-states-danger border-dark-states-danger hover:bg-dark-background-cardMuted"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    {deletingCardId === card.id ? 'Deleting...' : 'Delete'}
-                  </Button>
-                </div>
+                  </div>
+                )}
               </div>
             </Card>
           ))}
         </div>
       )}
 
-      {set && (
+      {set && isOwner && (
         <ShareManageModal
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
           onSave={handleSavePassword}
+          onSaveSubject={handleSaveSubject}
           currentPassword={set.password_hash || null}
+          currentSubject={set.subject || null}
           setIsPublic={handleSetPublic}
           currentIsPublic={set.is_public || false}
           shareId={set.share_id}

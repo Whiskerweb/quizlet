@@ -110,3 +110,5 @@ Après les modifications :
 - **Le trigger SQL `handle_new_user()`** crée automatiquement le profil lors de la création de l'utilisateur
 - **Si le profil n'existe pas**, il sera créé automatiquement par le trigger, pas besoin de le vérifier dans le code front
 
+
+

@@ -92,7 +92,7 @@ export function recordAnswer(
  * Get next card to review
  * Prioritizes incorrect cards that need review
  */
-export function getNextCard(state: StudySessionState): CardReview | null {
+export function getNextCard(state: StudySessionState, currentCardId?: string): CardReview | null {
   // First, check if we have unmastered cards that need review
   const unmasteredCards = state.cards.filter(c => !c.isMastered);
   
@@ -100,19 +100,37 @@ export function getNextCard(state: StudySessionState): CardReview | null {
     return null; // All cards mastered
   }
 
+  // Filter out the current card if provided to ensure we don't return the same card
+  const availableCards = currentCardId 
+    ? unmasteredCards.filter(c => c.flashcardId !== currentCardId)
+    : unmasteredCards;
+
+  // If no cards available after filtering, all cards are mastered or only one card left
+  if (availableCards.length === 0) {
+    return null; // Session should complete
+  }
+
   // If we have incorrect cards in queue and we've reviewed enough new cards
   if (state.incorrectCards.length > 0 && state.currentIndex >= state.reviewInterval && state.currentIndex % state.reviewInterval === 0) {
     const nextIncorrectId = state.incorrectCards[0];
     const card = state.cards.find(c => c.flashcardId === nextIncorrectId);
-    if (card && !card.isMastered) {
+    if (card && !card.isMastered && card.flashcardId !== currentCardId && availableCards.some(c => c.flashcardId === card.flashcardId)) {
       return card;
     }
   }
 
-  // Otherwise, get next unmastered card in sequence
-  // Cycle through unmastered cards
-  const unmasteredIndex = state.currentIndex % unmasteredCards.length;
-  return unmasteredCards[unmasteredIndex];
+  // Get next unmastered card in sequence from available cards
+  // Use currentIndex to cycle through available cards, ensuring we get a different card
+  const cardIndex = state.currentIndex % availableCards.length;
+  const selectedCard = availableCards[cardIndex];
+  
+  // Final safety check: if somehow we got the same card, get the next one
+  if (currentCardId && selectedCard.flashcardId === currentCardId) {
+    const nextIndex = (cardIndex + 1) % availableCards.length;
+    return availableCards[nextIndex];
+  }
+  
+  return selectedCard;
 }
 
 /**

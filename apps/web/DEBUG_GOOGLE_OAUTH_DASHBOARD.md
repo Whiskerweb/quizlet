@@ -186,3 +186,5 @@ Les logs suivants sont maintenant disponibles dans la console :
 - ✅ Les logs permettent de déboguer facilement
 - ✅ La logique est simple et claire : session + profil = accès autorisé
 
+
+

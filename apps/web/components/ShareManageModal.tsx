@@ -6,12 +6,15 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { X, Lock, Copy, Check, Share2, Users, User } from 'lucide-react';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
+import { SUBJECTS, getSubjectLabel } from '@/lib/constants/subjects';
 
 interface ShareManageModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (password: string | null) => Promise<void>;
+  onSaveSubject?: (subject: string | null) => Promise<void>;
   currentPassword?: string | null;
+  currentSubject?: string | null;
   setIsPublic: (isPublic: boolean) => Promise<void>;
   currentIsPublic: boolean;
   shareId: string;
@@ -30,7 +33,9 @@ export function ShareManageModal({
   isOpen,
   onClose,
   onSave,
+  onSaveSubject,
   currentPassword,
+  currentSubject,
   setIsPublic,
   currentIsPublic,
   shareId,
@@ -39,6 +44,7 @@ export function ShareManageModal({
 }: ShareManageModalProps) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [subject, setSubject] = useState<string>(currentSubject || '');
   const [isPublic, setIsPublicLocal] = useState(currentIsPublic);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +61,12 @@ export function ShareManageModal({
       loadSetUsers();
     }
   }, [isOpen, isPublic, setId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSubject(currentSubject || '');
+    }
+  }, [isOpen, currentSubject]);
 
   useEffect(() => {
     if (copied) {
@@ -97,6 +109,12 @@ export function ShareManageModal({
   const handleSave = async () => {
     setError(null);
 
+    // If making public, require subject
+    if (isPublic && !subject) {
+      setError('Veuillez sélectionner une catégorie pour rendre ce cardz public');
+      return;
+    }
+
     // If making public and password is set, validate
     if (isPublic && password) {
       if (password.length < 4) {
@@ -113,6 +131,14 @@ export function ShareManageModal({
     try {
       // First update public status
       await setIsPublic(isPublic);
+      
+      // Update subject if making public and onSaveSubject is provided
+      if (isPublic && onSaveSubject) {
+        await onSaveSubject(subject || null);
+      } else if (!isPublic && onSaveSubject) {
+        // Clear subject if making private
+        await onSaveSubject(null);
+      }
       
       // Then update password
       if (isPublic && password) {
@@ -186,12 +212,45 @@ export function ShareManageModal({
               <input
                 type="checkbox"
                 checked={isPublic}
-                onChange={(e) => setIsPublicLocal(e.target.checked)}
+                onChange={(e) => {
+                  setIsPublicLocal(e.target.checked);
+                  if (!e.target.checked) {
+                    // Clear subject when making private
+                    setSubject('');
+                  }
+                }}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-dark-background-cardMuted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
             </label>
           </div>
+
+          {/* Subject Selection - Only show if making public */}
+          {isPublic && (
+            <div className="space-y-4 p-4 bg-dark-background-cardMuted rounded-lg">
+              <div>
+                <label className="block text-[14px] text-white mb-2">
+                  Catégorie d'étude <span className="text-red-400">*</span>
+                </label>
+                <p className="text-[12px] text-dark-text-secondary mb-3">
+                  Sélectionnez la matière ou catégorie de ce cardz pour faciliter sa découverte
+                </p>
+                <select
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="w-full px-4 py-2 bg-dark-background-base border border-[rgba(255,255,255,0.12)] rounded-lg text-white text-[14px] focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  required
+                >
+                  <option value="">-- Sélectionnez une catégorie --</option>
+                  {SUBJECTS.map((subj) => (
+                    <option key={subj.value} value={subj.value}>
+                      {subj.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
 
           {/* Password Section */}
           {isPublic && (
@@ -370,6 +429,8 @@ export function ShareManageModal({
     </div>
   );
 }
+
+
 
 
 
