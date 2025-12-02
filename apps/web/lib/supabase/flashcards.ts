@@ -66,7 +66,8 @@ export const flashcardsService = {
     const latest = existingCards?.[0];
     const order = typeof latest?.order === 'number' ? latest.order + 1 : 0;
 
-    // Build the insert object with explicit typing
+    // Build the insert object with explicit FlashcardInsert type
+    // TypeScript may not infer the type correctly from .from('flashcards'), so we type it explicitly
     const insertData: FlashcardInsert = {
       ...flashcard,
       set_id: setId,
@@ -75,7 +76,7 @@ export const flashcardsService = {
 
     const { data, error } = await supabaseBrowser
       .from('flashcards')
-      .insert<FlashcardInsert>(insertData)
+      .insert(insertData as any)
       .select()
       .single();
 
@@ -194,7 +195,8 @@ export const flashcardsService = {
     const latest = existingCards?.[0];
     const startOrder = typeof latest?.order === 'number' ? latest.order + 1 : 0;
 
-    // Create all flashcards with explicit typing
+    // Create all flashcards with explicit FlashcardInsert[] type
+    // TypeScript may not infer the type correctly from .from('flashcards'), so we type it explicitly
     const flashcardsToInsert: FlashcardInsert[] = cards.map((card, index) => ({
       front: card.term,
       back: card.definition,
@@ -204,7 +206,7 @@ export const flashcardsService = {
 
     const { data, error } = await supabaseBrowser
       .from('flashcards')
-      .insert<FlashcardInsert>(flashcardsToInsert)
+      .insert(flashcardsToInsert as any)
       .select();
 
     if (error) throw error;
