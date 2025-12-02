@@ -3,17 +3,20 @@ import { cn } from '@/lib/utils/cn';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  variant?: 'default' | 'emptyState';
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, children, ...props }, ref) => {
+  ({ className, variant = 'default', children, ...props }, ref) => {
+    const variantStyles = {
+      default: 'bg-dark-background-card rounded-xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]',
+      emptyState: 'bg-transparent border-0 rounded-xl',
+    };
+
     return (
       <div
         ref={ref}
-        className={cn(
-          'bg-dark-background-card rounded-xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]',
-          className
-        )}
+        className={cn(variantStyles[variant], className)}
         {...props}
       >
         {children}
