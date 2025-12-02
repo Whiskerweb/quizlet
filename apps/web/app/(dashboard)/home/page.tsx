@@ -109,7 +109,8 @@ export default function HomePage() {
         .limit(30);
 
       // Calculate streak (consecutive days with study)
-      const streak = calculateStreak((recentSessions || []).map(s => ({ started_at: s.started_at })));
+      // Type assertion needed because TypeScript may not infer the type correctly
+      const streak = calculateStreak((recentSessions || []).map((s: any) => ({ started_at: s.started_at })));
 
       // Get sets to review (cards with next_review <= now)
       const { data: cardsToReview } = await supabase
