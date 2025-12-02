@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
-import { useAuthStore } from '@/store/authStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { User, Mail, Calendar } from 'lucide-react';
 import type { Database } from '@/lib/supabase/types';
+import Link from 'next/link';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Set = Database['public']['Tables']['sets']['Row'];
@@ -16,7 +16,6 @@ export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
   const usernameParam = params.username as string;
-  const { user: currentUser, profile: currentProfile } = useAuthStore();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [sets, setSets] = useState<Set[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,38 +24,48 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfileData();
-  }, [usernameParam, currentUser, currentProfile]);
+  }, [usernameParam]);
 
   const loadProfileData = async () => {
     try {
       setIsLoading(true);
 
-      // If username is "me", use current user's profile
-      if (usernameParam === 'me') {
-        if (!currentUser) {
-          // Not authenticated, redirect to login
-          router.push('/login');
-          return;
-        }
+      // Get current user
+      const {
+        data: { user: currentUser },
+        error: userError,
+      } = await supabaseBrowser.auth.getUser();
 
-        // Try to get current user's profile by user ID
-        const { data: profileData, error: profileError } = await supabaseBrowser
+      if (userError || !currentUser) {
+        // Not authenticated, redirect to login
+        router.push('/login');
+        return;
+      }
+
+      // If username is "me", use current user's ID
+      let profileQuery;
+      if (usernameParam === 'me') {
+        profileQuery = supabaseBrowser
           .from('profiles')
           .select('*')
           .eq('id', currentUser.id)
           .maybeSingle();
+      } else {
+        profileQuery = supabaseBrowser
+          .from('profiles')
+          .select('*')
+          .eq('username', usernameParam)
+          .maybeSingle();
+      }
 
-        if (profileError) {
-          console.error('Failed to load profile:', profileError);
-          setProfile(null);
-          setIsLoading(false);
-          return;
-        }
+      const { data: profileData, error: profileError } = await profileQuery;
 
-        if (!profileData) {
-          // Profile doesn't exist, try to create it
-          await createProfileForUser(currentUser.id, currentUser.email || '');
-          // Reload after creation
+      // Handle case where profile doesn't exist (PGRST116)
+      if (profileError?.code === 'PGRST116' || !profileData) {
+        // If it's "me" and profile doesn't exist, try to create it
+        if (usernameParam === 'me') {
+          await createProfileForUser(currentUser);
+          // Reload profile after creation
           const { data: newProfileData } = await supabaseBrowser
             .from('profiles')
             .select('*')
@@ -71,68 +80,57 @@ export default function ProfilePage() {
             setProfile(null);
           }
         } else {
-          setProfile(profileData as Profile);
-          setIsOwnProfile(true);
-          await loadUserSets(currentUser.id);
+          // Profile not found for another user
+          setProfile(null);
         }
-        
         setIsLoading(false);
         return;
       }
-
-      // Otherwise, fetch profile by username
-      const { data: profileData, error: profileError } = await supabaseBrowser
-        .from('profiles')
-        .select('*')
-        .eq('username', usernameParam)
-        .maybeSingle();
 
       if (profileError) {
-        console.error('Profile not found:', profileError);
-        setProfile(null);
-        setIsLoading(false);
-        return;
-      }
-
-      if (!profileData) {
+        console.error('Failed to load profile:', profileError);
         setProfile(null);
         setIsLoading(false);
         return;
       }
 
       setProfile(profileData as Profile);
-      setIsOwnProfile(currentUser?.id === profileData.id);
+      setIsOwnProfile(currentUser.id === profileData.id);
 
       // Load sets for this profile
       await loadUserSets(profileData.id);
     } catch (error) {
       console.error('Failed to load profile:', error);
+      setProfile(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const createProfileForUser = async (userId: string, userEmail: string): Promise<void> => {
+  const createProfileForUser = async (user: any): Promise<void> => {
     try {
       setIsCreatingProfile(true);
       
       // Generate username from email
-      const emailUsername = userEmail.split('@')[0];
-      const baseUsername = emailUsername || `user_${userId.substring(0, 8)}`;
+      const emailUsername = user.email?.split('@')[0] || '';
+      const baseUsername = emailUsername || `user_${user.id.substring(0, 8)}`;
 
-      // Try to create profile using RPC function if it exists
+      // Get user metadata from Google OAuth if available
+      const firstName = user.user_metadata?.given_name || user.user_metadata?.first_name || null;
+      const lastName = user.user_metadata?.family_name || user.user_metadata?.last_name || null;
+
+      // Try to create profile using RPC function
       try {
         await (supabaseBrowser.rpc as any)('create_or_update_profile', {
-          user_id: userId,
-          user_email: userEmail,
+          user_id: user.id,
+          user_email: user.email || '',
           user_username: baseUsername,
-          user_first_name: null,
-          user_last_name: null,
+          user_first_name: firstName,
+          user_last_name: lastName,
         });
       } catch (rpcError) {
+        console.error('RPC function failed:', rpcError);
         // If RPC function doesn't exist or fails, try direct insert
-        console.warn('RPC function failed, trying direct insert:', rpcError);
-
         // Check for username conflicts and generate a unique one
         let finalUsername = baseUsername;
         let counter = 0;
@@ -157,9 +155,11 @@ export default function ProfilePage() {
         const { error: insertError } = await supabaseBrowser
           .from('profiles')
           .insert({
-            id: userId,
-            email: userEmail,
+            id: user.id,
+            email: user.email || '',
             username: finalUsername,
+            first_name: firstName,
+            last_name: lastName,
           });
 
         if (insertError) {
@@ -286,20 +286,22 @@ export default function ProfilePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sets.map((set) => (
-              <Card key={set.id} className="p-4 hover:shadow-lg transition-shadow">
-                <h3 className="text-lg font-semibold text-white mb-2">{set.title}</h3>
-                <p className="text-sm text-dark-text-secondary line-clamp-2 mb-4">
-                  {set.description || 'Aucune description'}
-                </p>
-                <div className="flex items-center justify-between text-xs text-dark-text-muted">
-                  <span>{new Date(set.created_at).toLocaleDateString('fr-FR')}</span>
-                  {set.tags && set.tags.length > 0 && (
-                    <span className="px-2 py-1 bg-dark-background-cardMuted rounded">
-                      {set.tags[0]}
-                    </span>
-                  )}
-                </div>
-              </Card>
+              <Link key={set.id} href={`/sets/${set.id}`}>
+                <Card className="p-4 hover:shadow-lg transition-shadow cursor-pointer">
+                  <h3 className="text-lg font-semibold text-white mb-2">{set.title}</h3>
+                  <p className="text-sm text-dark-text-secondary line-clamp-2 mb-4">
+                    {set.description || 'Aucune description'}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-dark-text-muted">
+                    <span>{new Date(set.created_at).toLocaleDateString('fr-FR')}</span>
+                    {set.tags && set.tags.length > 0 && (
+                      <span className="px-2 py-1 bg-dark-background-cardMuted rounded">
+                        {set.tags[0]}
+                      </span>
+                    )}
+                  </div>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

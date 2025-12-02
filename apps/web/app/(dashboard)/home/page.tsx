@@ -144,7 +144,7 @@ export default function HomePage() {
         totalSessions: typedUserStats?.total_sessions || 0,
         averageScore: typedUserStats?.average_score || 0,
         streak,
-        recentSets: (recentSets || []) as Set[],
+        recentSets: recentSets || [],
         setsToReview: new Set(typedCardsToReview.map(c => c.flashcard_id)).size,
       });
     } catch (error) {

@@ -12,7 +12,7 @@
  * Pour les opérations serveur (API routes, Server Components), utilisez lib/supabase/server.ts
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from './supabase/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -28,17 +28,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
  * Instance unique du client Supabase pour le navigateur
  * 
  * Configuration :
- * - persistSession: true → La session est sauvegardée dans localStorage
- * - detectSessionInUrl: true → Détecte automatiquement le hash fragment OAuth (#access_token=...)
- * - autoRefreshToken: true → Rafraîchit automatiquement le token
+ * - La session est automatiquement gérée par @supabase/ssr
+ * - Détecte automatiquement le hash fragment OAuth (#access_token=...)
+ * - Rafraîchit automatiquement le token
  * 
  * Cette instance partage la même session pour tous les composants et services côté client.
  */
-export const supabaseBrowser = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    detectSessionInUrl: true,
-    autoRefreshToken: true,
-  },
-});
+export const supabaseBrowser = createBrowserClient<Database>(
+  supabaseUrl,
+  supabaseAnonKey
+);
 
