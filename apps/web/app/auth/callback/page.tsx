@@ -124,7 +124,29 @@ function AuthCallbackContent() {
       }
     });
     
-    // Timeout de sécurité : si aucune session n'est détectée après 5 secondes, on affiche une erreur
+    // Tentative d'extraction manuelle du hash fragment si présent
+    // Supabase OAuth redirige avec #access_token=... dans l'URL
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        // On a les tokens dans le hash, on peut créer la session manuellement
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).then(({ data: { session }, error }) => {
+          if (!error && session && session.user) {
+            processSession(session, session.user);
+          } else if (error) {
+            console.error('Error setting session from hash:', error);
+          }
+        });
+      }
+    }
+    
+    // Timeout de sécurité : si aucune session n'est détectée après 10 secondes, on affiche une erreur
     timeoutId = setTimeout(() => {
       if (isLoading && !hasProcessed) {
         setError('Timeout : la session n\'a pas pu être récupérée. Veuillez réessayer.');
@@ -133,7 +155,7 @@ function AuthCallbackContent() {
           router.push('/login');
         }, 3000);
       }
-    }, 5000);
+    }, 10000);
 
     // Écoute des changements d'authentification
     // Cela permet de détecter quand Supabase a traité le hash fragment de l'URL
