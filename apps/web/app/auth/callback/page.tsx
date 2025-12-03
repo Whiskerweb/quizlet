@@ -22,6 +22,9 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
+import type { Database } from '@/lib/supabase/types';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export default function OAuthCallbackPage() {
   const router = useRouter();
@@ -85,9 +88,10 @@ export default function OAuthCallbackPage() {
           .single();
         
         if (newProfile) {
-          console.log('[OAuth Callback] Profile created/loaded:', newProfile.username);
+          const typedNewProfile = newProfile as Profile;
+          console.log('[OAuth Callback] Profile created/loaded:', typedNewProfile.username);
           setUser(session.user);
-          setProfile(newProfile);
+          setProfile(typedNewProfile);
         } else {
           console.error('[OAuth Callback] Failed to fetch profile after creation:', fetchError);
           // Rediriger quand même vers dashboard, le layout essaiera de charger le profil
@@ -95,9 +99,10 @@ export default function OAuthCallbackPage() {
         }
       } else {
         // Profil existe, mettre à jour le store
-        console.log('[OAuth Callback] Profile loaded:', profile.username);
+        const typedProfile = profile as Profile;
+        console.log('[OAuth Callback] Profile loaded:', typedProfile.username);
         setUser(session.user);
-        setProfile(profile);
+        setProfile(typedProfile);
       }
 
       // Rediriger vers dashboard

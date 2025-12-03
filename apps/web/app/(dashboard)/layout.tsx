@@ -23,6 +23,9 @@ import { Button } from '@/components/ui/Button';
 import { User, LogOut, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
+import type { Database } from '@/lib/supabase/types';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -87,9 +90,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           .single();
         
         if (profileData) {
-          console.log('[Dashboard Layout] Profile loaded:', profileData.username);
+          const typedProfile = profileData as Profile;
+          console.log('[Dashboard Layout] Profile loaded:', typedProfile.username);
           setStoreUser(session.user);
-          setStoreProfile(profileData);
+          setStoreProfile(typedProfile);
         } else if (profileError) {
           console.error('[Dashboard Layout] Error loading profile:', profileError);
           
@@ -116,9 +120,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             .single();
           
           if (newProfile) {
-            console.log('[Dashboard Layout] Profile created/loaded:', newProfile.username);
+            const typedNewProfile = newProfile as Profile;
+            console.log('[Dashboard Layout] Profile created/loaded:', typedNewProfile.username);
             setStoreUser(session.user);
-            setStoreProfile(newProfile);
+            setStoreProfile(typedNewProfile);
           } else {
             // Mettre à jour au moins l'utilisateur même si le profil n'est pas disponible
             setStoreUser(session.user);
