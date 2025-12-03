@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Vérification de l'authentification
+  // Vérification de l'authentification et initialisation du store
   useEffect(() => {
     const run = async () => {
       // Récupération de la session Supabase
@@ -71,9 +71,66 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Session présente → autoriser l'accès au dashboard
-      // On ne vérifie pas le profil ici pour simplifier : si la session existe, l'accès est autorisé
-      // Le profil peut être vérifié/créé ailleurs si nécessaire
+      // Session présente → vérifier et charger le profil si nécessaire
+      const { setUser: setStoreUser, setProfile: setStoreProfile } = useAuthStore.getState();
+      const currentProfile = useAuthStore.getState().profile;
+      
+      // Vérifier si le profil est dans le store et correspond à l'utilisateur actuel
+      if (!currentProfile || currentProfile.id !== session.user.id) {
+        console.log('[Dashboard Layout] Profile not in store, loading from Supabase...');
+        
+        // Charger le profil depuis Supabase
+        const { data: profileData, error: profileError } = await supabaseBrowser
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profileData) {
+          console.log('[Dashboard Layout] Profile loaded:', profileData.username);
+          setStoreUser(session.user);
+          setStoreProfile(profileData);
+        } else if (profileError) {
+          console.error('[Dashboard Layout] Error loading profile:', profileError);
+          
+          // Créer le profil si nécessaire (fallback si le trigger SQL n'a pas fonctionné)
+          const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
+          
+          const { error: rpcError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
+            user_id: session.user.id,
+            user_email: session.user.email || '',
+            user_username: baseUsername,
+            user_first_name: session.user.user_metadata?.first_name || null,
+            user_last_name: session.user.user_metadata?.last_name || null,
+          });
+          
+          if (rpcError) {
+            console.error('[Dashboard Layout] Error creating profile:', rpcError);
+          }
+          
+          // Réessayer de charger le profil
+          const { data: newProfile } = await supabaseBrowser
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (newProfile) {
+            console.log('[Dashboard Layout] Profile created/loaded:', newProfile.username);
+            setStoreUser(session.user);
+            setStoreProfile(newProfile);
+          } else {
+            // Mettre à jour au moins l'utilisateur même si le profil n'est pas disponible
+            setStoreUser(session.user);
+          }
+        }
+      } else {
+        // Profil déjà dans le store, mettre à jour user si nécessaire
+        console.log('[Dashboard Layout] Profile already in store:', currentProfile.username);
+        setStoreUser(session.user);
+      }
+
+      // Autoriser l'accès au dashboard
       console.log('[Dashboard Layout] Session found, authorizing access to dashboard');
       setAuthorized(true);
       setChecking(false);

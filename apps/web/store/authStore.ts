@@ -37,7 +37,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
     },
     isAuthenticated: () => {
       const state = get();
-      return state.user !== null && state.profile !== null;
+      // Vérifier si l'utilisateur existe dans le store
+      // Le profil peut être null temporairement (ex: après OAuth avant chargement)
+      // mais si user existe, c'est qu'il y a une session valide
+      return state.user !== null;
     },
   };
 });
