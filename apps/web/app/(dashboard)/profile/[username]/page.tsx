@@ -439,8 +439,8 @@ export default function ProfilePage() {
                       className="flex items-center gap-3 p-4 hover:bg-bg-subtle transition-colors"
                     >
                       <div className="h-10 w-10 rounded-full bg-bg-emphasis flex items-center justify-center border border-border-subtle">
-                        {friend.avatar_url ? (
-                          <img src={friend.avatar_url} alt={friend.username} className="h-full w-full rounded-full" />
+                        {friend.avatar ? (
+                          <img src={friend.avatar} alt={friend.username} className="h-full w-full rounded-full" />
                         ) : (
                           <User className="h-5 w-5 text-content-muted" />
                         )}

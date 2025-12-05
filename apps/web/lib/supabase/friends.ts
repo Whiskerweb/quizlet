@@ -21,7 +21,7 @@ export interface Friendship {
 export interface Friend {
   id: string;
   username: string;
-  avatar_url?: string;
+  avatar?: string;
   created_at: string;
 }
 
@@ -220,7 +220,7 @@ export const friendsService = {
     // Get profiles for these friends
     const { data: profiles, error: profilesError } = await (supabaseBrowser
       .from('profiles') as any)
-      .select('id, username, avatar_url')
+      .select('id, username, avatar')
       .in('id', friendIds);
 
     if (profilesError) throw profilesError;
@@ -231,7 +231,7 @@ export const friendsService = {
       return {
         id: (profile?.id || friendship.friend_id) as string,
         username: (profile?.username || 'Unknown') as string,
-        avatar_url: profile?.avatar_url as string | undefined,
+        avatar: profile?.avatar as string | undefined,
         created_at: friendship.created_at as string,
       };
     });
