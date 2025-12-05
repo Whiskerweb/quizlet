@@ -205,6 +205,6 @@ export const friendsService = {
       ? window.location.origin 
       : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     
-    return `${baseUrl}/signup?invite=${code}`;
+    return `${baseUrl}/register?invite=${code}`;
   },
 };

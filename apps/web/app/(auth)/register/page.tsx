@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
+import { friendsService } from '@/lib/supabase/friends';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -32,8 +33,9 @@ function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const supabase = supabaseBrowser;
   
-  // Get redirect URL from query params
+  // Get redirect URL and invite code from query params
   const redirectUrl = searchParams.get('redirect') || '/dashboard';
+  const inviteCode = searchParams.get('invite');
 
   const {
     register,
@@ -94,6 +96,19 @@ function RegisterForm() {
 
       setUser(authData.user);
       setProfile(profile);
+
+      // If there's an invite code, use it to create friendship
+      if (inviteCode) {
+        try {
+          console.log('[Register] Using invite code:', inviteCode);
+          await friendsService.useInviteCode(inviteCode, authData.user.id);
+          console.log('[Register] Friendship created successfully');
+        } catch (inviteError: any) {
+          console.error('[Register] Failed to use invite code:', inviteError);
+          // Don't block registration if invite fails
+        }
+      }
+
       // Utiliser replace pour éviter d'ajouter une entrée dans l'historique
       router.replace(redirectUrl);
       router.refresh();
@@ -115,6 +130,12 @@ function RegisterForm() {
             </CardTitle>
           </CardHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
+            {inviteCode && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-[13px] sm:text-[14px]">
+                🎉 Vous avez été invité ! Créez votre compte pour rejoindre votre ami.
+              </div>
+            )}
+            
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-[13px] sm:text-[14px]">
                 {error}
