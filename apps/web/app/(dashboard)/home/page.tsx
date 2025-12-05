@@ -74,8 +74,8 @@ export default function HomePage() {
     try {
       setIsLoading(true);
       
-      const { data: userStats } = await supabaseBrowser
-        .from('user_stats')
+      const { data: userStats } = await (supabaseBrowser
+        .from('user_stats') as any)
         .select('*')
         .eq('user_id', user!.id)
         .single();
