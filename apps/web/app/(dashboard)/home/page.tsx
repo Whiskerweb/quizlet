@@ -97,14 +97,14 @@ export default function HomePage() {
         .eq('user_id', user!.id)
         .gte('started_at', today.toISOString());
 
-      const cardsToday = todaySessions?.reduce((sum, s) => {
+      const cardsToday = todaySessions?.reduce((sum: number, s: any) => {
         return sum + (s.answers?.length || 0);
       }, 0) || 0;
 
       // Minutes: only count completed sessions OR cap at 3h for active ones
       console.log('[Home] Today sessions:', todaySessions?.length);
       
-      const minutesToday = todaySessions?.reduce((sum, s, idx) => {
+      const minutesToday = todaySessions?.reduce((sum: number, s: any, idx: number) => {
         const start = new Date(s.started_at);
         
         // Only count completed sessions OR active sessions from today
@@ -184,9 +184,9 @@ export default function HomePage() {
           return sessionDate >= date && sessionDate < nextDate;
         }) || [];
         
-        const dayCards = daySessions.reduce((sum, s) => sum + (s.answers?.length || 0), 0);
+        const dayCards = daySessions.reduce((sum: number, s: any) => sum + (s.answers?.length || 0), 0);
         
-        const dayMinutes = daySessions.reduce((sum, s) => {
+        const dayMinutes = daySessions.reduce((sum: number, s: any) => {
           if (s.completed_at) {
             const start = new Date(s.started_at);
             const end = new Date(s.completed_at);
@@ -255,7 +255,7 @@ export default function HomePage() {
           return Math.min(100, Math.max(0, progress));
         });
         
-        const totalProgress = sessionProgresses.reduce((sum, p) => sum + p, 0);
+        const totalProgress = sessionProgresses.reduce((sum: number, p: number) => sum + p, 0);
         masteryRate = Math.round(totalProgress / sessionProgresses.length);
         
         console.log('[Home] Sessions today:', todaySessions.length);
@@ -405,7 +405,7 @@ export default function HomePage() {
                 Activité (7 jours)
               </h2>
               <span className="text-xs text-content-muted">
-                {stats.weeklyActivity.reduce((sum, d) => sum + d.cards, 0)} cartes
+                {stats.weeklyActivity.reduce((sum: number, d: any) => sum + d.cards, 0)} cartes
               </span>
             </div>
             
