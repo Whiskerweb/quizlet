@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { InviteFriendsCTA } from '@/components/InviteFriendsCTA';
 import { ArrowLeft, Share2, Play, Trash2, User, Shield, Eye, Layers } from 'lucide-react';
 import type { SharedSetWithDetails } from '@/lib/supabase/shared-sets';
 
@@ -80,17 +81,22 @@ export default function SharedSetsFolderPage() {
 
   return (
     <>
-      <div className="mb-8 flex items-center gap-4">
+      <div className="mb-6 flex items-start gap-4">
         <Link href="/dashboard">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <div className="rounded-3xl border border-border-subtle bg-bg-emphasis/90 px-5 py-3 shadow-panel">
+        <div>
           <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">Bibliothèque partagée</p>
           <h1 className="text-[26px] font-semibold text-content-emphasis">Cardz partagés</h1>
           <p className="text-[14px] text-content-muted">{sharedSets.length} cardz ajoutés à votre collection</p>
         </div>
+      </div>
+
+      {/* Invite Friends CTA */}
+      <div className="mb-8">
+        <InviteFriendsCTA />
       </div>
 
       {sharedSets.length === 0 ? (
