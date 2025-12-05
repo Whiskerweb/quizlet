@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { CreateFolderModal } from '@/components/CreateFolderModal';
 import { ActiveSessions } from '@/components/ActiveSessions';
+import { InviteFriendsCTA } from '@/components/InviteFriendsCTA';
 import { Plus, BookOpen, Folder, FolderPlus, Trash2, ChevronDown, Play, Pencil, Share2 } from 'lucide-react';
 import { createSetAndRedirect } from '@/lib/utils/createSetAndRedirect';
 import { useRouter } from 'next/navigation';
@@ -229,6 +230,11 @@ export default function DashboardPage() {
             {isCreatingSet ? 'Création…' : 'Créer un cardz'}
           </Button>
         </div>
+      </div>
+
+      {/* Invite Friends CTA */}
+      <div className="mb-6">
+        <InviteFriendsCTA />
       </div>
 
       <div className="mb-8 rounded-[32px] border border-border-subtle/80 bg-bg-emphasis/80 px-5 py-4">
