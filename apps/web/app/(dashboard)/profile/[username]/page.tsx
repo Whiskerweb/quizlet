@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
@@ -10,6 +10,7 @@ import { friendsService, type Friend } from '@/lib/supabase/friends';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { PasswordPromptModal } from '@/components/PasswordPromptModal';
+import { FriendProfileView } from '@/components/FriendProfileView';
 import { User, Lock, Share2, BookOpen, Trash2, Play, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import type { Database } from '@/lib/supabase/types';
@@ -33,6 +34,7 @@ type SharedSetWithDetails = {
 
 export default function ProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const username = params.username as string;
   const { profile: currentProfile, user } = useAuthStore();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -46,6 +48,10 @@ export default function ProfilePage() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendCount, setFriendCount] = useState(0);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
+  const [isFriend, setIsFriend] = useState(false);
+  const [friendStats, setFriendStats] = useState<any>(null);
+  const [mySets, setMySets] = useState<Set[]>([]);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const isOwnProfile = currentProfile?.username === username;
 
@@ -57,8 +63,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile && isOwnProfile && user) {
       loadFriends();
-    } else if (profile && !isOwnProfile) {
+    } else if (profile && !isOwnProfile && user) {
       loadFriendCount();
+      checkIfFriend();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id, isOwnProfile, user]);
@@ -87,6 +94,23 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Failed to load friend count:', error);
     }
+  };
+
+  const checkIfFriend = async () => {
+    if (!profile || !user) return;
+    try {
+      // Check if the viewed profile is in my friends list
+      const myFriends = await friendsService.getMyFriends();
+      const friendMatch = myFriends.find(f => f.id === profile.id);
+      setIsFriend(!!friendMatch);
+    } catch (error) {
+      console.error('Failed to check friendship:', error);
+    }
+  };
+
+  const handleUnfriend = () => {
+    // Redirect to home after unfriending
+    router.push('/home');
   };
 
   const loadProfile = async () => {
@@ -243,6 +267,17 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Friend-specific view */}
+        {isFriend && user && !isOwnProfile && (
+          <div className="mb-8">
+            <FriendProfileView
+              friendProfile={profile}
+              currentUserId={user.id}
+              onUnfriend={handleUnfriend}
+            />
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-2 border-b border-border-muted">

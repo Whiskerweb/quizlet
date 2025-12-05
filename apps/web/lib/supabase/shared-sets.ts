@@ -234,6 +234,56 @@ export const sharedSetsService = {
     return !!data;
   },
 
+  // Share a set directly with a specific user (for friends)
+  async shareSetWithUser(targetUserId: string, setId: string): Promise<SharedSet> {
+    const { data: { session } } = await supabaseBrowser.auth.getSession();
+    if (!session?.user) {
+      throw new Error('User not authenticated');
+    }
+    
+    const user = session.user;
+
+    // Verify the set belongs to the current user
+    const { data: setData, error: setError } = await supabaseBrowser
+      .from('sets')
+      .select('*')
+      .eq('id', setId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (setError || !setData) {
+      throw new Error('Set not found or you do not own this set');
+    }
+
+    // Check if already shared
+    const { data: existing } = await supabaseBrowser
+      .from('shared_sets')
+      .select('*')
+      .eq('set_id', setId)
+      .eq('user_id', targetUserId)
+      .single();
+
+    if (existing) {
+      return existing;
+    }
+
+    // Create shared set entry
+    const insertData: SharedSetInsert = {
+      set_id: setId,
+      user_id: targetUserId,
+      shared_by_user_id: user.id,
+    };
+
+    const { data, error } = await supabaseBrowser
+      .from('shared_sets')
+      .insert(insertData as any)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
   // Get users who have added a set (for set owners)
   async getSetUsers(setId: string): Promise<Array<{
     id: string;
