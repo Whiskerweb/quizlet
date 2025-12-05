@@ -622,7 +622,7 @@ export default function StudyPage() {
           
           setSessionState(restoredState);
           nextCard = getNextCard(restoredState);
-          console.log('[Study] Next card after restore:', nextCard?.flashcardId, 'at index:', nextCard?.cardIndex);
+          console.log('[Study] Next card after restore:', nextCard?.flashcardId);
           
           if (nextCard) {
             setCurrentCard(nextCard);
@@ -783,7 +783,7 @@ export default function StudyPage() {
         
         setSessionState(restoredState);
         nextCard = getNextCard(restoredState);
-        console.log('[Study] Manual resume - Next card:', nextCard?.flashcardId, 'at index:', nextCard?.cardIndex);
+        console.log('[Study] Manual resume - Next card:', nextCard?.flashcardId);
         
         if (nextCard) {
           setCurrentCard(nextCard);
