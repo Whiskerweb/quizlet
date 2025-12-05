@@ -142,27 +142,36 @@ export const friendsService = {
     const { data: { user } } = await supabaseBrowser.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await (supabaseBrowser
+    // Get friendships
+    const { data: friendships, error: friendshipsError } = await (supabaseBrowser
       .from('friendships') as any)
-      .select(`
-        friend_id,
-        created_at,
-        profiles:friend_id (
-          id,
-          username,
-          avatar_url
-        )
-      `)
+      .select('friend_id, created_at')
       .eq('user_id', user.id);
 
-    if (error) throw error;
+    if (friendshipsError) throw friendshipsError;
+    if (!friendships || friendships.length === 0) return [];
 
-    return (data || []).map((f: any) => ({
-      id: f.profiles.id,
-      username: f.profiles.username,
-      avatar_url: f.profiles.avatar_url,
-      created_at: f.created_at,
-    }));
+    // Get friend IDs
+    const friendIds = friendships.map((f: any) => f.friend_id);
+
+    // Get profiles for these friends
+    const { data: profiles, error: profilesError } = await supabaseBrowser
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .in('id', friendIds);
+
+    if (profilesError) throw profilesError;
+
+    // Merge friendships with profiles
+    return friendships.map((friendship: any) => {
+      const profile = profiles?.find((p: any) => p.id === friendship.friend_id);
+      return {
+        id: profile?.id || friendship.friend_id,
+        username: profile?.username || 'Unknown',
+        avatar_url: profile?.avatar_url,
+        created_at: friendship.created_at,
+      };
+    });
   },
 
   /**
