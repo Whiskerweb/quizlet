@@ -36,8 +36,8 @@ export const friendsService = {
     // Generate unique code
     const code = Math.random().toString(36).substring(2, 10).toUpperCase();
     
-    const { data, error } = await supabaseBrowser
-      .from('invitation_codes')
+    const { data, error } = await (supabaseBrowser
+      .from('invitation_codes') as any)
       .insert({
         code,
         inviter_id: user.id,
@@ -46,7 +46,7 @@ export const friendsService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as InvitationCode;
   },
 
   /**
@@ -56,14 +56,14 @@ export const friendsService = {
     const { data: { user } } = await supabaseBrowser.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabaseBrowser
-      .from('invitation_codes')
+    const { data, error } = await (supabaseBrowser
+      .from('invitation_codes') as any)
       .select('*')
       .eq('inviter_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as InvitationCode[];
   },
 
   /**
@@ -71,8 +71,8 @@ export const friendsService = {
    */
   async useInviteCode(code: string, newUserId: string): Promise<void> {
     // Get invitation code
-    const { data: inviteCode, error: codeError } = await supabaseBrowser
-      .from('invitation_codes')
+    const { data: inviteCode, error: codeError } = await (supabaseBrowser
+      .from('invitation_codes') as any)
       .select('*')
       .eq('code', code)
       .single();
@@ -92,24 +92,24 @@ export const friendsService = {
     }
 
     // Check if already friends
-    const { data: existingFriendship } = await supabaseBrowser
-      .from('friendships')
+    const { data: existingFriendship } = await (supabaseBrowser
+      .from('friendships') as any)
       .select('*')
       .or(`and(user_id.eq.${newUserId},friend_id.eq.${inviteCode.inviter_id}),and(user_id.eq.${inviteCode.inviter_id},friend_id.eq.${newUserId})`)
       .maybeSingle();
 
     if (existingFriendship) {
       // Already friends, just increment counter
-      await supabaseBrowser
-        .from('invitation_codes')
+      await (supabaseBrowser
+        .from('invitation_codes') as any)
         .update({ uses_count: inviteCode.uses_count + 1 })
         .eq('id', inviteCode.id);
       return;
     }
 
     // Create bidirectional friendship
-    const { error: friendship1Error } = await supabaseBrowser
-      .from('friendships')
+    const { error: friendship1Error } = await (supabaseBrowser
+      .from('friendships') as any)
       .insert({
         user_id: newUserId,
         friend_id: inviteCode.inviter_id,
@@ -118,8 +118,8 @@ export const friendsService = {
 
     if (friendship1Error) throw friendship1Error;
 
-    const { error: friendship2Error } = await supabaseBrowser
-      .from('friendships')
+    const { error: friendship2Error } = await (supabaseBrowser
+      .from('friendships') as any)
       .insert({
         user_id: inviteCode.inviter_id,
         friend_id: newUserId,
@@ -129,8 +129,8 @@ export const friendsService = {
     if (friendship2Error) throw friendship2Error;
 
     // Increment uses count
-    await supabaseBrowser
-      .from('invitation_codes')
+    await (supabaseBrowser
+      .from('invitation_codes') as any)
       .update({ uses_count: inviteCode.uses_count + 1 })
       .eq('id', inviteCode.id);
   },
@@ -142,8 +142,8 @@ export const friendsService = {
     const { data: { user } } = await supabaseBrowser.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabaseBrowser
-      .from('friendships')
+    const { data, error } = await (supabaseBrowser
+      .from('friendships') as any)
       .select(`
         friend_id,
         created_at,
@@ -174,8 +174,8 @@ export const friendsService = {
     
     if (!targetUserId) return 0;
 
-    const { count, error } = await supabaseBrowser
-      .from('friendships')
+    const { count, error } = await (supabaseBrowser
+      .from('friendships') as any)
       .select('*', { count: 'exact', head: true })
       .eq('user_id', targetUserId);
 
@@ -191,8 +191,8 @@ export const friendsService = {
     if (!user) throw new Error('Not authenticated');
 
     // Remove both directions
-    await supabaseBrowser
-      .from('friendships')
+    await (supabaseBrowser
+      .from('friendships') as any)
       .delete()
       .or(`and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`);
   },
