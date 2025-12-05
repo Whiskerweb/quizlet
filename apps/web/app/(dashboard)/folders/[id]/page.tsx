@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { foldersService, type FolderWithSets } from '@/lib/supabase/folders';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
-import { ArrowLeft, Folder, Trash2 } from 'lucide-react';
+import { ArrowLeft, Folder, Trash2, Play, Eye, Lock, Globe } from 'lucide-react';
 
 export default function FolderPage() {
   const params = useParams();
@@ -73,7 +73,7 @@ export default function FolderPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-white">Loading...</p>
+        <p className="text-content-muted">Loading...</p>
       </div>
     );
   }
@@ -81,7 +81,7 @@ export default function FolderPage() {
   if (!folder) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-white">Folder not found</p>
+        <p className="text-content-muted">Folder not found</p>
       </div>
     );
   }
@@ -98,8 +98,8 @@ export default function FolderPage() {
           <div className="flex items-center gap-3">
             <Folder className="h-6 w-6" style={{ color: folder.color || '#8B8FBE' }} />
             <div>
-              <h1 className="text-[28px] font-bold text-white">{folder.name}</h1>
-              <p className="text-[16px] text-dark-text-secondary">
+              <h1 className="text-[28px] font-semibold text-content-emphasis">{folder.name}</h1>
+              <p className="text-[16px] text-content-muted">
                 {folder.sets.length} {folder.sets.length === 1 ? 'Cardz' : 'Cardz'}
               </p>
             </div>
@@ -108,7 +108,7 @@ export default function FolderPage() {
         <Button
           variant="outline"
           onClick={handleDeleteFolder}
-          className="text-dark-states-danger border-dark-states-danger hover:bg-dark-background-cardMuted"
+          className="text-state-danger border-state-danger hover:bg-bg-subtle"
         >
           <Trash2 className="h-4 w-4" />
           Delete Folder
@@ -116,10 +116,10 @@ export default function FolderPage() {
       </div>
 
       {folder.sets.length === 0 ? (
-        <Card variant="emptyState" className="text-center py-12">
-          <Folder className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-          <h3 className="text-[16px] text-white mb-2">No Cardz in this folder</h3>
-          <p className="text-[16px] text-white mb-4">
+        <Card variant="emptyState" className="py-12 text-center">
+          <Folder className="h-12 w-12 text-content-subtle mx-auto mb-4" />
+          <h3 className="text-[16px] text-content-emphasis mb-2">No Cardz in this folder</h3>
+          <p className="text-[15px] text-content-muted mb-4">
             Drag Cardz here from the dashboard to organize them
           </p>
           <Link href="/dashboard">
@@ -127,23 +127,64 @@ export default function FolderPage() {
           </Link>
         </Card>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {folder.sets.map((set) => (
-            <Link key={set.id} href={`/sets/${set.id}`} className="block h-full">
-              <Card className="h-full hover:shadow-elevation-1 transition-shadow cursor-pointer card-text-content">
-                <CardHeader>
-                  <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                  <p className="text-[16px] text-white line-clamp-2 mt-2">
-                    {set.description || 'No description'}
-                  </p>
-                </CardHeader>
-                <div className="px-6 pb-6">
-                  <div className="flex items-center justify-between text-[16px] text-white">
-                    <span>{set.is_public ? 'Public' : 'Private'}</span>
+            <div
+              key={set.id}
+              className="rounded-2xl border border-border-subtle bg-bg-emphasis/95 p-4 transition hover:border-border-emphasis hover:shadow-card"
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[14px] font-semibold text-content-emphasis line-clamp-2">
+                      {set.title}
+                    </p>
+                    <p className="text-[12px] text-content-muted">
+                      {set.is_public ? (
+                        <span className="flex items-center gap-1">
+                          <Globe className="h-3 w-3" />
+                          Public
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <Lock className="h-3 w-3" />
+                          Privé
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  {set.password_hash && (
+                    <span className="rounded-full border border-border-subtle px-2 py-0.5 text-[11px] text-content-muted">
+                      Protégé
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-[13px] text-content-muted line-clamp-3">
+                  {set.description || 'Aucune description'}
+                </p>
+
+                <div className="flex items-center justify-between text-[12px] text-content-muted">
+                  <span>Ajouté le {new Date(set.created_at).toLocaleDateString('fr-FR')}</span>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/study/${set.id}`}
+                      aria-label="Étudier"
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle text-content-muted transition hover:text-content-emphasis"
+                    >
+                      <Play className="h-4 w-4" />
+                    </Link>
+                    <Link
+                      href={`/sets/${set.id}`}
+                      aria-label="Voir le set"
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle text-content-muted transition hover:text-content-emphasis"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Link>
                   </div>
                 </div>
-              </Card>
-            </Link>
+              </div>
+            </div>
           ))}
         </div>
       )}
