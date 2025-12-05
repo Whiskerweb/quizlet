@@ -147,7 +147,7 @@ export default function HomePage() {
         .limit(3);
 
       const setsWithCounts = await Promise.all(
-        (recentSets || []).map(async (set) => {
+        (recentSets || []).map(async (set: any) => {
           const { count } = await (supabaseBrowser
             .from('flashcards') as any)
             .select('*', { count: 'exact', head: true })
