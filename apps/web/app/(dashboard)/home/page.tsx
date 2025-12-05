@@ -179,7 +179,7 @@ export default function HomePage() {
         const nextDate = new Date(date);
         nextDate.setDate(nextDate.getDate() + 1);
         
-        const daySessions = weekSessions?.filter(s => {
+        const daySessions = weekSessions?.filter((s: any) => {
           const sessionDate = new Date(s.started_at);
           return sessionDate >= date && sessionDate < nextDate;
         }) || [];
@@ -225,7 +225,7 @@ export default function HomePage() {
         const dayEnd = new Date(dayStart);
         dayEnd.setDate(dayEnd.getDate() + 1);
         
-        const hasActivity = allSessions?.some(s => {
+        const hasActivity = allSessions?.some((s: any) => {
           const sessionDate = new Date(s.started_at);
           return sessionDate >= dayStart && sessionDate < dayEnd;
         });
@@ -241,7 +241,7 @@ export default function HomePage() {
       let masteryRate = 0;
       
       if (todaySessions && todaySessions.length > 0) {
-        const sessionProgresses = todaySessions.map(s => {
+        const sessionProgresses = todaySessions.map((s: any) => {
           // For completed sessions, check if 100% done
           if (s.completed) {
             return 100;
@@ -411,8 +411,8 @@ export default function HomePage() {
             
             <div className="relative">
               <div className="flex items-end justify-between gap-2 h-24">
-                {stats.weeklyActivity.map((day, idx) => {
-                  const maxCards = Math.max(...stats.weeklyActivity.map(d => d.cards), 1);
+                {stats.weeklyActivity.map((day: any, idx: number) => {
+                  const maxCards = Math.max(...stats.weeklyActivity.map((d: any) => d.cards), 1);
                   const height = day.cards > 0 ? (day.cards / maxCards) * 100 : 4;
                   const isToday = idx === stats.weeklyActivity.length - 1;
                   const isHovered = hoveredDay === idx;
@@ -611,7 +611,7 @@ export default function HomePage() {
                 Sets récents
               </h2>
               <div className="space-y-2">
-                {stats.recentSets.map((set) => (
+                {stats.recentSets.map((set: any) => (
                   <Link key={set.id} href={`/study/${set.id}`}>
                     <div className="group p-3 rounded-lg border border-border-subtle bg-bg-subtle hover:bg-bg-emphasis hover:border-brand-primary/50 transition-all">
                       <div className="flex items-center justify-between">
