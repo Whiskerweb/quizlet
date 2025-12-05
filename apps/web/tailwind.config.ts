@@ -9,16 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Brand colors - Light blue palette
         brand: {
-          primary: '#60A5FA',      // Light blue
-          primarySoft: '#93C5FD',   // Very light blue
-          primaryDark: '#3B82F6',   // Medium light blue
-          secondaryTeal: '#67E8F9', // Light cyan
-          accentYellow: '#FCD34D',  // Light yellow
-          accentPink: '#F472B6',    // Light pink
+          primary: '#2563EB',
+          primarySoft: '#93C5FD',
+          primaryDark: '#1D4ED8',
+          secondaryTeal: '#0EA5E9',
+          accentYellow: '#FBBF24',
+          accentPink: '#F472B6',
         },
-        // Dark theme
         dark: {
           background: {
             base: '#05081E',
@@ -60,7 +58,6 @@ const config: Config = {
             chipBackgroundSelected: '#1C2346',
           },
         },
-        // Light theme
         light: {
           background: {
             base: '#FFFFFF',
@@ -84,18 +81,52 @@ const config: Config = {
             surfaceHover: '#EEF1FF',
           },
         },
-        // Legacy primary colors (for backward compatibility) - Light blue palette
-        primary: {
-          50: '#EFF6FF',
-          100: '#DBEAFE',
-          200: '#BFDBFE',
-          300: '#93C5FD',
-          400: '#60A5FA',
-          500: '#3B82F6',
-          600: '#2563EB',
-          700: '#1D4ED8',
-          800: '#1E40AF',
-          900: '#1E3A8A',
+        bg: {
+          default: 'var(--bg-default)',
+          muted: 'var(--bg-muted)',
+          subtle: 'var(--bg-subtle)',
+          emphasis: 'var(--bg-emphasis)',
+          inverted: 'var(--bg-inverted)',
+          info: 'var(--bg-info)',
+          success: 'var(--bg-success)',
+          attention: 'var(--bg-attention)',
+          error: 'var(--bg-error)',
+        },
+        border: {
+          default: 'var(--border-default)',
+          muted: 'var(--border-muted)',
+          subtle: 'var(--border-subtle)',
+          emphasis: 'var(--border-emphasis)',
+        },
+        content: {
+          default: 'var(--content-default)',
+          muted: 'var(--content-muted)',
+          subtle: 'var(--content-subtle)',
+          emphasis: 'var(--content-emphasis)',
+          inverted: 'var(--content-inverted)',
+          info: 'var(--content-info)',
+          success: 'var(--content-success)',
+          attention: 'var(--content-attention)',
+          error: 'var(--content-error)',
+        },
+        state: {
+          focus: '#2563EB',
+          success: '#22C55E',
+          warning: '#F97316',
+          danger: '#DC2626',
+        },
+        neutral: {
+          25: '#FCFCFA',
+          50: '#F7F7F2',
+          100: '#EFEFE7',
+          200: '#E2E0D9',
+          300: '#CBC7BD',
+          400: '#A7A297',
+          500: '#6F6A61',
+          600: '#4F4C45',
+          700: '#3D3A34',
+          800: '#2F2C28',
+          900: '#1F1D1A',
         },
       },
       spacing: {
@@ -117,8 +148,9 @@ const config: Config = {
         pill: '999px',
       },
       fontFamily: {
-        base: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'sans-serif'],
-        display: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'sans-serif'],
+        base: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'sans-serif'],
+        display: ['var(--font-satoshi)', 'Satoshi', 'Inter', 'system-ui', '-apple-system', 'SF Pro Display', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'Geist Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       fontSize: {
         caption: ['12px', { lineHeight: '1.4' }],
@@ -133,10 +165,10 @@ const config: Config = {
         hero: ['44px', { lineHeight: '1.1' }],
       },
       boxShadow: {
-        'elevation-1': '0 8px 24px rgba(0,0,0,0.28)',
-        'elevation-2': '0 12px 32px rgba(0,0,0,0.36)',
-        'primary-glow': '0 10px 24px rgba(96,165,250,0.45)',
-        'primary-glow-lg': '0 10px 26px rgba(96,165,250,0.45)',
+        card: '0 15px 35px rgba(15,23,42,0.08)',
+        'card-hover': '0 18px 45px rgba(15,23,42,0.12)',
+        panel: '0 20px 60px rgba(15,23,42,0.14)',
+        'primary-glow': '0 14px 48px rgba(37,99,235,0.35)',
       },
       transitionDuration: {
         fast: '120ms',
@@ -148,24 +180,47 @@ const config: Config = {
         emphasized: 'cubic-bezier(0.18, 0.9, 0.32, 1.1)',
       },
       keyframes: {
-        slideIn: {
-          '0%': {
-            opacity: '0',
-            transform: 'translateY(-10px) scale(0.95)',
-          },
-          '100%': {
-            opacity: '1',
-            transform: 'translateY(0) scale(1)',
-          },
+        'scale-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
         },
-        'card-appear': {
-          '0%': { opacity: '0', transform: 'translateY(-20px) scale(0.95)' },
-          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'slide-up-fade': {
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'slide-in-from-right': {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(-3deg)' },
+          '50%': { transform: 'rotate(3deg)' },
+        },
+        spinner: {
+          to: { transform: 'rotate(360deg)' },
+        },
+        blink: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
+        pulse: {
+          '0%': { transform: 'scale(0.98)', opacity: '0.75' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },
       animation: {
-        slideIn: 'slideIn 0.6s ease-out',
-        'card-appear': 'card-appear 0.6s ease-out forwards',
+        'scale-in': 'scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        'fade-in': 'fade-in 0.2s ease-out forwards',
+        'slide-up-fade': 'slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-in-from-right': 'slide-in-from-right 0.2s ease',
+        wiggle: 'wiggle 0.75s infinite',
+        spinner: 'spinner 1.2s linear infinite',
+        blink: 'blink 1.4s infinite both',
+        pulse: 'pulse 1s linear infinite alternate',
       },
     },
   },

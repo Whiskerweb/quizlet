@@ -2,27 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --font-inter: 'Inter';
+  --font-satoshi: 'Satoshi';
+  --font-geist-mono: 'Geist Mono';
+
+  --bg-default: #f5f4f0;
+  --bg-muted: #efede7;
+  --bg-subtle: #e2e0d9;
+  --bg-emphasis: #ffffff;
+  --bg-inverted: #0f172a;
+  --bg-info: #eff6ff;
+  --bg-success: #ecfdf3;
+  --bg-attention: #fff7ed;
+  --bg-error: #fef2f2;
+
+  --border-default: #dcd8cf;
+  --border-muted: #ece8df;
+  --border-subtle: #f5f2ea;
+  --border-emphasis: #bbb5ab;
+
+  --content-default: #24282f;
+  --content-muted: #5d626c;
+  --content-subtle: #8c919b;
+  --content-emphasis: #111315;
+  --content-inverted: #ffffff;
+  --content-info: #1d4ed8;
+  --content-success: #047857;
+  --content-attention: #b45309;
+  --content-error: #b91c1c;
+
+  --page-top-margin: clamp(20px, 4vw, 48px);
+  --page-bottom-margin: clamp(32px, 6vw, 64px);
+}
+
 @layer base {
   * {
-    @apply border-[rgba(255,255,255,0.06)];
+    border-color: var(--border-subtle);
   }
-  
+
   body {
-    @apply bg-dark-background-base text-dark-text-primary font-base;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    background-color: var(--bg-default);
+    color: var(--content-default);
+    font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    font-feature-settings: 'cv02','cv03','cv04','cv11';
+    -webkit-font-smoothing: antialiased;
   }
-  
-  /* Dashboard/App shell uses dark theme */
+
+  /* Dashboard/App shell uses the new neutral canvas */
   .app-shell {
-    @apply bg-dark-background-base text-dark-text-primary;
+    background-color: var(--bg-default);
+    color: var(--content-default);
   }
-  
-  /* Marketing/landing pages use light theme */
+
+  /* Marketing/landing pages keep a brighter background */
   .marketing-page {
-    @apply bg-light-background-base text-light-text-primary;
+    background-color: var(--bg-emphasis);
+    color: var(--content-emphasis);
   }
-  
-  /* Force all text in cards to be uniform: white, 16px */
+
   .card-text-content,
   .card-text-content *,
   .card-text-content p,
@@ -33,22 +71,9 @@
   .card-text-content i,
   .card-text-content em,
   .card-text-content u {
-    color: white !important;
-    font-size: 16px !important;
+    color: var(--content-emphasis) !important;
+    font-size: 15px !important;
     line-height: 1.5 !important;
-  }
-  
-  /* Ensure FormattedText children inherit styles when parent has text-white */
-  [class*="text-white"] b,
-  [class*="text-white"] strong,
-  [class*="text-white"] i,
-  [class*="text-white"] em,
-  [class*="text-white"] u,
-  [class*="text-white"] p,
-  [class*="text-white"] div,
-  [class*="text-white"] span {
-    color: inherit !important;
-    font-size: inherit !important;
   }
 }
 

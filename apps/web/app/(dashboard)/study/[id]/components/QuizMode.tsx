@@ -96,18 +96,18 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
       <div className="mb-4 flex items-center justify-between">
         <div className="flex-1">
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-white font-medium">{questionLabel}</p>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-medium text-content-muted">{questionLabel}</p>
               <button
                 onClick={() => setIsReversed(!isReversed)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-white hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors"
+                className="flex items-center gap-2 rounded-lg border border-border-subtle px-3 py-1.5 text-sm text-content-emphasis transition-colors hover:bg-bg-muted/70"
                 title={isReversed ? 'Mode normal: Question → Réponses' : 'Mode inversé: Description → Titres'}
               >
                 <RotateCcw className="h-4 w-4" />
                 <span>{isReversed ? 'Mode inversé' : 'Mode normal'}</span>
               </button>
             </div>
-            <FormattedText text={questionText} className="text-2xl font-bold text-white" as="p" />
+            <FormattedText text={questionText} className="text-2xl font-bold text-content-emphasis" as="p" />
           </div>
         </div>
       </div>
@@ -125,20 +125,24 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
               onClick={() => handleSelect(option)}
               disabled={showResult}
               className={`
-                w-full p-4 rounded-lg border-2 text-left transition-all
+                w-full rounded-lg border-2 p-4 text-left transition-all
                 ${showCorrect 
-                  ? 'border-green-500 bg-green-50 text-gray-900' 
+                  ? 'border-green-500 bg-green-50 text-content-emphasis' 
                   : showIncorrect
-                  ? 'border-red-500 bg-red-50 text-gray-900'
+                  ? 'border-red-500 bg-red-50 text-content-emphasis'
                   : isSelected
-                  ? 'border-brand-primary bg-[rgba(96,165,250,0.1)] text-white'
-                  : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted text-white hover:border-[rgba(255,255,255,0.18)]'
+                  ? 'border-brand-primary bg-brand-primary/10 text-content-emphasis'
+                  : 'border-border-subtle bg-bg-subtle text-content-emphasis hover:border-border-emphasis'
                 }
                 ${showResult ? 'cursor-default' : 'cursor-pointer'}
               `}
             >
               <div className="flex items-center justify-between">
-                <FormattedText text={option} className={`font-medium ${showCorrect || showIncorrect ? 'text-gray-900' : 'text-white'}`} as="span" />
+                <FormattedText
+                  text={option}
+                  className={`font-medium ${showCorrect || showIncorrect ? 'text-content-emphasis' : 'text-content-emphasis'}`}
+                  as="span"
+                />
                 {showCorrect && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                 {showIncorrect && <XCircle className="h-5 w-5 text-red-600" />}
               </div>
@@ -148,8 +152,8 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
       </div>
 
       {showResult && (
-        <div className="mt-4 p-4 rounded-lg bg-dark-background-cardMuted">
-          <p className="text-sm text-white">
+        <div className="mt-4 p-4 rounded-lg bg-bg-subtle">
+          <p className="text-sm text-content-muted">
             {selectedAnswer === correctAnswer 
               ? '✓ Correct!' 
               : (

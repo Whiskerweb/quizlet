@@ -20,7 +20,7 @@ import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { SidebarNav } from '@/components/layout/SidebarNav';
 import { TopSearchBar } from '@/components/layout/TopSearchBar';
 import { Button } from '@/components/ui/Button';
-import { User, LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import type { Database } from '@/lib/supabase/types';
@@ -147,82 +147,91 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // GARDE 1 : Afficher un loader pendant la vérification
   if (checking) {
     return (
-      <div className="min-h-screen bg-dark-background-base flex items-center justify-center app-shell">
-        <p className="text-dark-text-secondary">Chargement du dashboard…</p>
+      <div className="app-shell flex min-h-screen items-center justify-center bg-bg-default">
+        <p className="text-content-muted">Chargement du dashboard…</p>
       </div>
     );
   }
 
-  // GARDE 2 : Si pas autorisé, ne rien afficher (redirection en cours)
   if (!authorized) {
-    return null; // redirect en cours
+    return null;
   }
 
   const sidebarWidth = isSidebarOpen ? (isMobile ? '260px' : '260px') : (isMobile ? '0px' : '80px');
+  const initials = profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
 
   return (
-    <div className="min-h-screen bg-dark-background-base app-shell flex">
-      {/* Sidebar */}
-      <SidebarNav 
-        isOpen={isSidebarOpen} 
+    <div className="app-shell min-h-screen bg-bg-default">
+      <SidebarNav
+        isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         isMobile={isMobile}
       />
 
-      {/* Main Content Area */}
-      <div 
-        className="flex-1 flex flex-col transition-all duration-300 ease-in-out"
-        style={{ 
-          marginLeft: isMobile ? '0' : sidebarWidth 
-        }}
+      <div
+        className="flex min-h-screen flex-col transition-all duration-300 ease-in-out"
+        style={{ marginLeft: isMobile ? '0' : sidebarWidth }}
       >
-        {/* Top Bar */}
-        <header className="h-14 sm:h-16 border-b border-[rgba(255,255,255,0.06)] bg-dark-background-base flex items-center px-3 sm:px-4 lg:px-8 gap-2 sm:gap-3 lg:gap-4">
-          {/* Mobile Menu Button */}
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="lg:hidden flex-shrink-0"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          )}
-          
-          <TopSearchBar className="flex-1 min-w-0" />
-          
-          <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0">
-            <Link href={`/profile/${profile?.username || 'me'}`}>
-              <Button variant="ghost" size="sm" className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[999px] bg-dark-background-cardMuted border-2 border-[rgba(255,255,255,0.12)] flex items-center justify-center flex-shrink-0">
-                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-dark-text-secondary" />
-                </div>
-                <span className="hidden md:inline text-[13px] sm:text-[14px] text-dark-text-secondary">
-                  {profile?.username || user?.email?.split('@')[0] || 'User'}
-                </span>
-              </Button>
-            </Link>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={async () => {
-                await logout();
-                window.location.href = '/login';
-              }} 
-              className="flex-shrink-0 p-1.5 sm:p-2"
-            >
-              <LogOut className="h-4 w-4 sm:h-4 sm:w-4" />
-            </Button>
-          </div>
-        </header>
+        <div className="bg-bg-default pb-[var(--page-bottom-margin)] pt-[var(--page-top-margin)] md:h-screen md:pb-2 md:pr-2">
+          <div className="relative h-full overflow-hidden rounded-none bg-bg-emphasis shadow-panel md:rounded-[24px]">
+            <div className="flex h-full flex-col">
+              <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border-subtle/70 bg-bg-emphasis/90 px-4 sm:px-6 lg:px-8 backdrop-blur-md">
+                {isMobile && (
+                  <Button
+                    variant="icon"
+                    size="sm"
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="lg:hidden"
+                    aria-label="Ouvrir la navigation"
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                )}
 
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-            {children}
+                <TopSearchBar className="flex-1 min-w-0" />
+
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Link href={`/profile/${profile?.username || 'me'}`}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex items-center gap-2 rounded-full border border-border-subtle bg-bg-emphasis/80 px-2.5 py-1.5 text-left"
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bg-muted text-sm font-semibold text-content-emphasis">
+                        {initials}
+                      </div>
+                      <div className="hidden md:block">
+                        <p className="text-[13px] font-semibold text-content-emphasis leading-tight">
+                          {profile?.username || user?.email?.split('@')[0] || 'User'}
+                        </p>
+                        <p className="text-[11px] text-content-muted leading-tight">Profil</p>
+                      </div>
+                    </Button>
+                  </Link>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={async () => {
+                      await logout();
+                      window.location.href = '/login';
+                    }}
+                    className="rounded-full border border-border-subtle px-3 py-2"
+                    aria-label="Se déconnecter"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              </header>
+
+              <main className="flex-1 overflow-y-auto bg-bg-default md:bg-transparent">
+                <div className="mx-auto w-full max-w-[1180px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+                  {children}
+                </div>
+              </main>
+            </div>
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

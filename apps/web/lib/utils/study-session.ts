@@ -12,6 +12,7 @@ export interface CardReview {
   lastReviewed?: Date;
   isMastered: boolean;
   nextReview?: Date;
+  originalIndex?: number; // Position in the full original set (before filtering/shuffling)
 }
 
 export interface StudySessionState {
@@ -20,12 +21,21 @@ export interface StudySessionState {
   masteredCards: Set<string>;
   incorrectCards: string[]; // Queue of cards to review again
   reviewInterval: number; // Number of cards before reviewing incorrect ones
+  order?: string[]; // Optional: original card IDs in order for tracking
 }
 
 /**
  * Initialize study session with flashcards
+ * @param flashcards - Array of flashcards with optional originalIndex
  */
-export function initializeSession(flashcards: Array<{ id: string; front: string; back: string }>): StudySessionState {
+export function initializeSession(
+  flashcards: Array<{ 
+    id: string; 
+    front: string; 
+    back: string; 
+    originalIndex?: number 
+  }>
+): StudySessionState {
   const cards: CardReview[] = flashcards.map(card => ({
     flashcardId: card.id,
     front: card.front,
@@ -33,6 +43,7 @@ export function initializeSession(flashcards: Array<{ id: string; front: string;
     correctCount: 0,
     incorrectCount: 0,
     isMastered: false,
+    originalIndex: card.originalIndex,
   }));
 
   return {
@@ -41,6 +52,7 @@ export function initializeSession(flashcards: Array<{ id: string; front: string;
     masteredCards: new Set(),
     incorrectCards: [],
     reviewInterval: 3, // Review incorrect cards every 3 cards
+    order: flashcards.map(c => c.id),
   };
 }
 

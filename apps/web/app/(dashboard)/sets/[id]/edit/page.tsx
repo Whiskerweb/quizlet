@@ -309,7 +309,7 @@ export default function EditSetPage() {
       {/* Set Title and Description */}
       <div className="mb-6">
         <div className="mb-4">
-          <label htmlFor="set-title" className="block text-[13px] sm:text-[14px] font-medium text-white mb-1.5 sm:mb-2">
+          <label htmlFor="set-title" className="mb-1.5 block text-[13px] font-medium text-content-emphasis sm:text-[14px] sm:mb-2">
             Titre du set *
           </label>
           <Input
@@ -321,7 +321,7 @@ export default function EditSetPage() {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="set-description" className="block text-[13px] sm:text-[14px] font-medium text-white mb-1.5 sm:mb-2">
+          <label htmlFor="set-description" className="mb-1.5 block text-[13px] font-medium text-content-emphasis sm:text-[14px] sm:mb-2">
             Description
           </label>
           <Textarea
@@ -338,8 +338,8 @@ export default function EditSetPage() {
       {/* Import Button */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-[20px] font-semibold text-dark-text-primary mb-1">Cardz</h2>
-          <p className="text-[13px] text-dark-text-secondary">Gérez vos cartes ou importez-les en masse</p>
+          <h2 className="text-[20px] font-semibold text-content-emphasis mb-1">Cardz</h2>
+          <p className="text-[13px] text-content-muted">Gérez vos cartes ou importez-les en masse</p>
         </div>
         <Button onClick={() => setIsImportModalOpen(true)}>
           Importer
@@ -371,13 +371,13 @@ export default function EditSetPage() {
               }`}
             >
               <Card
-              className={`p-4 transition-all ${
-                dragOverCardId === card.id ? 'border-2 border-brand-primary shadow-elevation-1' : ''
-              } ${
-                newlyAddedCardId === card.id
-                  ? 'bg-dark-background-cardMuted border-brand-primary'
-                  : ''
-              }`}
+                className={`p-4 transition-all ${
+                  dragOverCardId === card.id ? 'border-2 border-brand-primary shadow-card' : ''
+                } ${
+                  newlyAddedCardId === card.id
+                    ? 'bg-bg-subtle border-brand-primary'
+                    : ''
+                }`}
               >
                 <div className="flex items-start gap-4">
                   {/* Drag Handle */}
@@ -390,14 +390,14 @@ export default function EditSetPage() {
                   </div>
 
               {/* Card Number */}
-              <div className="flex-shrink-0 w-8 pt-2 text-[13px] font-medium text-dark-text-muted">
+              <div className="flex-shrink-0 w-8 pt-2 text-[13px] font-medium text-content-subtle">
                 {index + 1}
               </div>
 
               {/* Card Content */}
               <div className="flex-1 grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[12px] font-medium text-dark-text-muted mb-1">
+                  <label className="block text-[12px] font-medium text-content-subtle mb-1">
                     Terme
                   </label>
                   <RichTextEditor
@@ -409,7 +409,7 @@ export default function EditSetPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-medium text-dark-text-muted mb-1">
+                  <label className="block text-[12px] font-medium text-content-subtle mb-1">
                     Définition
                   </label>
                   <RichTextEditor
@@ -429,14 +429,14 @@ export default function EditSetPage() {
                     // Image button - placeholder for future image upload
                     alert('Image upload coming soon');
                   }}
-                  className="p-2 text-dark-text-muted hover:text-dark-text-secondary transition-colors"
+                  className="p-2 text-content-subtle hover:text-content-muted transition-colors"
                   title="Add image"
                 >
                   <ImageIcon className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => handleDeleteCard(card.id)}
-                  className="p-2 text-dark-text-muted hover:text-dark-states-danger transition-colors"
+                  className="p-2 text-content-subtle hover:text-state-danger transition-colors"
                   title="Delete card"
                 >
                   <Trash2 className="h-5 w-5" />
@@ -450,7 +450,7 @@ export default function EditSetPage() {
           <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button
               onClick={() => handleAddCard(index)}
-              className="bg-brand-primary text-white rounded-full p-2 shadow-lg hover:bg-brand-primaryDark transition-colors"
+              className="rounded-full bg-brand-primary p-2 text-content-inverted shadow-lg transition-colors hover:bg-brand-primaryDark"
               title="Add card below"
             >
               <Plus className="h-4 w-4" />
@@ -471,7 +471,7 @@ export default function EditSetPage() {
       {/* Save Button */}
       <div className="flex justify-between items-center pt-4 border-t">
         {hasUnsavedChanges && (
-          <p className="text-[13px] text-dark-states-warning">Vous avez des modifications non enregistrées</p>
+          <p className="text-[13px] text-state-warning">Vous avez des modifications non enregistrées</p>
         )}
         <div className="flex justify-end space-x-4 ml-auto">
           <Button variant="outline" onClick={() => router.back()}>

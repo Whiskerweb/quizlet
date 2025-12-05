@@ -109,21 +109,21 @@ export default function EditFlashcardPage() {
 
   return (
     <>
-      <h1 className="text-[28px] font-bold text-dark-text-primary mb-6">Edit Cardz</h1>
+      <h1 className="text-[28px] font-bold text-content-emphasis mb-6">Edit Cardz</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-[16px] text-white">Cardz Details</CardTitle>
+          <CardTitle className="text-[16px]">Cardz Details</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
           {error && (
-            <div className="bg-dark-background-cardMuted border border-dark-states-danger text-dark-states-danger px-4 py-3 rounded-lg">
+            <div className="bg-bg-subtle border border-state-danger text-state-danger px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="front" className="block text-[14px] font-medium text-dark-text-muted mb-1">
+            <label htmlFor="front" className="block text-[14px] font-medium text-content-subtle mb-1">
               Front (Question) *
             </label>
             <input
@@ -138,12 +138,12 @@ export default function EditFlashcardPage() {
               rows={4}
             />
             {errors.front && (
-              <p className="mt-1 text-[13px] text-dark-states-danger">{errors.front.message}</p>
+              <p className="mt-1 text-[13px] text-state-danger">{errors.front.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="back" className="block text-[14px] font-medium text-dark-text-muted mb-1">
+            <label htmlFor="back" className="block text-[14px] font-medium text-content-subtle mb-1">
               Back (Answer) *
             </label>
             <input
@@ -158,12 +158,12 @@ export default function EditFlashcardPage() {
               rows={4}
             />
             {errors.back && (
-              <p className="mt-1 text-[13px] text-dark-states-danger">{errors.back.message}</p>
+              <p className="mt-1 text-[13px] text-state-danger">{errors.back.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="imageUrl" className="block text-[14px] font-medium text-dark-text-muted mb-1">
+            <label htmlFor="imageUrl" className="block text-[14px] font-medium text-content-subtle mb-1">
               Image URL (optional)
             </label>
             <Input
@@ -175,7 +175,7 @@ export default function EditFlashcardPage() {
           </div>
 
           <div>
-            <label htmlFor="audioUrl" className="block text-[14px] font-medium text-dark-text-muted mb-1">
+            <label htmlFor="audioUrl" className="block text-[14px] font-medium text-content-subtle mb-1">
               Audio URL (optional)
             </label>
             <Input
@@ -191,7 +191,7 @@ export default function EditFlashcardPage() {
               type="button"
               variant="outline"
               onClick={handleDelete}
-              className="text-dark-states-danger border-dark-states-danger hover:bg-dark-background-cardMuted"
+              className="text-state-danger border-state-danger hover:bg-bg-subtle"
             >
               Delete
             </Button>

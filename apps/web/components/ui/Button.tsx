@@ -8,21 +8,28 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
-    const baseStyles = 'font-medium rounded-[999px] transition-all duration-[180ms] focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2';
-    
-    const variants = {
-      primary: 'bg-brand-primary text-white shadow-[0_10px_24px_rgba(96,165,250,0.45)] hover:bg-dark-states-primaryHover active:bg-dark-states-primaryActive focus:ring-brand-primary',
-      secondary: 'bg-dark-background-cardMuted text-dark-text-primary border border-[rgba(255,255,255,0.12)] hover:bg-dark-states-surfaceHover focus:ring-[rgba(255,255,255,0.12)]',
-      outline: 'border-2 border-brand-primary text-brand-primary hover:bg-dark-background-cardMuted focus:ring-brand-primary',
-      ghost: 'bg-transparent text-dark-text-secondary hover:bg-[rgba(255,255,255,0.06)] focus:ring-[rgba(255,255,255,0.12)]',
-      icon: 'w-10 h-10 rounded-[999px] bg-dark-background-cardMuted text-dark-text-secondary hover:bg-dark-states-surfaceHover focus:ring-[rgba(255,255,255,0.12)] p-0',
-      lightPrimary: 'bg-brand-primary text-white shadow-[0_10px_26px_rgba(96,165,250,0.45)] hover:bg-dark-states-primaryHover focus:ring-brand-primary',
+    const baseStyles =
+      'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-emphasis disabled:opacity-50 disabled:pointer-events-none';
+
+    const variants: Record<NonNullable<ButtonProps['variant']>, string> = {
+      primary:
+        'bg-brand-primary text-white shadow-primary-glow hover:bg-brand-primaryDark focus-visible:ring-brand-primary/40',
+      secondary:
+        'bg-bg-subtle text-content-emphasis border border-border-subtle hover:bg-bg-muted focus-visible:ring-border-muted',
+      outline:
+        'border border-border-emphasis bg-transparent text-content-emphasis hover:bg-bg-muted/70 focus-visible:ring-border-emphasis/60',
+      ghost:
+        'bg-transparent text-content-muted hover:bg-bg-muted/70 focus-visible:ring-border-subtle/60',
+      icon:
+        'w-11 h-11 rounded-2xl border border-border-subtle bg-bg-emphasis text-content-emphasis hover:shadow-card focus-visible:ring-border-emphasis/50 p-0',
+      lightPrimary:
+        'bg-gradient-to-r from-brand-primary to-brand-primaryDark text-white shadow-primary-glow hover:brightness-110 focus-visible:ring-brand-primary/50',
     };
 
-    const sizes = {
-      sm: 'px-3 py-1.5 text-[14px]',
-      md: 'px-[18px] py-[10px] text-[14px]',
-      lg: 'px-6 py-3 text-[16px]',
+    const sizes: Record<NonNullable<ButtonProps['size']>, string> = {
+      sm: 'px-3.5 py-2 text-[13px]',
+      md: 'px-5 py-2.5 text-[14px]',
+      lg: 'px-6 py-3 text-[15px]',
     };
 
     return (

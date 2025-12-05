@@ -34,7 +34,35 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { setId, mode } = body;
+    const { setId, mode, shuffle = false, startFrom = 1, cardOrder, sessionState, forceNew = false } = body;
+
+    console.log('[API] Starting session:', { setId, mode, shuffle, startFrom, forceNew, userId: user.id });
+
+    // Check if there's already an active session for this set/mode
+    if (!forceNew) {
+      const { data: existingSession } = await supabase
+        .from('study_sessions')
+        .select(`
+          *,
+          sets:set_id (
+            id,
+            title
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('set_id', setId)
+        .eq('mode', mode)
+        .eq('completed', false)
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingSession) {
+        console.log('[API] Found existing active session:', existingSession.id);
+        console.log('[API] Reusing existing session instead of creating a new one');
+        return NextResponse.json(existingSession);
+      }
+    }
 
     // Get set and flashcards
     const { data: set, error: setError } = await supabase
@@ -54,14 +82,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Set has no flashcards' }, { status: 400 });
     }
 
-    // Create session
-    const { data: session, error: sessionError } = await supabase
+    // Calculate total cards based on startFrom parameter
+    const actualTotalCards = cardOrder ? cardOrder.length : (set.flashcards.length - startFrom + 1);
+
+    console.log('[API] Creating new session:', { setId, mode, totalCards: actualTotalCards });
+
+    // Create session with parameters
+    // Try with new columns first, fallback to basic if they don't exist
+    let session;
+    let sessionError;
+    
+    try {
+      const result = await supabase
+        .from('study_sessions')
+        .insert({
+          user_id: user.id,
+          set_id: setId,
+          mode,
+          total_cards: actualTotalCards,
+          shuffle,
+          start_from: startFrom,
+          card_order: cardOrder || null,
+          session_state: sessionState || null,
+        })
+        .select(`
+          *,
+          sets:set_id (
+            id,
+            title
+          )
+        `)
+        .single();
+      
+      session = result.data;
+      sessionError = result.error;
+    } catch (error: any) {
+      // If error is due to missing columns, fallback to basic insert
+      console.warn('[API] Failed to create session with new columns, falling back to basic:', error.message);
+      
+      const result = await supabase
       .from('study_sessions')
       .insert({
         user_id: user.id,
         set_id: setId,
         mode,
-        total_cards: set.flashcards.length,
+          total_cards: actualTotalCards,
       })
       .select(`
         *,
@@ -71,6 +136,10 @@ export async function POST(request: NextRequest) {
         )
       `)
       .single();
+      
+      session = result.data;
+      sessionError = result.error;
+    }
 
     if (sessionError) {
       return NextResponse.json({ error: sessionError.message }, { status: 500 });

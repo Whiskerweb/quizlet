@@ -141,11 +141,11 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
   return (
     <div className="w-full">
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-white font-medium">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-sm font-medium text-content-muted">
             Match each term with its definition
           </p>
-          <p className="text-sm text-white">
+          <p className="text-sm text-content-subtle">
             Batch {currentBatch + 1} of {Math.ceil(allFlashcards.length / BATCH_SIZE)} • {matchedPairs.size}/{batchFronts.length} in this batch
           </p>
         </div>
@@ -169,7 +169,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Fronts (Terms) */}
         <div>
-          <h3 className="font-semibold mb-3 text-white">Terms</h3>
+          <h3 className="mb-3 font-semibold text-content-emphasis">Terms</h3>
           <div className="space-y-2">
             {batchFronts.map((card) => {
               const matched = isMatched(card.id);
@@ -181,18 +181,18 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
                   onClick={() => handleSelect('front', card.id, card.front)}
                   disabled={matched}
                   className={`
-                    w-full p-3 rounded-lg border-2 text-left transition-all
+                    w-full rounded-lg border-2 p-3 text-left transition-all
                     ${matched
-                      ? 'border-green-500 bg-green-50 opacity-60 text-gray-900'
+                      ? 'border-green-500 bg-green-50 text-content-emphasis opacity-60'
                       : selected
-                      ? 'border-brand-primary bg-[rgba(96,165,250,0.1)] text-white'
-                      : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:border-[rgba(255,255,255,0.18)] text-white'
+                      ? 'border-brand-primary bg-brand-primary/10 text-content-emphasis'
+                      : 'border-border-subtle bg-bg-subtle text-content-emphasis hover:border-border-emphasis'
                     }
                     ${matched ? 'cursor-default' : 'cursor-pointer'}
                   `}
                 >
                   <div className="flex items-center justify-between">
-                    <FormattedText text={card.front} className={`font-medium ${matched ? 'text-gray-900' : 'text-white'}`} as="span" />
+                    <FormattedText text={card.front} className="font-medium text-content-emphasis" as="span" />
                     {matched && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                   </div>
                 </button>
@@ -203,7 +203,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
 
         {/* Backs (Definitions) */}
         <div>
-          <h3 className="font-semibold mb-3 text-white">Definitions</h3>
+          <h3 className="mb-3 font-semibold text-content-emphasis">Definitions</h3>
           <div className="space-y-2">
             {batchBacks.map((back) => {
               const matched = isMatched(back.id);
@@ -215,18 +215,18 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
                   onClick={() => handleSelect('back', back.id, back.text)}
                   disabled={matched}
                   className={`
-                    w-full p-3 rounded-lg border-2 text-left transition-all
+                    w-full rounded-lg border-2 p-3 text-left transition-all
                     ${matched
-                      ? 'border-green-500 bg-green-50 opacity-60 text-gray-900'
+                      ? 'border-green-500 bg-green-50 text-content-emphasis opacity-60'
                       : selected
-                      ? 'border-brand-primary bg-[rgba(96,165,250,0.1)] text-white'
-                      : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:border-[rgba(255,255,255,0.18)] text-white'
+                      ? 'border-brand-primary bg-brand-primary/10 text-content-emphasis'
+                      : 'border-border-subtle bg-bg-subtle text-content-emphasis hover:border-border-emphasis'
                     }
                     ${matched ? 'cursor-default' : 'cursor-pointer'}
                   `}
                 >
                   <div className="flex items-center justify-between">
-                    <FormattedText text={back.text} className={`font-medium ${matched ? 'text-gray-900' : 'text-white'}`} as="span" />
+                    <FormattedText text={back.text} className="font-medium text-content-emphasis" as="span" />
                     {matched && <CheckCircle2 className="h-5 w-5 text-green-600" />}
                   </div>
                 </button>

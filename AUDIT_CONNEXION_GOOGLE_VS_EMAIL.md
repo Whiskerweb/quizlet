@@ -705,3 +705,4 @@ Le problème principal est que **le profil n'est jamais chargé dans le store Zu
 
 Une fois ces corrections appliquées, les utilisateurs Google OAuth devraient avoir le même comportement que les utilisateurs email/password.
 
+

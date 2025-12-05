@@ -169,7 +169,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-white">Chargement...</p>
+        <p className="text-content-muted">Chargement...</p>
       </div>
     );
   }
@@ -177,7 +177,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-white">Profil non trouvé</p>
+        <p className="text-content-muted">Profil non trouvé</p>
       </div>
     );
   }
@@ -186,30 +186,30 @@ export default function ProfilePage() {
     <>
       <div className="mb-8">
         <div className="flex items-center space-x-4 mb-6">
-          <div className="h-16 w-16 rounded-full bg-dark-background-cardMuted flex items-center justify-center border-2 border-[rgba(255,255,255,0.12)]">
+          <div className="h-16 w-16 rounded-full bg-bg-subtle flex items-center justify-center border-2 border-border-subtle">
             {profile.avatar ? (
               <img src={profile.avatar} alt={profile.username} className="h-full w-full rounded-full" />
             ) : (
-              <User className="h-8 w-8 text-dark-text-secondary" />
+              <User className="h-8 w-8 text-content-muted" />
             )}
           </div>
           <div>
-            <h1 className="text-[28px] font-bold text-white">{profile.username}</h1>
-            <p className="text-[16px] text-dark-text-secondary">
+            <h1 className="text-[28px] font-semibold text-content-emphasis">{profile.username}</h1>
+            <p className="text-[16px] text-content-muted">
               {publicSets.length} {publicSets.length === 1 ? 'Cardz public' : 'Cardz publics'}
             </p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="flex gap-2 border-b border-border-muted">
           <button
             onClick={() => setActiveTab('public')}
             className={`
               px-4 py-3 text-[14px] font-medium transition-all border-b-2
               ${activeTab === 'public'
-                ? 'border-brand-primary text-white'
-                : 'border-transparent text-dark-text-secondary hover:text-white'
+                ? 'border-brand-primary text-content-emphasis'
+                : 'border-transparent text-content-muted hover:text-content-emphasis'
               }
             `}
           >
@@ -224,8 +224,8 @@ export default function ProfilePage() {
               className={`
                 px-4 py-3 text-[14px] font-medium transition-all border-b-2
                 ${activeTab === 'shared'
-                  ? 'border-brand-primary text-white'
-                  : 'border-transparent text-dark-text-secondary hover:text-white'
+                  ? 'border-brand-primary text-content-emphasis'
+                  : 'border-transparent text-content-muted hover:text-content-emphasis'
                 }
               `}
             >
@@ -242,25 +242,25 @@ export default function ProfilePage() {
       {activeTab === 'public' && (
         <div className="space-y-4">
           {publicSets.length === 0 ? (
-            <Card variant="emptyState" className="text-center py-12">
-              <BookOpen className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-              <h3 className="text-[16px] text-white mb-2">Aucun set public</h3>
-              <p className="text-[16px] text-white">
+            <Card variant="emptyState" className="py-12 text-center">
+              <BookOpen className="h-12 w-12 text-content-subtle mx-auto mb-4" />
+              <h3 className="text-[16px] text-content-emphasis mb-2">Aucun set public</h3>
+              <p className="text-[15px] text-content-muted">
                 {isOwnProfile ? 'Rendez vos Cardz publics pour qu\'ils apparaissent ici' : 'Cet utilisateur n\'a pas de Cardz publics'}
               </p>
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {publicSets.map((set) => (
-                <Card key={set.id} className="h-full hover:shadow-elevation-1 transition-shadow">
+                <Card key={set.id} className="h-full transition-shadow hover:shadow-card">
                   <CardHeader>
                     <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                    <p className="text-[16px] text-white line-clamp-2 mt-2">
+                    <p className="text-[14px] text-content-muted line-clamp-2 mt-2">
                       {set.description || 'No description'}
                     </p>
                   </CardHeader>
                   <div className="px-6 pb-6 space-y-3">
-                    <div className="flex items-center justify-between text-[16px] text-white">
+                    <div className="flex items-center justify-between text-[14px] text-content-subtle">
                       <span>{set.is_public ? 'Public' : 'Private'}</span>
                       {set.password_hash && (
                         <div className="flex items-center gap-1 text-brand-primary">
@@ -297,28 +297,28 @@ export default function ProfilePage() {
       {activeTab === 'shared' && user && (
         <div className="space-y-4">
           {sharedSets.length === 0 ? (
-            <Card variant="emptyState" className="text-center py-12">
-              <Share2 className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-              <h3 className="text-[16px] text-white mb-2">Aucun set partagé</h3>
-              <p className="text-[16px] text-white">
+            <Card variant="emptyState" className="py-12 text-center">
+              <Share2 className="h-12 w-12 text-content-subtle mx-auto mb-4" />
+              <h3 className="text-[16px] text-content-emphasis mb-2">Aucun set partagé</h3>
+              <p className="text-[15px] text-content-muted">
                 Les Cardz que vous ajoutez depuis les profils d'autres utilisateurs apparaîtront ici
               </p>
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {sharedSets.map((sharedSet) => (
-                <Card key={sharedSet.id} className="h-full hover:shadow-elevation-1 transition-shadow">
+                <Card key={sharedSet.id} className="h-full transition-shadow hover:shadow-card">
                   <CardHeader>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="h-6 w-6 rounded-full bg-dark-background-cardMuted flex items-center justify-center">
-                        <User className="h-3 w-3 text-dark-text-secondary" />
+                      <div className="h-6 w-6 rounded-full bg-bg-subtle flex items-center justify-center">
+                        <User className="h-3 w-3 text-content-muted" />
                       </div>
-                      <span className="text-[12px] text-dark-text-secondary">
+                      <span className="text-[12px] text-content-muted">
                         Par {sharedSet.set.profiles?.username || 'Utilisateur'}
                       </span>
                     </div>
                     <CardTitle className="line-clamp-2">{sharedSet.set.title}</CardTitle>
-                    <p className="text-[16px] text-white line-clamp-2 mt-2">
+                    <p className="text-[14px] text-content-muted line-clamp-2 mt-2">
                       {sharedSet.set.description || 'No description'}
                     </p>
                   </CardHeader>
@@ -334,7 +334,7 @@ export default function ProfilePage() {
                         variant="outline"
                         onClick={() => handleRemoveSharedSet(sharedSet.id)}
                         size="sm"
-                        className="text-dark-states-danger border-dark-states-danger"
+                        className="text-state-danger border-state-danger"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

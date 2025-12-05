@@ -55,12 +55,12 @@ export default function CreateSetPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-white mb-8">Create New Set</h1>
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <h1 className="mb-8 text-3xl font-semibold text-content-emphasis">Create New Set</h1>
 
-        <Card>
+      <Card>
         <CardHeader>
-          <CardTitle className="text-[16px] text-white">Set Details</CardTitle>
+          <CardTitle className="text-[16px]">Set Details</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
           {error && (
@@ -70,7 +70,7 @@ export default function CreateSetPage() {
           )}
 
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-white mb-1">
+            <label htmlFor="title" className="mb-1 block text-sm font-medium text-content-emphasis">
               Title *
             </label>
             <Input
@@ -84,7 +84,7 @@ export default function CreateSetPage() {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-white mb-1">
+            <label htmlFor="description" className="mb-1 block text-sm font-medium text-content-emphasis">
               Description
             </label>
             <textarea
@@ -97,7 +97,7 @@ export default function CreateSetPage() {
           </div>
 
           <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-white mb-1">
+            <label htmlFor="tags" className="mb-1 block text-sm font-medium text-content-emphasis">
               Tags (comma-separated)
             </label>
             <Input
@@ -108,7 +108,7 @@ export default function CreateSetPage() {
           </div>
 
           <div>
-            <label htmlFor="language" className="block text-sm font-medium text-white mb-1">
+            <label htmlFor="language" className="mb-1 block text-sm font-medium text-content-emphasis">
               Language
             </label>
             <Input
@@ -125,7 +125,7 @@ export default function CreateSetPage() {
               {...register('isPublic')}
               className="h-4 w-4 text-brand-primary focus:ring-brand-primary border-gray-300 rounded"
             />
-            <label htmlFor="isPublic" className="ml-2 block text-sm text-white">
+            <label htmlFor="isPublic" className="ml-2 block text-sm text-content-emphasis">
               Make this set public
             </label>
           </div>

@@ -8,139 +8,275 @@ import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { createSetAndRedirect } from '@/lib/utils/createSetAndRedirect';
+import { studyService } from '@/lib/supabase/study';
+import { InviteFriendsCTA } from '@/components/InviteFriendsCTA';
 import { 
-  Trophy, 
-  Clock, 
-  BookOpen, 
-  Target, 
   Zap, 
-  Award,
-  Flame,
-  Star,
-  BarChart3,
-  Play
+  Flame, 
+  Target,
+  Clock,
+  TrendingUp,
+  Play,
+  Plus,
+  BookOpen,
+  ArrowRight,
+  Brain,
+  Sparkles,
+  Trophy,
+  Calendar,
+  CheckCircle2
 } from 'lucide-react';
-import type { Database } from '@/lib/supabase/types';
 
-type UserStats = Database['public']['Tables']['user_stats']['Row'];
-type Set = Database['public']['Tables']['sets']['Row'];
-
-interface HomeStats {
-  totalXP: number;
+interface Stats {
   level: number;
-  xpToNextLevel: number;
-  currentLevelXP: number;
-  totalSets: number;
-  totalFlashcards: number;
-  totalStudyTime: number; // minutes
-  totalSessions: number;
-  averageScore: number;
-  streak: number; // days
-  recentSets: Set[];
-  setsToReview: number;
+  xpProgress: number;
+  xpCurrent: number;
+  xpNext: number;
+  
+  cardsToday: number;
+  minutesToday: number;
+  masteryRate: number;
+  
+  currentStreak: number;
+  activeSessions: any[];
+  recentSets: Array<{ id: string; title: string; cards: number }>;
+  weeklyActivity: Array<{ 
+    day: string; 
+    cards: number; 
+    active: boolean;
+    date: string;
+    minutes: number;
+    sessionsCount: number;
+  }>;
 }
 
 export default function HomePage() {
   const router = useRouter();
   const { profile, user } = useAuthStore();
-  const [isCreatingSet, setIsCreatingSet] = useState(false);
-  const [stats, setStats] = useState<HomeStats | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'recent' | 'review' | 'achievements'>('overview');
+  const [isCreating, setIsCreating] = useState(false);
+  const [hoveredDay, setHoveredDay] = useState<number | null>(null);
 
   useEffect(() => {
-    if (user) {
-      loadStats();
-    }
+    if (user) loadStats();
   }, [user]);
 
-  const calculateXP = (userStats: UserStats | null): number => {
-    if (!userStats) return 0;
-    // XP calculation:
-    // - 10 XP per flashcard created
-    // - 5 XP per study session
-    // - 1 XP per minute of study time
-    // - 2 XP per correct answer (estimated from average score)
-    const flashcardsXP = userStats.total_flashcards * 10;
-    const sessionsXP = userStats.total_sessions * 5;
-    const timeXP = userStats.total_study_time;
-    const scoreXP = Math.floor((userStats.average_score / 100) * userStats.total_sessions * 2);
-    return flashcardsXP + sessionsXP + timeXP + scoreXP;
-  };
-
-  const calculateLevel = (xp: number): { level: number; xpToNextLevel: number; currentLevelXP: number } => {
-    // Level formula: level = floor(sqrt(xp / 100))
-    // XP needed for level N: 100 * N^2
+  const calculateLevel = (xp: number) => {
     const level = Math.max(1, Math.floor(Math.sqrt(xp / 100)));
-    const currentLevelXP = 100 * (level - 1) * (level - 1);
-    const nextLevelXP = 100 * level * level;
-    const xpToNextLevel = nextLevelXP - xp;
-    return { level, xpToNextLevel: Math.max(0, xpToNextLevel), currentLevelXP };
+    const xpCurrent = 100 * (level - 1) * (level - 1);
+    const xpNext = 100 * level * level;
+    const xpProgress = xpNext > xpCurrent ? ((xp - xpCurrent) / (xpNext - xpCurrent)) * 100 : 100;
+    return { level, xpProgress, xpCurrent, xpNext };
   };
 
   const loadStats = async () => {
     try {
       setIsLoading(true);
-      const supabase = supabaseBrowser;
       
-      if (!user) return;
-
-      // Get user stats
-      const { data: userStats } = await supabase
+      const { data: userStats } = await supabaseBrowser
         .from('user_stats')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .single();
+
+      const totalXP = Math.max(0, 
+        (userStats?.total_flashcards || 0) * 10 + 
+        (userStats?.total_sessions || 0) * 5 + 
+        (userStats?.total_study_time || 0)
+      );
       
-      // Type assertion needed because TypeScript may not infer the type correctly
-      const typedUserStats = userStats as UserStats | null;
+      const { level, xpProgress, xpCurrent, xpNext } = calculateLevel(totalXP);
 
-      // Get recent sets
-      const { data: recentSets } = await supabase
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const { data: todaySessions } = await supabaseBrowser
+        .from('study_sessions')
+        .select('*, answers(is_correct)')
+        .eq('user_id', user!.id)
+        .gte('started_at', today.toISOString());
+
+      const cardsToday = todaySessions?.reduce((sum, s) => {
+        return sum + (s.answers?.length || 0);
+      }, 0) || 0;
+
+      // Minutes: only count completed sessions OR cap at 3h for active ones
+      console.log('[Home] Today sessions:', todaySessions?.length);
+      
+      const minutesToday = todaySessions?.reduce((sum, s, idx) => {
+        const start = new Date(s.started_at);
+        
+        // Only count completed sessions OR active sessions from today
+        if (s.completed_at) {
+          const end = new Date(s.completed_at);
+          const minutes = Math.floor((end.getTime() - start.getTime()) / 60000);
+          const cappedMinutes = Math.max(0, Math.min(minutes, 180)); // Cap at 3h per session
+          console.log(`[Home] Session ${idx} (completed): ${minutes}min → ${cappedMinutes}min`);
+          return sum + cappedMinutes;
+        } else {
+          // For active sessions, only count if started today
+          const now = new Date();
+          const sessionDate = new Date(s.started_at);
+          sessionDate.setHours(0, 0, 0, 0);
+          const todayDate = new Date();
+          todayDate.setHours(0, 0, 0, 0);
+          
+          if (sessionDate.getTime() === todayDate.getTime()) {
+            const minutes = Math.floor((now.getTime() - start.getTime()) / 60000);
+            const cappedMinutes = Math.max(0, Math.min(minutes, 180)); // Cap at 3h
+            console.log(`[Home] Session ${idx} (active, today): ${minutes}min → ${cappedMinutes}min`);
+            return sum + cappedMinutes;
+          } else {
+            console.log(`[Home] Session ${idx} (active, not today): IGNORED`);
+          }
+        }
+        
+        return sum;
+      }, 0) || 0;
+      
+      console.log('[Home] Total minutes today:', minutesToday);
+
+      const activeSessions = await studyService.getActiveSessions().catch(() => []);
+
+      const { data: recentSets } = await supabaseBrowser
         .from('sets')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
+        .select('id, title')
+        .eq('user_id', user!.id)
+        .order('updated_at', { ascending: false })
+        .limit(3);
 
-      // Get recent study sessions for streak calculation
-      const { data: recentSessions } = await supabase
+      const setsWithCounts = await Promise.all(
+        (recentSets || []).map(async (set) => {
+          const { count } = await supabaseBrowser
+            .from('flashcards')
+            .select('*', { count: 'exact', head: true })
+            .eq('set_id', set.id);
+          return { ...set, cards: count || 0 };
+        })
+      );
+
+      // Weekly activity (last 7 days) - Enhanced with more details
+      const weekDays = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      const weekDaysShort = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+      
+      // Get last 7 days of sessions
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 6);
+      weekAgo.setHours(0, 0, 0, 0);
+      
+      const { data: weekSessions } = await supabaseBrowser
+        .from('study_sessions')
+        .select('*, answers(*)')
+        .eq('user_id', user!.id)
+        .gte('started_at', weekAgo.toISOString());
+      
+      const weeklyActivity = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        date.setHours(0, 0, 0, 0);
+        
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() + 1);
+        
+        const daySessions = weekSessions?.filter(s => {
+          const sessionDate = new Date(s.started_at);
+          return sessionDate >= date && sessionDate < nextDate;
+        }) || [];
+        
+        const dayCards = daySessions.reduce((sum, s) => sum + (s.answers?.length || 0), 0);
+        
+        const dayMinutes = daySessions.reduce((sum, s) => {
+          if (s.completed_at) {
+            const start = new Date(s.started_at);
+            const end = new Date(s.completed_at);
+            return sum + Math.floor((end.getTime() - start.getTime()) / 60000);
+          }
+          return sum;
+        }, 0);
+        
+        return {
+          day: weekDaysShort[date.getDay()],
+          cards: dayCards,
+          active: dayCards > 0,
+          date: weekDays[date.getDay()] + ' ' + date.getDate() + '/' + (date.getMonth() + 1),
+          minutes: dayMinutes,
+          sessionsCount: daySessions.length
+        };
+      });
+
+      // Calculate streak
+      let streak = 0;
+      const checkDate = new Date();
+      checkDate.setHours(0, 0, 0, 0);
+      
+      const { data: allSessions } = await supabaseBrowser
         .from('study_sessions')
         .select('started_at')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .order('started_at', { ascending: false })
-        .limit(30);
+        .limit(100);
 
-      // Calculate streak (consecutive days with study)
-      // Type assertion needed because TypeScript may not infer the type correctly
-      const streak = calculateStreak((recentSessions || []).map((s: any) => ({ started_at: s.started_at })));
+      for (let i = 0; i < 30; i++) {
+        const dayStart = new Date(checkDate);
+        dayStart.setDate(dayStart.getDate() - i);
+        dayStart.setHours(0, 0, 0, 0);
+        
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
+        
+        const hasActivity = allSessions?.some(s => {
+          const sessionDate = new Date(s.started_at);
+          return sessionDate >= dayStart && sessionDate < dayEnd;
+        });
+        
+        if (hasActivity) {
+          streak++;
+        } else if (i > 0) {
+          break;
+        }
+      }
 
-      // Get sets to review (cards with next_review <= now)
-      const { data: cardsToReview } = await supabase
-        .from('card_progress')
-        .select('flashcard_id, next_review')
-        .eq('user_id', user.id)
-        .lte('next_review', new Date().toISOString());
+      // Calculate mastery rate: average of all today's sessions progress (completed + active)
+      let masteryRate = 0;
       
-      // Type assertion needed because TypeScript may not infer the type correctly
-      const typedCardsToReview = (cardsToReview || []) as Array<{ flashcard_id: string; next_review: string }>;
-
-      const xp = calculateXP(typedUserStats);
-      const { level, xpToNextLevel, currentLevelXP } = calculateLevel(xp);
+      if (todaySessions && todaySessions.length > 0) {
+        const sessionProgresses = todaySessions.map(s => {
+          // For completed sessions, check if 100% done
+          if (s.completed) {
+            return 100;
+          }
+          
+          // For active sessions or incomplete, calculate current progress
+          const currentIndex = s.session_state?.currentIndex || 0;
+          const totalCards = s.total_cards || 1;
+          const progress = (currentIndex / totalCards) * 100;
+          
+          return Math.min(100, Math.max(0, progress));
+        });
+        
+        const totalProgress = sessionProgresses.reduce((sum, p) => sum + p, 0);
+        masteryRate = Math.round(totalProgress / sessionProgresses.length);
+        
+        console.log('[Home] Sessions today:', todaySessions.length);
+        console.log('[Home] Session progresses:', sessionProgresses);
+        console.log('[Home] Average mastery:', masteryRate + '%');
+      } else {
+        console.log('[Home] No sessions today, mastery = 0%');
+      }
 
       setStats({
-        totalXP: xp,
         level,
-        xpToNextLevel,
-        currentLevelXP,
-        totalSets: typedUserStats?.total_sets || 0,
-        totalFlashcards: typedUserStats?.total_flashcards || 0,
-        totalStudyTime: typedUserStats?.total_study_time || 0,
-        totalSessions: typedUserStats?.total_sessions || 0,
-        averageScore: typedUserStats?.average_score || 0,
-        streak,
-        recentSets: recentSets || [],
-        setsToReview: new Set(typedCardsToReview.map(c => c.flashcard_id)).size,
+        xpProgress,
+        xpCurrent: totalXP,
+        xpNext,
+        cardsToday,
+        minutesToday,
+        masteryRate,
+        currentStreak: streak,
+        activeSessions: activeSessions || [],
+        recentSets: setsWithCounts,
+        weeklyActivity
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
@@ -149,439 +285,386 @@ export default function HomePage() {
     }
   };
 
-  const calculateStreak = (sessions: { started_at: string }[]): number => {
-    if (sessions.length === 0) return 0;
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let streak = 0;
-    let currentDate = new Date(today);
-    
-    // Check if there's activity today
-    const hasToday = sessions.some(s => {
-      const sessionDate = new Date(s.started_at);
-      sessionDate.setHours(0, 0, 0, 0);
-      return sessionDate.getTime() === currentDate.getTime();
-    });
-    
-    if (!hasToday) {
-      // If no activity today, check yesterday
-      currentDate.setDate(currentDate.getDate() - 1);
+  const handleCreateSet = async () => {
+    setIsCreating(true);
+    try {
+      const setId = await createSetAndRedirect();
+      router.push(`/sets/${setId}/edit`);
+    } catch (error) {
+      console.error('Failed to create set:', error);
+    } finally {
+      setIsCreating(false);
     }
-    
-    // Count consecutive days
-    while (true) {
-      const hasActivity = sessions.some(s => {
-        const sessionDate = new Date(s.started_at);
-        sessionDate.setHours(0, 0, 0, 0);
-        return sessionDate.getTime() === currentDate.getTime();
-      });
-      
-      if (hasActivity) {
-        streak++;
-        currentDate.setDate(currentDate.getDate() - 1);
-      } else {
-        break;
-      }
-    }
-    
-    return streak;
   };
 
-  if (isLoading) {
+  if (isLoading || !stats) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-white">Loading...</p>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="h-6 w-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!stats) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-white">No stats available</p>
-      </div>
-    );
-  }
-
-  const nextLevelXP = stats.currentLevelXP + stats.xpToNextLevel;
-  const progressPercentage = stats.xpToNextLevel > 0 
-    ? ((stats.totalXP - stats.currentLevelXP) / (nextLevelXP - stats.currentLevelXP)) * 100
-    : 100;
+  const xpToNext = stats.xpNext - stats.xpCurrent;
 
   return (
-    <>
-      {/* Welcome Header with XP */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
-          <div>
-            <h1 className="text-[22px] sm:text-[24px] lg:text-[28px] font-bold text-white">
-              Welcome back, {profile?.username}!
-            </h1>
-            <p className="text-[14px] sm:text-[16px] text-dark-text-secondary mt-1">
-              Continue your learning journey
-            </p>
-          </div>
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="text-right">
-              <div className="text-[11px] sm:text-[12px] text-dark-text-muted uppercase tracking-wide">Level</div>
-              <div className="text-[24px] sm:text-[28px] lg:text-[32px] font-bold text-brand-primary">
+    <div className="max-w-5xl mx-auto space-y-6 pb-8">
+      {/* Greeting */}
+      <div className="space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-content-emphasis">
+          {stats.cardsToday > 0 ? '🎯' : '👋'} {profile?.username || 'Étudiant'}
+        </h1>
+        <p className="text-sm text-content-muted">
+          {stats.cardsToday > 0 
+            ? `Belle session ! ${stats.cardsToday} cartes révisées` 
+            : stats.activeSessions.length > 0
+            ? 'Reprenez là où vous en étiez'
+            : 'Prêt à apprendre quelque chose de nouveau ?'}
+        </p>
+      </div>
+
+      {/* Level & XP */}
+      <Card className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 to-transparent" />
+        <div className="relative p-5 sm:p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-primary to-brand-primaryDark text-content-inverted text-xl font-bold shadow-lg">
                 {stats.level}
               </div>
+              <div>
+                <div className="text-xs text-content-muted uppercase tracking-wider">Niveau</div>
+                <div className="text-2xl font-bold text-content-emphasis">{stats.level}</div>
+                <div className="text-xs text-content-muted mt-0.5">{xpToNext} XP jusqu'au niveau {stats.level + 1}</div>
+              </div>
             </div>
-            <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-brand-primary to-brand-primaryDark flex items-center justify-center border-4 border-dark-background-cardMuted">
-              <Trophy className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-white" />
+            
+            {stats.currentStreak > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-200">
+                <Flame className="h-4 w-4 text-orange-500" />
+                <div className="text-right">
+                  <div className="text-xs text-orange-600 font-medium">{stats.currentStreak} jours</div>
+                  <div className="text-[10px] text-orange-500 uppercase tracking-wider">Série</div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <div className="h-2 w-full bg-bg-subtle rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-brand-primary via-brand-primarySoft to-brand-primary transition-all duration-700 ease-out"
+                style={{ width: `${stats.xpProgress}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-content-muted">
+              <span>{stats.xpCurrent} XP</span>
+              <span className="font-medium">{Math.round(stats.xpProgress)}%</span>
+              <span>{stats.xpNext} XP</span>
             </div>
           </div>
         </div>
+      </Card>
 
-        {/* XP Progress Bar */}
-        <Card className="p-4 sm:p-5 lg:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 gap-2">
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary" />
-              <span className="text-[14px] sm:text-[16px] text-white">
-                {stats.totalXP.toLocaleString()} XP
+      {/* Invite Friends CTA */}
+      <InviteFriendsCTA />
+
+      {/* Today's Stats - Single Block */}
+      <Card className="p-5 sm:p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="h-4 w-4 text-brand-primary" />
+          <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider">Aujourd'hui</h2>
+        </div>
+        
+        <div className="grid grid-cols-3 divide-x divide-border-subtle">
+          <div className="flex flex-col items-center py-2">
+            <div className="text-3xl font-bold text-content-emphasis">{stats.cardsToday}</div>
+            <div className="text-xs text-content-muted mt-1">Cartes</div>
+          </div>
+          
+          <div className="flex flex-col items-center py-2">
+            <div className="text-3xl font-bold text-content-emphasis">{stats.minutesToday}</div>
+            <div className="text-xs text-content-muted mt-1">Minutes</div>
+          </div>
+          
+          <div className="flex flex-col items-center py-2">
+            <div className="text-3xl font-bold text-content-emphasis">{stats.masteryRate}%</div>
+            <div className="text-xs text-content-muted mt-1">Maîtrise</div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left - Activity & Sessions */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Weekly Activity */}
+          <Card className="p-5 sm:p-6 relative">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider">
+                Activité (7 jours)
+              </h2>
+              <span className="text-xs text-content-muted">
+                {stats.weeklyActivity.reduce((sum, d) => sum + d.cards, 0)} cartes
               </span>
             </div>
-            <span className="text-[13px] sm:text-[14px] lg:text-[16px] text-white">
-              {stats.xpToNextLevel > 0 ? `${stats.xpToNextLevel} XP to Level ${stats.level + 1}` : 'Max Level!'}
-            </span>
-          </div>
-          <div className="w-full bg-dark-background-cardMuted rounded-full h-2.5 sm:h-3 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-brand-primary to-brand-primarySoft h-2.5 sm:h-3 rounded-full transition-all duration-500"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-        </Card>
-      </div>
-
-      {/* Tabs */}
-      <div className="mb-4 sm:mb-6 flex gap-1 sm:gap-2 border-b border-[rgba(255,255,255,0.06)] overflow-x-auto">
-        {[
-          { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
-          { id: 'recent', label: 'Récent', icon: Clock },
-          { id: 'review', label: 'À réviser', icon: Target },
-          { id: 'achievements', label: 'Succès', icon: Award },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`
-                px-3 sm:px-4 py-2 sm:py-3 text-[13px] sm:text-[14px] font-medium transition-all border-b-2 whitespace-nowrap
-                ${activeTab === tab.id
-                  ? 'border-brand-primary text-white'
-                  : 'border-transparent text-dark-text-secondary hover:text-white'
-                }
-              `}
-            >
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span>{tab.label}</span>
+            
+            <div className="relative">
+              <div className="flex items-end justify-between gap-2 h-24">
+                {stats.weeklyActivity.map((day, idx) => {
+                  const maxCards = Math.max(...stats.weeklyActivity.map(d => d.cards), 1);
+                  const height = day.cards > 0 ? (day.cards / maxCards) * 100 : 4;
+                  const isToday = idx === stats.weeklyActivity.length - 1;
+                  const isHovered = hoveredDay === idx;
+                  
+                  return (
+                    <div 
+                      key={idx} 
+                      className="flex-1 flex flex-col items-center gap-2 relative"
+                      onMouseEnter={() => setHoveredDay(idx)}
+                      onMouseLeave={() => setHoveredDay(null)}
+                    >
+                      <div className="w-full flex items-end justify-center" style={{ height: '80px' }}>
+                        <div
+                          className={`
+                            w-full rounded-t-lg transition-all duration-300 cursor-pointer
+                            ${day.active 
+                              ? isToday 
+                                ? 'bg-brand-primary shadow-lg' 
+                                : isHovered
+                                  ? 'bg-brand-primary scale-105 shadow-md'
+                                  : 'bg-brand-primary/70' 
+                              : isHovered
+                                ? 'bg-bg-emphasis scale-105'
+                                : 'bg-bg-subtle'
+                            }
+                            ${isHovered ? 'ring-2 ring-brand-primary/30 ring-offset-2' : ''}
+                          `}
+                          style={{ height: `${height}%`, minHeight: '4px' }}
+                        />
+                      </div>
+                      <span className={`text-[10px] transition-all ${isToday || isHovered ? 'font-bold text-brand-primary' : 'text-content-muted'}`}>
+                        {day.day}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <Card className="p-4 sm:p-5 lg:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary" />
-                <span className="text-[14px] sm:text-[16px] text-white">Cardz</span>
-              </div>
-              <div className="text-[20px] sm:text-[24px] lg:text-[28px] font-bold text-white">
-                {stats.totalSets}
-              </div>
-            </Card>
-            <Card className="p-4 sm:p-5 lg:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <Target className="h-4 w-4 sm:h-5 sm:w-5 text-brand-secondaryTeal" />
-                <span className="text-[14px] sm:text-[16px] text-white">Cardz</span>
-              </div>
-              <div className="text-[20px] sm:text-[24px] lg:text-[28px] font-bold text-white">
-                {stats.totalFlashcards}
-              </div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <Clock className="h-5 w-5 text-brand-accentYellow" />
-                <span className="text-[16px] text-white">Temps d'étude</span>
-              </div>
-              <div className="text-[16px] text-white">
-                {Math.floor(stats.totalStudyTime / 60)}h {stats.totalStudyTime % 60}m
-              </div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <Flame className="h-5 w-5 text-brand-accentPink" />
-                <span className="text-[16px] text-white">Série</span>
-              </div>
-              <div className="text-[16px] text-white">{stats.streak} jours</div>
-            </Card>
-          </div>
-
-          {/* Quick Actions */}
-          <Card className="p-6">
-            <h2 className="text-[16px] text-white mb-4">Actions rapides</h2>
-            <div className="grid md:grid-cols-3 gap-4">
-              <Button 
-                className="w-full justify-start" 
-                variant="secondary"
-                onClick={async () => {
-                  setIsCreatingSet(true);
-                  try {
-                    const setId = await createSetAndRedirect();
-                    router.push(`/sets/${setId}/edit`);
-                  } catch (error) {
-                    console.error('Failed to create set:', error);
-                    alert('Failed to create set. Please try again.');
-                  } finally {
-                    setIsCreatingSet(false);
-                  }
-                }}
-                disabled={isCreatingSet}
-              >
-                <BookOpen className="h-4 w-4" />
-                {isCreatingSet ? 'Création...' : 'Créer un set'}
-              </Button>
-              <Link href="/dashboard">
-                <Button className="w-full justify-start" variant="secondary">
-                  <Target className="h-4 w-4" />
-                  Voir mes Cardz
-                </Button>
-              </Link>
-              {stats.recentSets.length > 0 && (
-                <Link href={`/study/${stats.recentSets[0].id}`}>
-                  <Button className="w-full justify-start">
-                    <Play className="h-4 w-4" />
-                    Continuer à étudier
-                  </Button>
-                </Link>
+              
+              {/* Tooltip */}
+              {hoveredDay !== null && stats.weeklyActivity[hoveredDay] && (
+                <div className="absolute left-1/2 -translate-x-1/2 -top-2 z-10 pointer-events-none">
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <div className="bg-content-emphasis text-content-inverted px-4 py-3 rounded-xl shadow-2xl border border-white/10">
+                      <div className="text-xs font-semibold mb-2 text-white/80">
+                        {stats.weeklyActivity[hoveredDay].date}
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-6">
+                          <span className="text-xs text-white/70">Cartes révisées</span>
+                          <span className="text-sm font-bold text-white">
+                            {stats.weeklyActivity[hoveredDay].cards}
+                          </span>
+                        </div>
+                        {stats.weeklyActivity[hoveredDay].minutes > 0 && (
+                          <div className="flex items-center justify-between gap-6">
+                            <span className="text-xs text-white/70">Temps d'étude</span>
+                            <span className="text-sm font-bold text-white">
+                              {stats.weeklyActivity[hoveredDay].minutes}min
+                            </span>
+                          </div>
+                        )}
+                        {stats.weeklyActivity[hoveredDay].sessionsCount > 0 && (
+                          <div className="flex items-center justify-between gap-6">
+                            <span className="text-xs text-white/70">Sessions</span>
+                            <span className="text-sm font-bold text-white">
+                              {stats.weeklyActivity[hoveredDay].sessionsCount}
+                            </span>
+                          </div>
+                        )}
+                        {stats.weeklyActivity[hoveredDay].cards === 0 && (
+                          <div className="text-xs text-white/50 italic">
+                            Aucune activité
+                          </div>
+                        )}
+                      </div>
+                      {/* Triangle pointer */}
+                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-content-emphasis rotate-45 border-r border-b border-white/10" />
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </Card>
 
-          {/* Performance */}
-          <Card className="p-6">
-            <h2 className="text-[16px] text-white mb-4">Performance</h2>
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[16px] text-white">Score moyen</span>
-                  <span className="text-[16px] text-white">
-                    {stats.averageScore.toFixed(1)}%
-                  </span>
+          {/* Active Sessions */}
+          {stats.activeSessions.length > 0 ? (
+            <Card className="p-5 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider">
+                  Sessions en cours
+                </h2>
+                <span className="px-2 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-medium">
+                  {stats.activeSessions.length}
+                </span>
+              </div>
+              
+              <div className="space-y-3">
+                {stats.activeSessions.slice(0, 3).map((session: any) => {
+                  const progress = session.session_state?.currentIndex || 0;
+                  const total = session.total_cards || 1;
+                  const percentage = Math.round((progress / total) * 100);
+                  
+                  return (
+                    <div
+                      key={session.id}
+                      className="group flex items-center gap-4 p-4 rounded-xl border border-border-subtle bg-bg-subtle hover:bg-bg-emphasis hover:border-brand-primary/30 transition-all"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-content-emphasis truncate mb-1">
+                          {session.sets?.title || 'Set sans titre'}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-content-muted">
+                          <span className="capitalize">{session.mode}</span>
+                          <span>•</span>
+                          <span>{progress}/{total} cartes</span>
+                          <span>•</span>
+                          <span className="text-brand-primary font-medium">{percentage}%</span>
+                        </div>
+                        <div className="mt-2 h-1 w-full bg-bg-default rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-brand-primary transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                      <Link href={`/study/${session.set_id}?resume=${session.id}`}>
+                        <Button size="sm" className="shrink-0">
+                          <Play className="h-3 w-3" />
+                        </Button>
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          ) : (
+            <Card className="p-5 sm:p-6 text-center">
+              <div className="py-8">
+                <BookOpen className="h-12 w-12 text-content-subtle mx-auto mb-3 opacity-50" />
+                <p className="text-sm text-content-muted mb-4">Aucune session en cours</p>
+                <Button onClick={handleCreateSet} disabled={isCreating}>
+                  <Plus className="h-4 w-4" />
+                  Créer un set
+                </Button>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* Right - Quick Actions & Recent */}
+        <div className="space-y-6">
+          {/* Quick Actions */}
+          <Card className="p-5 sm:p-6">
+            <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider mb-4">
+              Actions
+            </h2>
+            <div className="space-y-2">
+              <Button
+                className="w-full justify-between group"
+                onClick={handleCreateSet}
+                disabled={isCreating}
+              >
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  <span>Créer un set</span>
                 </div>
-                <div className="w-full bg-dark-background-cardMuted rounded-full h-2">
+                <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+              </Button>
+              
+              <Link href="/dashboard">
+                <Button variant="secondary" className="w-full justify-between group">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    <span>Mes sets</span>
+                  </div>
+                  <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                </Button>
+              </Link>
+
+              <Link href="/public-sets">
+                <Button variant="secondary" className="w-full justify-between group">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    <span>Explorer</span>
+                  </div>
+                  <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                </Button>
+              </Link>
+            </div>
+          </Card>
+
+          {/* Recent Sets */}
+          {stats.recentSets.length > 0 && (
+            <Card className="p-5 sm:p-6">
+              <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider mb-4">
+                Sets récents
+              </h2>
+              <div className="space-y-2">
+                {stats.recentSets.map((set) => (
+                  <Link key={set.id} href={`/study/${set.id}`}>
+                    <div className="group p-3 rounded-lg border border-border-subtle bg-bg-subtle hover:bg-bg-emphasis hover:border-brand-primary/50 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-content-emphasis group-hover:text-brand-primary transition-colors truncate">
+                            {set.title}
+                          </div>
+                          <div className="text-xs text-content-muted mt-0.5">
+                            {set.cards} cartes
+                          </div>
+                        </div>
+                        <Play className="h-4 w-4 text-content-muted group-hover:text-brand-primary opacity-0 group-hover:opacity-100 transition-all" />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Daily Challenge */}
+          <Card className="p-5 sm:p-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 via-transparent to-brand-primaryDark/5" />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-3">
+                <Brain className="h-4 w-4 text-brand-primary" />
+                <h3 className="text-sm font-semibold text-content-emphasis">Défi du jour</h3>
+              </div>
+              <p className="text-xs text-content-muted mb-4">
+                Révisez 20 cartes pour gagner <span className="font-semibold text-brand-primary">+50 XP</span>
+              </p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-content-muted">Progression</span>
+                  <span className="font-medium text-content-emphasis">{stats.cardsToday}/20</span>
+                </div>
+                <div className="h-2 w-full bg-bg-subtle rounded-full overflow-hidden">
                   <div
-                    className="bg-gradient-to-r from-brand-primary to-brand-primarySoft h-2 rounded-full"
-                    style={{ width: `${stats.averageScore}%` }}
+                    className="h-full bg-gradient-to-r from-brand-primary to-brand-primaryDark transition-all duration-500"
+                    style={{ width: `${Math.min((stats.cardsToday / 20) * 100, 100)}%` }}
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[rgba(255,255,255,0.06)]">
-                <div>
-                  <div className="text-[16px] text-white">Sessions totales</div>
-                  <div className="text-[16px] text-white">{stats.totalSessions}</div>
-                </div>
-                <div>
-                  <div className="text-[16px] text-white">Cartes à réviser</div>
-                  <div className="text-[16px] text-white">{stats.setsToReview}</div>
-                </div>
+                {stats.cardsToday >= 20 && (
+                  <div className="flex items-center gap-1.5 pt-2 text-xs text-green-600">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="font-medium">Défi réussi !</span>
+                  </div>
+                )}
               </div>
             </div>
           </Card>
         </div>
-      )}
-
-      {activeTab === 'recent' && (
-        <div className="space-y-4">
-          {stats.recentSets.length === 0 ? (
-            <Card variant="emptyState" className="text-center py-12">
-              <BookOpen className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-              <h3 className="text-[16px] text-white mb-2">Aucun set récent</h3>
-              <p className="text-[16px] text-white mb-4">
-                Créez votre premier set pour commencer
-              </p>
-              <Button
-                onClick={async () => {
-                  setIsCreatingSet(true);
-                  try {
-                    const setId = await createSetAndRedirect();
-                    router.push(`/sets/${setId}/edit`);
-                  } catch (error) {
-                    console.error('Failed to create set:', error);
-                    alert('Failed to create set. Please try again.');
-                  } finally {
-                    setIsCreatingSet(false);
-                  }
-                }}
-                disabled={isCreatingSet}
-              >
-                {isCreatingSet ? 'Création...' : 'Créez votre premier set'}
-              </Button>
-            </Card>
-          ) : (
-            stats.recentSets.map((set) => (
-              <Card key={set.id} className="p-6 hover:shadow-elevation-1 transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <Link href={`/sets/${set.id}`}>
-                      <h3 className="text-[16px] text-white mb-1 hover:text-brand-primary transition-colors">
-                        {set.title}
-                      </h3>
-                    </Link>
-                    <p className="text-[16px] text-white line-clamp-2">
-                      {set.description || 'No description'}
-                    </p>
-                    <div className="flex items-center gap-4 mt-3 text-[16px] text-white">
-                      <span>{set.is_public ? 'Public' : 'Private'}</span>
-                      <span>{new Date(set.created_at).toLocaleDateString('fr-FR')}</span>
-                    </div>
-                  </div>
-                  <Link href={`/study/${set.id}`}>
-                    <Button>
-                      <Play className="h-4 w-4" />
-                      Étudier
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
-            ))
-          )}
-        </div>
-      )}
-
-      {activeTab === 'review' && (
-        <div className="space-y-4">
-          {stats.setsToReview === 0 ? (
-            <Card variant="emptyState" className="text-center py-12">
-              <Target className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-              <h3 className="text-[16px] text-white mb-2">Rien à réviser</h3>
-              <p className="text-[16px] text-white mb-4">
-                Toutes vos cartes sont à jour ! Continuez à étudier pour en ajouter plus.
-              </p>
-              <Link href="/dashboard">
-                <Button>Voir mes sets</Button>
-              </Link>
-            </Card>
-          ) : (
-            <Card className="p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-brand-primary/20 flex items-center justify-center">
-                  <Target className="h-6 w-6 text-brand-primary" />
-                </div>
-                <div>
-                  <h3 className="text-[16px] text-white">
-                    {stats.setsToReview} cartes à réviser
-                  </h3>
-                  <p className="text-[16px] text-white">
-                    Il est temps de réviser vos cartes pour maintenir votre progression
-                  </p>
-                </div>
-              </div>
-              <Link href="/dashboard">
-                <Button className="w-full">
-                  <Play className="h-4 w-4" />
-                  Commencer la révision
-                </Button>
-              </Link>
-            </Card>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'achievements' && (
-        <div className="space-y-4">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Achievement Cards */}
-            {[
-              {
-                id: 'first-set',
-                title: 'Premier pas',
-                description: 'Créez votre premier set',
-                icon: BookOpen,
-                unlocked: stats.totalSets > 0,
-                color: 'from-brand-primary to-brand-primarySoft',
-              },
-              {
-                id: 'flashcard-master',
-                title: 'Maître des cardz',
-                description: 'Créez 100 cardz',
-                icon: Target,
-                unlocked: stats.totalFlashcards >= 100,
-                color: 'from-brand-secondaryTeal to-brand-primary',
-              },
-              {
-                id: 'study-streak',
-                title: 'Série de feu',
-                description: 'Étudiez 7 jours consécutifs',
-                icon: Flame,
-                unlocked: stats.streak >= 7,
-                color: 'from-brand-accentPink to-brand-accentYellow',
-              },
-              {
-                id: 'time-master',
-                title: 'Maître du temps',
-                description: 'Étudiez pendant 10 heures',
-                icon: Clock,
-                unlocked: stats.totalStudyTime >= 600,
-                color: 'from-brand-primary to-brand-secondaryTeal',
-              },
-              {
-                id: 'perfectionist',
-                title: 'Perfectionniste',
-                description: 'Score moyen de 90% ou plus',
-                icon: Star,
-                unlocked: stats.averageScore >= 90,
-                color: 'from-brand-accentYellow to-brand-primary',
-              },
-              {
-                id: 'level-up',
-                title: 'Niveau supérieur',
-                description: 'Atteignez le niveau 10',
-                icon: Trophy,
-                unlocked: stats.level >= 10,
-                color: 'from-brand-primary to-brand-accentPink',
-              },
-            ].map((achievement) => {
-              const Icon = achievement.icon;
-              return (
-                <Card
-                  key={achievement.id}
-                  className={`p-6 ${achievement.unlocked ? '' : 'opacity-50'}`}
-                >
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${achievement.color} flex items-center justify-center mb-4`}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="text-[16px] text-white mb-1">
-                    {achievement.title}
-                  </h3>
-                  <p className="text-[16px] text-white">
-                    {achievement.description}
-                  </p>
-                  {achievement.unlocked && (
-                    <div className="mt-3 flex items-center gap-1 text-[16px] text-brand-primary">
-                      <Award className="h-4 w-4" />
-                      <span>Débloqué</span>
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 }
-

@@ -42,3 +42,6 @@ export const supabaseBrowser = createClient<Database>(supabaseUrl, supabaseAnonK
   },
 });
 
+
+
+

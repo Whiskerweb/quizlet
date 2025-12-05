@@ -89,7 +89,7 @@ export default function PublicSetsPage() {
   if (isLoading && publicSets.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-white">Chargement...</p>
+        <p className="text-content-muted">Chargement...</p>
       </div>
     );
   }
@@ -106,8 +106,8 @@ export default function PublicSetsPage() {
           <div className="flex items-center gap-3">
             <Globe className="h-6 w-6" style={{ color: '#8B8FBE' }} />
             <div>
-              <h1 className="text-[28px] font-bold text-white">Cardz publique</h1>
-              <p className="text-[16px] text-dark-text-secondary">
+              <h1 className="text-[28px] font-semibold text-content-emphasis">Cardz publique</h1>
+              <p className="text-[16px] text-content-muted">
                 {totalCount} {totalCount === 1 ? 'Cardz' : 'Cardz'} disponible{totalCount > 1 ? 's' : ''}
               </p>
             </div>
@@ -123,13 +123,13 @@ export default function PublicSetsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher des cardz..."
-            className="flex-1 px-4 py-2 bg-dark-background-card border border-[rgba(255,255,255,0.12)] rounded-lg text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            className="flex-1 rounded-lg border border-border-subtle bg-bg-emphasis px-4 py-2 text-content-emphasis placeholder:text-content-subtle focus:outline-none focus:ring-2 focus:ring-brand-primary"
           />
           <Button
             type="button"
             variant="outline"
             onClick={() => setShowFilter(!showFilter)}
-            className={showFilter ? 'bg-brand-primary border-brand-primary text-white' : ''}
+            className={showFilter ? 'bg-brand-primary border-brand-primary text-content-inverted' : ''}
           >
             <Filter className="h-4 w-4 mr-2" />
             Filtres
@@ -141,15 +141,15 @@ export default function PublicSetsPage() {
 
         {/* Filter Panel */}
         {showFilter && (
-          <div className="p-4 bg-dark-background-cardMuted rounded-lg border border-[rgba(255,255,255,0.12)]">
+          <div className="rounded-lg border border-border-subtle bg-bg-subtle p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[16px] font-semibold text-white">Filtrer par catégorie</h3>
+              <h3 className="text-[16px] font-semibold text-content-emphasis">Filtrer par catégorie</h3>
               {hasActiveFilters && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearFilters}
-                  className="text-dark-text-secondary hover:text-white"
+                  className="text-content-muted hover:text-content-emphasis"
                 >
                   <X className="h-4 w-4 mr-1" />
                   Réinitialiser
@@ -159,7 +159,7 @@ export default function PublicSetsPage() {
             <select
               value={selectedSubject}
               onChange={(e) => handleSubjectChange(e.target.value)}
-              className="w-full px-4 py-2 bg-dark-background-base border border-[rgba(255,255,255,0.12)] rounded-lg text-white text-[14px] focus:outline-none focus:ring-2 focus:ring-brand-primary"
+              className="w-full rounded-lg border border-border-subtle bg-bg-default px-4 py-2 text-[14px] text-content-emphasis focus:outline-none focus:ring-2 focus:ring-brand-primary"
             >
               <option value="">Toutes les catégories</option>
               {SUBJECTS.map((subj) => (
@@ -170,7 +170,7 @@ export default function PublicSetsPage() {
             </select>
             {selectedSubject && (
               <div className="mt-3 flex items-center gap-2">
-                <span className="text-[12px] text-dark-text-secondary">Filtre actif :</span>
+                <span className="text-[12px] text-content-muted">Filtre actif :</span>
                 <span className="px-3 py-1 bg-brand-primary/20 text-brand-primary rounded-full text-[12px] font-medium">
                   {getSubjectLabel(selectedSubject)}
                 </span>
@@ -182,7 +182,7 @@ export default function PublicSetsPage() {
         {/* Active Filters Display */}
         {hasActiveFilters && !showFilter && (
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[12px] text-dark-text-secondary">Filtres actifs :</span>
+            <span className="text-[12px] text-content-muted">Filtres actifs :</span>
             {selectedSubject && (
               <span className="px-3 py-1 bg-brand-primary/20 text-brand-primary rounded-full text-[12px] font-medium flex items-center gap-2">
                 {getSubjectLabel(selectedSubject)}
@@ -214,10 +214,10 @@ export default function PublicSetsPage() {
       </div>
 
       {publicSets.length === 0 ? (
-        <Card variant="emptyState" className="text-center py-12">
-          <Globe className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-          <h3 className="text-[16px] text-white mb-2">Aucun cardz public trouvé</h3>
-          <p className="text-[16px] text-white mb-4">
+        <Card variant="emptyState" className="py-12 text-center">
+          <Globe className="h-12 w-12 text-content-subtle mx-auto mb-4" />
+          <h3 className="text-[16px] text-content-emphasis mb-2">Aucun cardz public trouvé</h3>
+          <p className="text-[15px] text-content-muted mb-4">
             {searchQuery
               ? 'Aucun résultat pour votre recherche. Essayez avec d\'autres mots-clés.'
               : 'Il n\'y a pas encore de cardz publics sans mot de passe.'}
@@ -234,25 +234,25 @@ export default function PublicSetsPage() {
         </Card>
       ) : (
         <>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {publicSets.map((set) => (
-              <Card key={set.id} className="h-full hover:shadow-elevation-1 transition-shadow card-text-content">
+              <Card key={set.id} className="card-text-content h-full transition-shadow hover:shadow-card">
                 <CardHeader>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <CardTitle className="line-clamp-2">{set.title}</CardTitle>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-[12px] text-dark-text-muted mb-2">
+                  <div className="flex items-center gap-2 text-[12px] text-content-subtle mb-2">
                     <User className="h-3 w-3" />
                     <span>Par {(set.profiles || set.user)?.username || 'Unknown'}</span>
                   </div>
-                  <p className="text-[16px] text-white line-clamp-2 mt-2">
+                  <p className="text-[14px] text-content-muted line-clamp-2 mt-2">
                     {set.description || 'No description'}
                   </p>
                 </CardHeader>
                 <div className="px-6 pb-6 space-y-3">
-                  <div className="flex items-center justify-between text-[13px] text-dark-text-muted">
+                  <div className="flex items-center justify-between text-[13px] text-content-subtle">
                     <div className="flex items-center gap-2">
                       <span>Public</span>
                       {set.subject && (
@@ -266,7 +266,7 @@ export default function PublicSetsPage() {
                         {set.tags.slice(0, 2).map((tag, idx) => (
                           <span
                             key={idx}
-                            className="px-2 py-0.5 bg-dark-background-cardMuted rounded text-[11px]"
+                            className="px-2 py-0.5 bg-bg-subtle rounded text-[11px]"
                           >
                             {tag}
                           </span>
@@ -294,7 +294,7 @@ export default function PublicSetsPage() {
                       onClick={() => handleAddSet(set.id)}
                       disabled={isAddingSet === set.id}
                       size="sm"
-                      className="text-brand-primary border-brand-primary hover:bg-brand-primary hover:text-white"
+                      className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-content-inverted"
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -315,7 +315,7 @@ export default function PublicSetsPage() {
               >
                 Précédent
               </Button>
-              <span className="text-dark-text-secondary text-sm">
+              <span className="text-content-muted text-sm">
                 Page {currentPage} sur {totalPages}
               </span>
               <Button

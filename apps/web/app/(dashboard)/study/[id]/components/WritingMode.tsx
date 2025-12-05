@@ -82,8 +82,8 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
   return (
     <div className="w-full">
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-gray-500">{questionLabel}</p>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-sm text-content-subtle">{questionLabel}</p>
           <button
             onClick={() => {
               setIsReversed(!isReversed);
@@ -91,14 +91,14 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
               setShowResult(false);
               setSimilarity(null);
             }}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-white hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors"
+            className="flex items-center gap-2 rounded-lg border border-border-subtle px-3 py-1.5 text-sm text-content-emphasis transition-colors hover:bg-bg-muted/70"
             title={isReversed ? 'Mode normal: Question → Réponse' : 'Mode inversé: Description → Terme'}
           >
             <RotateCcw className="h-4 w-4" />
             <span>{isReversed ? 'Mode inversé' : 'Mode normal'}</span>
           </button>
         </div>
-        <FormattedText text={questionText} className="text-2xl font-bold text-white" as="p" />
+        <FormattedText text={questionText} className="text-2xl font-bold text-content-emphasis" as="p" />
       </div>
 
       <div className="space-y-4">
@@ -109,7 +109,7 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
           onKeyPress={handleKeyPress}
           placeholder="Type your answer..."
           disabled={showResult}
-          className="text-lg text-white"
+          className="text-lg text-content-emphasis"
           autoFocus
         />
 

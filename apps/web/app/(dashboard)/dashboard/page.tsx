@@ -8,7 +8,8 @@ import type { Database } from '@/lib/supabase/types';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { CreateFolderModal } from '@/components/CreateFolderModal';
-import { Plus, BookOpen, Folder, FolderPlus, Trash2 } from 'lucide-react';
+import { ActiveSessions } from '@/components/ActiveSessions';
+import { Plus, BookOpen, Folder, FolderPlus, Trash2, ChevronDown, Play, Pencil, Share2 } from 'lucide-react';
 import { createSetAndRedirect } from '@/lib/utils/createSetAndRedirect';
 import { useRouter } from 'next/navigation';
 
@@ -24,6 +25,51 @@ export default function DashboardPage() {
   const [draggedSetId, setDraggedSetId] = useState<string | null>(null);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [isCreatingSet, setIsCreatingSet] = useState(false);
+  const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
+  const [isOtherCollapsed, setIsOtherCollapsed] = useState(false);
+  const toggleFolderCollapse = (folderId: string) => {
+    setCollapsedFolders((prev) => ({
+      ...prev,
+      [folderId]: !prev[folderId],
+    }));
+  };
+
+  const handleDeleteSet = async (setId: string) => {
+    if (!confirm('Voulez-vous supprimer ce cardz ?')) return;
+    try {
+      const { setsService } = await import('@/lib/supabase/sets');
+      await setsService.delete(setId);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to delete set:', error);
+      alert('Suppression impossible.');
+    }
+  };
+
+  const renderSetActions = (setId: string) => {
+    const iconClasses =
+      'flex h-8 w-8 items-center justify-center rounded-full border border-border-subtle text-content-muted transition hover:text-content-emphasis';
+    return (
+      <div className="flex items-center gap-2">
+        <Link href={`/study/${setId}`} aria-label="Étudier ce cardz" className={iconClasses}>
+          <Play className="h-3.5 w-3.5" />
+        </Link>
+        <Link href={`/sets/${setId}/edit`} aria-label="Modifier ce cardz" className={iconClasses}>
+          <Pencil className="h-3.5 w-3.5" />
+        </Link>
+        <Link href={`/sets/${setId}`} aria-label="Partager ce cardz" className={iconClasses}>
+          <Share2 className="h-3.5 w-3.5" />
+        </Link>
+        <button
+          className={`${iconClasses} hover:text-state-danger`}
+          aria-label="Supprimer ce cardz"
+          onClick={() => handleDeleteSet(setId)}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  };
 
   useEffect(() => {
     loadData();
@@ -118,31 +164,53 @@ export default function DashboardPage() {
     }
   };
 
+  const totalSets =
+    folders.reduce((acc, folder) => acc + folder.sets.length, 0) +
+    setsWithoutFolder.length;
+
+  const insights = [
+    {
+      label: 'Cardz organisés',
+      value: totalSets,
+      detail: `${folders.length} dossiers actifs`,
+    },
+    {
+      label: 'Cardz hors dossier',
+      value: setsWithoutFolder.length,
+      detail: setsWithoutFolder.length > 0 ? 'À classer rapidement' : 'Tout est rangé',
+    },
+    {
+      label: 'Dossiers collaboratifs',
+      value: folders.filter((folder) => folder.sets.length > 0).length,
+      detail: 'Dossiers contenant des cardz',
+    },
+  ];
+
   return (
     <>
-      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-        <div>
-          <h1 className="text-[22px] sm:text-[24px] lg:text-[28px] font-bold text-white leading-tight">
+      <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-border-subtle bg-bg-emphasis p-5 sm:p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">Tableau de bord</p>
+          <h1 className="text-[24px] font-semibold text-content-emphasis sm:text-[28px]">
             Welcome back, {profile?.username}!
           </h1>
-          <p className="text-[14px] sm:text-[16px] text-dark-text-secondary mt-1">
-            Manage your study Cardz
+          <p className="text-[14px] text-content-muted">
+            Visualisez votre progression et organisez vos cardz en un clin d’œil.
           </p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button 
-            variant="outline" 
-            onClick={() => setIsCreateFolderModalOpen(true)}
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button
+            variant="outline"
             size="sm"
-            className="flex-1 sm:flex-initial text-[13px] sm:text-[14px]"
+            className="justify-center text-[13px] sm:text-[14px]"
+            onClick={() => setIsCreateFolderModalOpen(true)}
           >
-            <FolderPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-            <span className="hidden sm:inline">New Folder</span>
-            <span className="sm:hidden">Folder</span>
+            <FolderPlus className="h-4 w-4 sm:mr-2" />
+            Nouveau dossier
           </Button>
-          <Button 
-            size="sm" 
-            className="w-full sm:w-auto text-[13px] sm:text-[14px]"
+          <Button
+            size="sm"
+            className="justify-center text-[13px] sm:text-[14px]"
             onClick={async () => {
               setIsCreatingSet(true);
               try {
@@ -157,30 +225,47 @@ export default function DashboardPage() {
             }}
             disabled={isCreatingSet}
           >
-            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-            {isCreatingSet ? (
-              <span>Creating...</span>
-            ) : (
-              <>
-                <span className="hidden sm:inline">Create Set</span>
-                <span className="sm:hidden">Create</span>
-              </>
-            )}
+            <Plus className="h-4 w-4 sm:mr-2" />
+            {isCreatingSet ? 'Création…' : 'Créer un cardz'}
           </Button>
         </div>
       </div>
 
+      <div className="mb-8 rounded-[32px] border border-border-subtle/80 bg-bg-emphasis/80 px-5 py-4">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-[13px] text-content-muted">
+          {insights.map((insight, index) => (
+            <div key={insight.label} className="flex items-center gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-content-subtle/80">
+                  {insight.label}
+                </p>
+                <p className="text-[18px] font-semibold text-content-emphasis leading-tight">{insight.value}</p>
+              </div>
+              <span className="text-[12px] text-content-muted/80">{insight.detail}</span>
+              {index < insights.length - 1 && (
+                <span className="hidden h-px w-8 bg-border-subtle/60 sm:block" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Active Study Sessions */}
+      <div className="mb-8">
+        <ActiveSessions />
+      </div>
+
       {isLoading ? (
-        <div className="text-center py-12">
-          <p className="text-dark-text-secondary">Loading your Cardz...</p>
+        <div className="py-12 text-center">
+          <p className="text-content-muted">Loading your Cardz...</p>
         </div>
       ) : folders.length === 0 && setsWithoutFolder.length === 0 ? (
-        <Card variant="emptyState" className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-dark-text-muted mx-auto mb-4" />
-          <h3 className="text-[16px] text-white mb-2">
+        <Card variant="emptyState" className="py-12 text-center">
+          <BookOpen className="h-12 w-12 text-content-subtle mx-auto mb-4" />
+          <h3 className="text-[16px] text-content-emphasis mb-2">
             No Cardz yet
           </h3>
-          <p className="text-[16px] text-white mb-4">
+          <p className="text-[15px] text-content-muted mb-4">
             Create your first study set to get started
           </p>
           <Button
@@ -204,117 +289,165 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-8">
           {/* Folders */}
-          {folders.map((folder) => (
-            <div
-              key={folder.id}
-              onDragOver={(e) => handleDragOver(e, folder.id)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, folder.id)}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                dragOverFolderId === folder.id
-                  ? 'border-brand-primary bg-dark-background-cardMuted'
-                  : 'border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <Folder className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" style={{ color: folder.color }} />
-                  <h2 className="text-[16px] sm:text-[18px] lg:text-[20px] font-semibold text-white truncate">
-                    {folder.name}
-                  </h2>
-                  <span className="text-[12px] sm:text-[13px] text-dark-text-muted flex-shrink-0">
-                    ({folder.sets.length})
-                  </span>
+          {folders.map((folder) => {
+            const previewSets = folder.sets.slice(0, 3);
+            const remaining = Math.max(0, folder.sets.length - previewSets.length);
+            const isCollapsed = collapsedFolders[folder.id];
+
+            return (
+              <div
+                key={folder.id}
+                onDragOver={(e) => handleDragOver(e, folder.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, folder.id)}
+                className={`rounded-2xl border bg-bg-emphasis/90 p-5 transition-all ${
+                  dragOverFolderId === folder.id ? 'border-brand-primary shadow-card-hover' : 'border-border-subtle'
+                }`}
+              >
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-bg-subtle text-sm font-semibold" style={{ color: folder.color || '#0F172A' }}>
+                      <Folder className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h2 className="text-[18px] font-semibold text-content-emphasis">{folder.name}</h2>
+                      <p className="text-[13px] text-content-muted">{folder.sets.length} cardz</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleFolderCollapse(folder.id)}
+                      className="rounded-full border border-border-subtle p-2 text-content-muted transition hover:text-content-emphasis"
+                      aria-label={isCollapsed ? 'Déplier le dossier' : 'Replier le dossier'}
+                    >
+                      <ChevronDown className={`h-4 w-4 transition ${isCollapsed ? '-rotate-90' : ''}`} />
+                    </button>
+                    <Link href={`/folders/${folder.id}`} className="text-[13px] text-content-muted hover:text-content-emphasis">
+                      Voir le dossier
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteFolder(folder.id)}
+                      className="rounded-full border border-border-subtle p-2 text-content-subtle transition-colors hover:text-state-danger"
+                      title="Supprimer le dossier"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteFolder(folder.id)}
-                  className="p-1.5 sm:p-1 text-dark-text-muted hover:text-dark-states-danger transition-colors flex-shrink-0"
-                  title="Delete folder"
-                >
-                  <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {folder.sets.map((set) => (
-                  <div
-                    key={set.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, set.id)}
-                    onDragEnd={handleDragEnd}
-                    className={`hover:shadow-elevation-1 transition-shadow cursor-pointer h-full ${
-                      draggedSetId === set.id ? 'opacity-50' : ''
-                    }`}
-                  >
-                    <Link href={`/sets/${set.id}`} className="block h-full">
-                      <Card className="h-full card-text-content">
-                        <CardHeader>
-                          <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                          <p className="text-[16px] text-white line-clamp-2 mt-2">
-                            {set.description || 'No description'}
-                          </p>
-                        </CardHeader>
-                        <div className="px-6 pb-6">
-                          <div className="flex items-center justify-between text-[16px] text-white">
-                            <span>{set.is_public ? 'Public' : 'Private'}</span>
+
+                {!isCollapsed && (
+                  <div className="space-y-3">
+                  {previewSets.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-border-muted p-4 text-center text-content-subtle">
+                      Glissez-déposez vos cardz ici pour organiser ce dossier.
+                    </div>
+                  )}
+
+                    {previewSets.map((set) => (
+                      <div
+                        key={set.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, set.id)}
+                        onDragEnd={handleDragEnd}
+                        className={`rounded-xl border border-border-subtle bg-bg-emphasis px-4 py-3 transition-all hover:shadow-card ${
+                          draggedSetId === set.id ? 'opacity-50' : ''
+                        }`}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <Link href={`/sets/${set.id}`} className="text-[15px] font-semibold text-content-emphasis line-clamp-1">
+                              {set.title}
+                            </Link>
+                            <span className="text-[12px] text-content-muted">{set.is_public ? 'Public' : 'Privé'}</span>
+                          </div>
+                          <p className="text-[13px] text-content-muted line-clamp-2">{set.description || 'Aucune description'}</p>
+                          <div className="flex items-center justify-between pt-1">
+                            <span className="text-[12px] text-content-muted">{new Date(set.created_at).toLocaleDateString('fr-FR')}</span>
+                            {renderSetActions(set.id)}
                           </div>
                         </div>
-                      </Card>
-                    </Link>
-                  </div>
-                ))}
-                {folder.sets.length === 0 && (
-                  <div className="col-span-full text-center py-8 text-dark-text-muted">
-                    <p>Drag Cardz here to organize them</p>
+                      </div>
+                    ))}
+
+                    {remaining > 0 && (
+                      <div className="flex justify-center">
+                        <Link
+                          href={`/folders/${folder.id}`}
+                          className="flex items-center gap-2 rounded-xl border border-dashed border-border-muted px-4 py-2 text-sm font-medium text-content-muted hover:text-content-emphasis"
+                        >
+                          <span className="text-[12px] uppercase tracking-[0.2em]">Voir plus</span>
+                          <span>+ {remaining} cardz</span>
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
-          {/* Sets without folder */}
           {setsWithoutFolder.length > 0 && (
-            <div>
-              <h2 className="text-[20px] font-semibold text-dark-text-primary mb-4">Other Cardz</h2>
-              <div
-                onDragOver={(e) => handleDragOver(e, null)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, null)}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  dragOverFolderId === null
-                    ? 'border-brand-primary bg-dark-background-cardMuted'
-                    : 'border-transparent'
-                }`}
-              >
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              onDragOver={(e) => handleDragOver(e, null)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, null)}
+              className={`rounded-2xl border bg-bg-emphasis/90 p-5 transition-all ${
+                dragOverFolderId === null ? 'border-brand-primary shadow-card-hover' : 'border-border-subtle'
+              }`}
+            >
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-bg-subtle text-sm font-semibold">
+                    <Folder className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h2 className="text-[18px] font-semibold text-content-emphasis">Other Cardz</h2>
+                    <p className="text-[13px] text-content-muted">{setsWithoutFolder.length} cardz à organiser</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsOtherCollapsed((prev) => !prev)}
+                    className="rounded-full border border-border-subtle p-2 text-content-muted transition hover:text-content-emphasis"
+                    aria-label={isOtherCollapsed ? 'Déployer Other Cardz' : 'Replier Other Cardz'}
+                  >
+                    <ChevronDown className={`h-4 w-4 transition ${isOtherCollapsed ? '-rotate-90' : ''}`} />
+                  </button>
+                  <Link href="/dashboard" className="text-[13px] text-content-muted hover:text-content-emphasis">
+                    Tout afficher
+                  </Link>
+                </div>
+              </div>
+
+              {!isOtherCollapsed && (
+                <div className="space-y-3">
                   {setsWithoutFolder.map((set) => (
                     <div
                       key={set.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, set.id)}
                       onDragEnd={handleDragEnd}
-                      className={`hover:shadow-lg transition-shadow cursor-pointer h-full ${
+                      className={`rounded-xl border border-border-subtle bg-bg-emphasis px-4 py-3 transition-all hover:shadow-card ${
                         draggedSetId === set.id ? 'opacity-50' : ''
                       }`}
                     >
-                    <Link href={`/sets/${set.id}`} className="block h-full">
-                      <Card className="h-full card-text-content">
-                        <CardHeader>
-                          <CardTitle className="line-clamp-2">{set.title}</CardTitle>
-                          <p className="text-[16px] text-white line-clamp-2 mt-2">
-                            {set.description || 'No description'}
-                          </p>
-                        </CardHeader>
-                        <div className="px-6 pb-6">
-                          <div className="flex items-center justify-between text-[16px] text-white">
-                            <span>{set.is_public ? 'Public' : 'Private'}</span>
-                          </div>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <Link href={`/sets/${set.id}`} className="text-[15px] font-semibold text-content-emphasis line-clamp-1">
+                            {set.title}
+                          </Link>
+                          <span className="text-[12px] text-content-muted">{set.is_public ? 'Public' : 'Privé'}</span>
                         </div>
-                      </Card>
-                    </Link>
+                        <p className="text-[13px] text-content-muted line-clamp-2">{set.description || 'Aucune description'}</p>
+                        <div className="flex items-center justify-between text-[12px] text-content-muted pt-1">
+                          <span>{new Date(set.created_at).toLocaleDateString('fr-FR')}</span>
+                          {renderSetActions(set.id)}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>

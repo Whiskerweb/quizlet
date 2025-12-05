@@ -137,3 +137,6 @@ export function getSubjectLabel(value: string | null | undefined): string {
   return subject?.label || value || 'Non spécifié';
 }
 
+
+
+

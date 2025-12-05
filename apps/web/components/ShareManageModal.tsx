@@ -183,11 +183,11 @@ export function ShareManageModal({
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <Share2 className="h-5 w-5 text-brand-primary" />
-            <CardTitle className="text-[16px] text-white">Gérer le partage</CardTitle>
+            <CardTitle className="text-[16px] text-content-emphasis">Gérer le partage</CardTitle>
           </div>
           <button
             onClick={onClose}
-            className="text-dark-text-muted hover:text-white transition-colors"
+            className="text-content-subtle hover:text-content-emphasis transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -201,10 +201,10 @@ export function ShareManageModal({
           )}
 
           {/* Public/Private Toggle */}
-          <div className="flex items-center justify-between p-4 bg-dark-background-cardMuted rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-bg-subtle rounded-lg">
             <div>
-              <p className="text-[16px] text-white font-medium">Rendre public</p>
-              <p className="text-[14px] text-dark-text-secondary mt-1">
+              <p className="text-[16px] text-content-emphasis font-medium">Rendre public</p>
+              <p className="text-[14px] text-content-muted mt-1">
                 Permet aux autres utilisateurs de voir et partager ce set
               </p>
             </div>
@@ -221,24 +221,24 @@ export function ShareManageModal({
                 }}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-dark-background-cardMuted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+              <div className="w-11 h-6 bg-bg-subtle peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
             </label>
           </div>
 
           {/* Subject Selection - Only show if making public */}
           {isPublic && (
-            <div className="space-y-4 p-4 bg-dark-background-cardMuted rounded-lg">
+            <div className="space-y-4 p-4 bg-bg-subtle rounded-lg">
               <div>
-                <label className="block text-[14px] text-white mb-2">
+                <label className="block text-[14px] text-content-emphasis mb-2">
                   Catégorie d'étude <span className="text-red-400">*</span>
                 </label>
-                <p className="text-[12px] text-dark-text-secondary mb-3">
+                <p className="text-[12px] text-content-muted mb-3">
                   Sélectionnez la matière ou catégorie de ce cardz pour faciliter sa découverte
                 </p>
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full px-4 py-2 bg-dark-background-base border border-[rgba(255,255,255,0.12)] rounded-lg text-white text-[14px] focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  className="w-full px-4 py-2 bg-bg-emphasis border border-border-subtle rounded-lg text-content-emphasis text-[14px] focus:outline-none focus:ring-2 focus:ring-brand-primary"
                   required
                 >
                   <option value="">-- Sélectionnez une catégorie --</option>
@@ -254,18 +254,18 @@ export function ShareManageModal({
 
           {/* Password Section */}
           {isPublic && (
-            <div className="space-y-4 p-4 bg-dark-background-cardMuted rounded-lg">
+            <div className="space-y-4 p-4 bg-bg-subtle rounded-lg">
               <div>
-                <label className="block text-[14px] text-white mb-2">
+                <label className="block text-[14px] text-content-emphasis mb-2">
                   Mot de passe (optionnel)
                 </label>
-                <p className="text-[12px] text-dark-text-secondary mb-3">
+                <p className="text-[12px] text-content-muted mb-3">
                   Les utilisateurs devront saisir ce mot de passe pour ajouter ce set à leur profil
                 </p>
                 {currentPassword ? (
                   <div className="space-y-2">
-                    <div className="p-2 bg-dark-background-base rounded border border-[rgba(255,255,255,0.06)]">
-                      <p className="text-[12px] text-dark-text-secondary">Mot de passe actuel configuré</p>
+                    <div className="p-2 bg-bg-emphasis rounded border border-border-muted">
+                      <p className="text-[12px] text-content-muted">Mot de passe actuel configuré</p>
                     </div>
                     <Input
                       type="password"
@@ -309,7 +309,7 @@ export function ShareManageModal({
                   variant="outline"
                   onClick={handleRemovePassword}
                   disabled={isLoading}
-                  className="w-full text-dark-states-danger border-dark-states-danger"
+                  className="w-full text-state-danger border-state-danger"
                 >
                   Supprimer le mot de passe
                 </Button>
@@ -319,12 +319,12 @@ export function ShareManageModal({
 
           {/* Share Link Section - Only show if public */}
           {isPublic && (
-            <div className="space-y-4 p-4 bg-dark-background-cardMuted rounded-lg">
+            <div className="space-y-4 p-4 bg-bg-subtle rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Share2 className="h-5 w-5 text-brand-primary" />
-                <p className="text-[16px] text-white font-medium">Lien de partage</p>
+                <p className="text-[16px] text-content-emphasis font-medium">Lien de partage</p>
               </div>
-              <p className="text-[12px] text-dark-text-secondary mb-3">
+              <p className="text-[12px] text-content-muted mb-3">
                 Partagez ce lien pour permettre à n'importe qui d'accéder à ce set
               </p>
               {currentPassword && (
@@ -338,7 +338,7 @@ export function ShareManageModal({
                 <Input
                   value={shareUrl}
                   readOnly
-                  className="flex-1 bg-dark-background-base"
+                  className="flex-1 bg-bg-emphasis"
                 />
                 <Button
                   onClick={handleCopy}
@@ -363,17 +363,17 @@ export function ShareManageModal({
 
           {/* Users who added this set */}
           {isPublic && (
-            <div className="space-y-4 p-4 bg-dark-background-cardMuted rounded-lg">
+            <div className="space-y-4 p-4 bg-bg-subtle rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="h-5 w-5 text-brand-primary" />
-                <p className="text-[16px] text-white font-medium">
+                <p className="text-[16px] text-content-emphasis font-medium">
                   Utilisateurs ayant enregistré ce set ({setUsers.length})
                 </p>
               </div>
               {isLoadingUsers ? (
-                <p className="text-[14px] text-dark-text-secondary">Chargement...</p>
+                <p className="text-[14px] text-content-muted">Chargement...</p>
               ) : setUsers.length === 0 ? (
-                <p className="text-[14px] text-dark-text-secondary">
+                <p className="text-[14px] text-content-muted">
                   Aucun utilisateur n'a encore enregistré ce set
                 </p>
               ) : (
@@ -381,7 +381,7 @@ export function ShareManageModal({
                   {setUsers.map((user) => (
                     <div
                       key={user.id}
-                      className="flex items-center gap-3 p-2 bg-dark-background-base rounded-lg"
+                      className="flex items-center gap-3 p-2 bg-bg-emphasis rounded-lg"
                     >
                       {user.avatar ? (
                         <img
@@ -390,13 +390,13 @@ export function ShareManageModal({
                           className="h-8 w-8 rounded-full"
                         />
                       ) : (
-                        <div className="h-8 w-8 rounded-full bg-dark-background-cardMuted flex items-center justify-center">
-                          <User className="h-4 w-4 text-dark-text-secondary" />
+                        <div className="h-8 w-8 rounded-full bg-bg-subtle flex items-center justify-center">
+                          <User className="h-4 w-4 text-content-muted" />
                         </div>
                       )}
                       <div className="flex-1">
-                        <p className="text-[14px] text-white">{user.username}</p>
-                        <p className="text-[12px] text-dark-text-secondary">
+                        <p className="text-[14px] text-content-emphasis">{user.username}</p>
+                        <p className="text-[12px] text-content-muted">
                           Ajouté le {new Date(user.added_at).toLocaleDateString('fr-FR')}
                         </p>
                       </div>
@@ -407,7 +407,7 @@ export function ShareManageModal({
             </div>
           )}
 
-          <div className="flex gap-2 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+          <div className="flex gap-2 pt-4 border-t border-border-muted">
             <Button
               variant="outline"
               onClick={onClose}
@@ -429,6 +429,9 @@ export function ShareManageModal({
     </div>
   );
 }
+
+
+
 
 
 

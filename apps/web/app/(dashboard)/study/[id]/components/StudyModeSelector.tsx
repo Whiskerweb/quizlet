@@ -64,15 +64,15 @@ export function StudyModeSelector({ currentMode, onModeChange }: StudyModeSelect
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-[rgba(255,255,255,0.12)] bg-dark-background-cardMuted hover:bg-[rgba(255,255,255,0.06)] transition-colors text-white"
+        className="flex items-center space-x-2 rounded-lg border border-border-subtle bg-bg-emphasis px-3 py-2 text-sm font-medium text-content-emphasis transition-colors hover:bg-bg-muted/80"
       >
         <CurrentIcon className="h-4 w-4" />
-        <span className="text-sm font-medium">{currentModeData.label}</span>
+        <span>{currentModeData.label}</span>
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-56 rounded-lg border border-[rgba(255,255,255,0.12)] bg-dark-background-card shadow-lg z-50">
+        <div className="absolute top-full left-0 mt-2 w-56 rounded-lg border border-border-subtle bg-bg-emphasis shadow-lg z-50">
           <div className="p-2">
             {modes.map((mode) => {
               const Icon = mode.icon;
@@ -86,17 +86,17 @@ export function StudyModeSelector({ currentMode, onModeChange }: StudyModeSelect
                     setIsOpen(false);
                   }}
                   className={`
-                    w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left
+                    flex w-full items-center space-x-3 rounded-lg px-3 py-2 text-left transition-colors
                     ${isActive 
-                      ? 'bg-[rgba(96,165,250,0.1)] text-brand-primary' 
-                      : 'text-white hover:bg-[rgba(255,255,255,0.06)]'
+                      ? 'bg-brand-primary/10 text-brand-primary' 
+                      : 'text-content-muted hover:bg-bg-muted/70 hover:text-content-emphasis'
                     }
                   `}
                 >
                   <Icon className="h-4 w-4" />
                   <div className="flex-1">
-                    <div className="font-medium text-sm">{mode.label}</div>
-                    <div className="text-xs opacity-70">{mode.description}</div>
+                    <div className="text-sm font-medium">{mode.label}</div>
+                    <div className="text-xs text-content-subtle">{mode.description}</div>
                   </div>
                 </button>
               );

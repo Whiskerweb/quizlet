@@ -102,12 +102,34 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
     ? (isOpen ? 'w-[260px]' : 'w-0')
     : (isOpen ? 'w-[260px]' : 'w-[80px]');
 
+  const navItemClasses = (active: boolean) =>
+    cn(
+      'flex items-center rounded-xl transition-all duration-200 border group',
+      isOpen ? 'gap-3 sm:gap-3.5 px-3 sm:px-4 h-11' : 'justify-center px-2 h-11',
+      active
+        ? 'bg-bg-emphasis text-content-emphasis border-border-subtle shadow-sm'
+        : 'text-content-muted border-transparent hover:text-content-emphasis hover:bg-bg-emphasis/80'
+    );
+
+  const navIconClasses = (active: boolean) =>
+    cn(
+      'flex-shrink-0 transition-colors',
+      isOpen ? 'h-4.5 w-4.5 sm:h-5 sm:w-5' : 'h-5 w-5',
+      active ? 'text-brand-primary' : 'text-content-muted group-hover:text-content-emphasis'
+    );
+
+  const navLabelClasses = (active: boolean) =>
+    cn(
+      'whitespace-nowrap transition-colors text-[14px] sm:text-[15px]',
+      active ? 'font-semibold text-content-emphasis' : 'font-medium text-content-muted group-hover:text-content-emphasis'
+    );
+
   return (
     <>
       {/* Mobile Overlay */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 bg-bg-inverted/40 backdrop-blur-sm lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -115,7 +137,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 h-screen bg-dark-background-sidebar border-r border-[rgba(255,255,255,0.06)] flex flex-col z-50 transition-all duration-300 ease-in-out',
+          'fixed left-0 top-0 h-dvh bg-bg-muted/95 backdrop-blur-xl border-r border-border-muted flex flex-col z-50 shadow-panel transition-all duration-300 ease-in-out',
           sidebarWidthClass,
           isMobile && !isOpen && '-translate-x-full opacity-0 pointer-events-none',
           isMobile && isOpen && 'translate-x-0 opacity-100 pointer-events-auto',
@@ -125,10 +147,14 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
         style={{ width: sidebarWidth }}
       >
         {/* Logo & Toggle */}
-        <div className={cn(
-          'border-b border-[rgba(255,255,255,0.06)] flex items-center flex-shrink-0',
-          isOpen ? 'px-4 sm:px-5 lg:px-6 py-4 sm:py-5 justify-between' : 'px-3 sm:px-4 justify-center py-4 sm:py-5'
-        )}>
+        <div
+          className={cn(
+            'border-b border-border-subtle/80 bg-bg-emphasis/70 flex items-center flex-shrink-0',
+            isOpen
+              ? 'px-4 sm:px-5 lg:px-6 py-4 sm:py-5 justify-between'
+              : 'px-3 sm:px-4 justify-center py-4 sm:py-5'
+          )}
+        >
           {isOpen ? (
             <Link href="/home" className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0 group">
               <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center transition-opacity group-hover:opacity-80">
@@ -141,7 +167,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                   priority
                 />
               </div>
-              <span className="text-[18px] sm:text-[20px] lg:text-[22px] font-bold text-white whitespace-nowrap truncate">
+              <span className="text-[18px] sm:text-[20px] lg:text-[22px] font-semibold text-content-emphasis whitespace-nowrap truncate">
                 CARDZ
               </span>
             </Link>
@@ -164,7 +190,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
             <button
               onClick={() => setIsOpen(!isOpen)}
               className={cn(
-                'p-1.5 sm:p-2 rounded-lg text-dark-text-secondary hover:text-white hover:bg-[rgba(255,255,255,0.06)] transition-all duration-[180ms] flex-shrink-0',
+                'p-1.5 sm:p-2 rounded-lg text-content-muted hover:text-content-emphasis hover:bg-bg-emphasis transition-all duration-200 border border-transparent hover:border-border-subtle flex-shrink-0',
                 !isOpen && 'mx-auto'
               )}
               aria-label={isOpen ? 'Fermer la sidebar' : 'Ouvrir la sidebar'}
@@ -193,26 +219,12 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                 key={item.href}
                 href={item.href}
                 onClick={() => isMobile && setIsOpen(false)}
-                className={cn(
-                  'flex items-center rounded-lg transition-all duration-[180ms] group',
-                  isOpen ? 'gap-3 sm:gap-3.5 px-3 sm:px-4 h-10' : 'justify-center px-2 h-10',
-                  active
-                    ? 'bg-dark-semantic-navActiveBackground text-white shadow-sm'
-                    : 'text-dark-text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
-                )}
+                className={navItemClasses(active)}
                 title={!isOpen ? item.label : undefined}
               >
-                <Icon className={cn(
-                  'flex-shrink-0 transition-colors',
-                  isOpen ? 'h-4.5 w-4.5 sm:h-5 sm:w-5' : 'h-5 w-5',
-                  active ? 'text-white' : 'text-dark-text-secondary group-hover:text-white'
-                )} />
+                <Icon className={navIconClasses(active)} />
                 {isOpen && (
-                  <span className={cn(
-                    'whitespace-nowrap transition-colors',
-                    'text-[14px] sm:text-[15px]',
-                    active ? 'font-semibold text-white' : 'font-medium text-dark-text-secondary group-hover:text-white'
-                  )}>
+                  <span className={navLabelClasses(active)}>
                     {item.label}
                   </span>
                 )}
@@ -230,13 +242,13 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
         {/* Folders Section */}
         <div className="mb-1">
           {isOpen && (
-            <p className="text-[11px] sm:text-[12px] text-dark-text-muted font-medium mb-2.5 sm:mb-3 px-3 sm:px-4">
+            <p className="text-[10px] sm:text-[11px] font-semibold tracking-[0.2em] text-content-muted/70 uppercase mb-2.5 sm:mb-3 px-3 sm:px-4">
               Vos dossiers
             </p>
           )}
           {isLoadingFolders ? (
             <div className={cn(
-              'text-[12px] text-dark-text-muted',
+              'text-[12px] text-content-muted/80',
               isOpen ? 'px-3 sm:px-4' : 'text-center'
             )}>
               {isOpen ? 'Chargement...' : '...'}
@@ -248,30 +260,12 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                 <Link
                   href="/folders/shared"
                   onClick={() => isMobile && setIsOpen(false)}
-                  className={cn(
-                    'flex items-center rounded-lg transition-all duration-[180ms] group',
-                    isOpen ? 'gap-3 sm:gap-3.5 px-3 sm:px-4 h-10' : 'justify-center px-2 h-10',
-                    pathname === '/folders/shared'
-                      ? 'bg-dark-semantic-navActiveBackground text-white shadow-sm'
-                      : 'text-dark-text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
-                  )}
+                  className={navItemClasses(pathname === '/folders/shared')}
                   title={!isOpen ? 'Cardz partagés' : undefined}
                 >
-                  <Share2 className={cn(
-                    'flex-shrink-0 transition-colors',
-                    isOpen ? 'h-4.5 w-4.5 sm:h-5 sm:w-5' : 'h-5 w-5',
-                    pathname === '/folders/shared' 
-                      ? 'text-white' 
-                      : 'text-dark-text-secondary group-hover:text-white'
-                  )} style={pathname === '/folders/shared' ? {} : { color: '#8B8FBE' }} />
+                  <Share2 className={navIconClasses(pathname === '/folders/shared')} />
                   {isOpen && (
-                    <span className={cn(
-                      'truncate transition-colors',
-                      'text-[14px] sm:text-[15px]',
-                      pathname === '/folders/shared'
-                        ? 'font-semibold text-white'
-                        : 'font-medium text-dark-text-secondary group-hover:text-white'
-                    )}>
+                    <span className={navLabelClasses(pathname === '/folders/shared')}>
                       Cardz partagés
                     </span>
                   )}
@@ -281,7 +275,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
               {/* Regular Folders */}
               {folders.length === 0 && !hasSharedSets ? (
                 <div className={cn(
-                  'text-[12px] text-dark-text-muted',
+                  'text-[12px] text-content-muted/80',
                   isOpen ? 'px-3 sm:px-4 py-2' : 'text-center py-2'
                 )}>
                   {isOpen ? 'Aucun dossier' : ''}
@@ -294,30 +288,15 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                       key={folder.id}
                       href={`/folders/${folder.id}`}
                       onClick={() => isMobile && setIsOpen(false)}
-                      className={cn(
-                        'flex items-center rounded-lg transition-all duration-[180ms] group',
-                        isOpen ? 'gap-3 sm:gap-3.5 px-3 sm:px-4 h-10' : 'justify-center px-2 h-10',
-                        isFolderActive
-                          ? 'bg-dark-semantic-navActiveBackground text-white shadow-sm'
-                          : 'text-dark-text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
-                      )}
+                      className={navItemClasses(isFolderActive)}
                       title={!isOpen ? folder.name : undefined}
                     >
-                      <Folder className={cn(
-                        'flex-shrink-0 transition-colors',
-                        isOpen ? 'h-4.5 w-4.5 sm:h-5 sm:w-5' : 'h-5 w-5',
-                        isFolderActive 
-                          ? 'text-white' 
-                          : 'text-dark-text-secondary group-hover:text-white'
-                      )} style={isFolderActive ? {} : { color: folder.color || '#8B8FBE' }} />
+                      <Folder
+                        className={navIconClasses(isFolderActive)}
+                        style={!isFolderActive ? { color: folder.color || '#8B8FBE' } : undefined}
+                      />
                       {isOpen && (
-                        <span className={cn(
-                          'truncate transition-colors',
-                          'text-[14px] sm:text-[15px]',
-                          isFolderActive
-                            ? 'font-semibold text-white'
-                            : 'font-medium text-dark-text-secondary group-hover:text-white'
-                        )}>
+                        <span className={navLabelClasses(isFolderActive)}>
                           {folder.name}
                         </span>
                       )}
@@ -332,7 +311,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
         {/* Quick Start Section */}
         <div className={cn('mt-5 sm:mt-6')}>
           {isOpen && (
-            <p className="text-[11px] sm:text-[12px] text-dark-text-muted font-medium mb-2.5 sm:mb-3 px-3 sm:px-4">
+            <p className="text-[10px] sm:text-[11px] font-semibold tracking-[0.2em] text-content-muted/70 uppercase mb-2.5 sm:mb-3 px-3 sm:px-4">
               Commencez ici
             </p>
           )}
@@ -352,20 +331,15 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
             }}
             disabled={isCreatingSet}
             className={cn(
-              'flex items-center rounded-lg transition-all duration-[180ms] group w-full',
-              isOpen ? 'gap-3 sm:gap-3.5 px-3 sm:px-4 h-10' : 'justify-center px-2 h-10',
-              'text-dark-text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-white',
+              navItemClasses(false),
+              'w-full',
               isCreatingSet && 'opacity-50 cursor-not-allowed'
             )}
             title={!isOpen ? 'Créer des cardz' : undefined}
           >
-            <Sparkles className={cn(
-              'flex-shrink-0 transition-colors',
-              isOpen ? 'h-4.5 w-4.5 sm:h-5 sm:w-5' : 'h-5 w-5',
-              'text-dark-text-secondary group-hover:text-white'
-            )} />
+            <Sparkles className={navIconClasses(false)} />
             {isOpen && (
-              <span className="text-[14px] sm:text-[15px] font-medium whitespace-nowrap transition-colors text-dark-text-secondary group-hover:text-white">
+              <span className="text-[14px] sm:text-[15px] font-medium whitespace-nowrap transition-colors text-content-emphasis">
                 {isCreatingSet ? 'Création...' : 'Créer des cardz'}
               </span>
             )}
@@ -375,30 +349,12 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
           <Link
             href="/public-sets"
             onClick={() => isMobile && setIsOpen(false)}
-            className={cn(
-              'flex items-center rounded-lg transition-all duration-[180ms] group mt-2',
-              isOpen ? 'gap-3 sm:gap-3.5 px-3 sm:px-4 h-10' : 'justify-center px-2 h-10',
-              pathname === '/public-sets'
-                ? 'bg-dark-semantic-navActiveBackground text-white shadow-sm'
-                : 'text-dark-text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-white'
-            )}
+            className={cn(navItemClasses(pathname === '/public-sets'), 'mt-2')}
             title={!isOpen ? 'Cardz publique' : undefined}
           >
-            <Globe className={cn(
-              'flex-shrink-0 transition-colors',
-              isOpen ? 'h-4.5 w-4.5 sm:h-5 sm:w-5' : 'h-5 w-5',
-              pathname === '/public-sets' 
-                ? 'text-white' 
-                : 'text-dark-text-secondary group-hover:text-white'
-            )} style={pathname === '/public-sets' ? {} : { color: '#8B8FBE' }} />
+            <Globe className={navIconClasses(pathname === '/public-sets')} />
             {isOpen && (
-              <span className={cn(
-                'truncate transition-colors',
-                'text-[14px] sm:text-[15px]',
-                pathname === '/public-sets'
-                  ? 'font-semibold text-white'
-                  : 'font-medium text-dark-text-secondary group-hover:text-white'
-              )}>
+              <span className={navLabelClasses(pathname === '/public-sets')}>
                 Cardz publique
               </span>
             )}

@@ -151,9 +151,9 @@ export default function SetDetailPage() {
       <div className="mb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h1 className="text-[28px] font-bold text-dark-text-primary">{set.title}</h1>
+            <h1 className="text-[28px] font-bold text-content-emphasis">{set.title}</h1>
             {set.description && (
-              <p className="text-[16px] text-dark-text-secondary mt-2">{set.description}</p>
+              <p className="text-[16px] text-content-muted mt-2">{set.description}</p>
             )}
           </div>
           <div className="flex space-x-2">
@@ -196,7 +196,7 @@ export default function SetDetailPage() {
                     variant="outline"
                     onClick={handleAddToCollection}
                     disabled={isAddingToCollection}
-                    className="bg-brand-primary/20 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+                    className="border-brand-primary bg-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-content-inverted"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     {isAddingToCollection ? 'Ajout...' : 'Ajouter à ma collection'}
@@ -207,7 +207,7 @@ export default function SetDetailPage() {
           </div>
         </div>
 
-        <div className="flex space-x-4 text-[13px] text-dark-text-secondary">
+        <div className="flex space-x-4 text-[13px] text-content-muted">
           <span>{set.flashcards?.length || 0} cards</span>
           <span>{set.is_public ? 'Public' : 'Private'}</span>
           {set.language && <span>Language: {set.language}</span>}
@@ -215,7 +215,7 @@ export default function SetDetailPage() {
       </div>
 
       <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-[20px] font-semibold text-dark-text-primary">Cardz</h2>
+        <h2 className="text-[20px] font-semibold text-content-emphasis">Cardz</h2>
         {isOwner && (
           <div className="flex gap-2">
             <Link href={`/sets/${setId}/edit`}>
@@ -234,8 +234,8 @@ export default function SetDetailPage() {
       </div>
 
       {set.flashcards.length === 0 ? (
-        <Card variant="emptyState" className="text-center py-12">
-          <p className="text-[16px] text-white mb-4">No cardz yet</p>
+        <Card variant="emptyState" className="py-12 text-center">
+          <p className="text-[15px] text-content-muted mb-4">No cardz yet</p>
           {isOwner && (
             <Link href={`/sets/${setId}/flashcards/new`}>
               <Button>Add Your First Card</Button>
@@ -246,14 +246,17 @@ export default function SetDetailPage() {
         <div className="grid md:grid-cols-2 gap-4">
           {set.flashcards.map((card, index) => (
             <Card key={card.id} className="relative group">
+              <div className="absolute right-4 top-4 rounded-full border border-border-subtle px-2 py-0.5 text-[11px] font-medium text-content-muted">
+                {index + 1}/{set.flashcards.length}
+              </div>
               <div className="p-4 card-text-content">
                 <div className="mb-2">
-                  <span className="text-[16px] text-white">Front</span>
-                  <FormattedText text={card.front} className="text-[16px] text-white mt-1" as="p" />
+                  <span className="text-[14px] text-content-muted">Front</span>
+                  <FormattedText text={card.front} className="mt-1 text-[15px] text-content-emphasis" as="p" />
                 </div>
                 <div className="mb-4">
-                  <span className="text-[16px] text-white">Back</span>
-                  <FormattedText text={card.back} className="text-[16px] text-white mt-1" as="p" />
+                  <span className="text-[14px] text-content-muted">Back</span>
+                  <FormattedText text={card.back} className="mt-1 text-[15px] text-content-emphasis" as="p" />
                 </div>
                 {isOwner && (
                   <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -280,7 +283,7 @@ export default function SetDetailPage() {
                         }
                       }}
                       disabled={deletingCardId === card.id}
-                      className="text-dark-states-danger border-dark-states-danger hover:bg-dark-background-cardMuted"
+                      className="text-state-danger border-state-danger hover:bg-bg-subtle"
                     >
                       <Trash2 className="h-4 w-4" />
                       {deletingCardId === card.id ? 'Deleting...' : 'Delete'}

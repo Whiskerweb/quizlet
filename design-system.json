@@ -1,0 +1,200 @@
+{
+  "name": "TraactionTrack Design System",
+  "version": "1.1.0",
+  "description": "Comprehensive design guidelines and styling rules for TraactionTrack (based on Dub.co open source).",
+  "foundation": {
+    "styling_engine": "Tailwind CSS",
+    "configuration": {
+      "config_file": "packages/tailwind-config/tailwind.config.ts",
+      "css_variables": "packages/tailwind-config/themes.css",
+      "global_styles": "apps/web/styles/globals.css"
+    },
+    "typography": {
+      "fonts": {
+        "default": "Inter (var(--font-inter))",
+        "display": "Satoshi (var(--font-satoshi))",
+        "mono": "Geist Mono (var(--font-geist-mono))"
+      },
+      "custom_sizes": {
+        "2xs": [
+          "0.625rem",
+          {
+            "lineHeight": "0.875rem"
+          }
+        ]
+      }
+    },
+    "colors": {
+      "semantic_palette": {
+        "backgrounds": {
+          "bg-default": "Default page background (white/black)",
+          "bg-muted": "Muted background (neutral-50/neutral-900)",
+          "bg-subtle": "Subtle background (neutral-100/neutral-800)",
+          "bg-emphasis": "Emphasized background",
+          "bg-inverted": "Inverted background for high contrast",
+          "bg-info": "Information background (blue)",
+          "bg-success": "Success background (green)",
+          "bg-attention": "Warning/Attention background (orange)",
+          "bg-error": "Error background (red)"
+        },
+        "borders": {
+          "border-default": "Default border color",
+          "border-muted": "Muted border",
+          "border-subtle": "Subtle border",
+          "border-emphasis": "Emphasized border"
+        },
+        "content": {
+          "content-default": "Primary text color",
+          "content-muted": "Secondary/muted text",
+          "content-subtle": "Subtle text",
+          "content-emphasis": "High emphasis/headings",
+          "content-inverted": "Inverted text color",
+          "content-info": "Info text",
+          "content-success": "Success text",
+          "content-attention": "Warning text",
+          "content-error": "Error text"
+        }
+      },
+      "primitive_palette": {
+        "brown": {
+          "50": "#fdf8f6",
+          "500": "#bfa094",
+          "900": "#43302b"
+        }
+      }
+    },
+    "layout": {
+      "screens": {
+        "xs": "420px",
+        "sm": "640px",
+        "md": "768px",
+        "lg": "1024px",
+        "xl": "1280px",
+        "2xl": "1536px"
+      },
+      "container_queries": "Enabled (@tailwindcss/container-queries)"
+    },
+    "animations": {
+      "modal": {
+        "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+        "fade-in": "fade-in 0.2s ease-out forwards"
+      },
+      "popover": {
+        "slide-up-fade": "slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "sheet": {
+        "slide-in-from-right": "slide-in-from-right 0.2s ease"
+      },
+      "custom": {
+        "wiggle": "wiggle 0.75s infinite",
+        "spinner": "spinner 1.2s linear infinite",
+        "blink": "blink 1.4s infinite both",
+        "pulse": "pulse 1s linear infinite alternate"
+      }
+    },
+    "shadows": {
+      "card-hover": "0 8px 12px #222A350d, 0 32px 80px #2f30370f"
+    }
+  },
+  "layouts": {
+    "dashboard": {
+      "desktop": {
+        "grid": "md:grid md:grid-cols-[min-content_minmax(0,1fr)]",
+        "background": "bg-neutral-200",
+        "main_content_area": {
+          "wrapper": "bg-neutral-200 pb-[var(--page-bottom-margin)] pt-[var(--page-top-margin)] md:h-screen md:pb-2 md:pr-2",
+          "container": "relative h-full overflow-y-auto bg-neutral-100 pt-px md:rounded-xl md:bg-white"
+        }
+      },
+      "mobile": {
+        "behavior": "Fixed backdrop with sliding sidebar",
+        "backdrop": "fixed left-0 top-0 z-50 h-dvh w-screen bg-black/20 backdrop-blur-sm",
+        "sidebar_container": "relative h-full w-min max-w-full bg-neutral-200 transition-transform"
+      }
+    },
+    "sidebar": {
+      "dimensions": {
+        "total_width": "304px",
+        "icons_strip_width": "64px",
+        "details_area_width": "240px"
+      },
+      "structure": {
+        "container": "grid size-full grid-cols-[64px_1fr] bg-neutral-200",
+        "icons_strip": "flex flex-col items-center justify-between py-2",
+        "details_area": "scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden rounded-xl bg-neutral-100"
+      },
+      "navigation_items": {
+        "group_icon": {
+          "size": "size-11",
+          "radius": "rounded-lg",
+          "default": "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 transition-colors duration-150",
+          "active": "bg-white"
+        },
+        "sub_item": {
+          "container": "group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
+          "default": "text-content-default hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
+          "active": "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100",
+          "locked": "cursor-not-allowed opacity-75"
+        }
+      }
+    },
+    "page_content": {
+      "standard": {
+        "wrapper": "bg-neutral-100 md:bg-white rounded-t-[inherit]",
+        "body": "rounded-t-[inherit] bg-white pt-3 lg:pt-6"
+      }
+    }
+  },
+  "components": {
+    "library_path": "packages/ui/src",
+    "app_components_path": "apps/web/ui",
+    "core_libraries": [
+      "radix-ui (primitives)",
+      "vaul (drawers)",
+      "class-variance-authority (variants)",
+      "clsx + tailwind-merge (cn utility)"
+    ],
+    "patterns": {
+      "variant_management": "Use `cva` to define variants (e.g. primary, secondary, outline) and export `variantName` helper.",
+      "class_merging": "Always wrap className props in `cn(...)` to allow overrides.",
+      "icons": "Use custom icons from `packages/ui/src/icons` or `lucide-react` if missing.",
+      "client_components": "Mark interactive components with 'use client'."
+    },
+    "common_components": {
+      "Button": {
+        "path": "packages/ui/src/button.tsx",
+        "variants": ["primary", "secondary", "outline", "success", "danger", "danger-outline"],
+        "props": ["text", "loading", "icon", "shortcut", "disabledTooltip"]
+      },
+      "Modal": {
+        "path": "packages/ui/src/modal.tsx",
+        "description": "Responsive modal that becomes a drawer on mobile.",
+        "props": ["showModal", "setShowModal", "desktopOnly"]
+      },
+      "CardList": {
+        "path": "packages/ui/src/card-list",
+        "description": "List of card items with hover effects.",
+        "variants": ["compact", "loose"]
+      },
+      "Tooltip": {
+        "path": "packages/ui/src/tooltip.tsx",
+        "description": "Radix UI based tooltip."
+      },
+      "Dropdown/Popover": {
+        "style": "z-50 min-w-[8rem] overflow-hidden rounded-md border border-neutral-200 bg-white p-1 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
+      }
+    }
+  },
+  "guidelines": {
+    "new_features": [
+      "Check `packages/ui/src` for existing primitives before building from scratch.",
+      "Use `apps/web/ui` for domain-specific components.",
+      "Follow the `cva` pattern for component variants.",
+      "Use semantic color tokens (e.g. `bg-subtle` instead of `bg-gray-100`) to support dark mode automatically.",
+      "Ensure all text is responsive and uses the configured font families.",
+      "Use `cn()` for all class name concatenation."
+    ],
+    "mobile_first": "Design for mobile first, using `xs:`, `sm:`, etc. breakpoints. Use `Drawer` (via Vaul) for mobile modals.",
+    "accessibility": "Use Radix UI primitives to ensure keyboard navigation and screen reader support."
+  }
+}
