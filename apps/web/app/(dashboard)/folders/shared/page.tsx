@@ -133,7 +133,7 @@ export default function SharedSetsFolderPage() {
                 </p>
 
                 <div className="flex items-center justify-between text-[12px] text-content-muted">
-                  <span>Ajouté le {new Date(sharedSet.added_at ?? sharedSet.created_at).toLocaleDateString('fr-FR')}</span>
+                  <span>Ajouté le {new Date(sharedSet.created_at).toLocaleDateString('fr-FR')}</span>
                   {renderActions(sharedSet)}
                 </div>
               </div>
