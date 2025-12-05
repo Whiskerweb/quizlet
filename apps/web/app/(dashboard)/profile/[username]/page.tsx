@@ -6,10 +6,11 @@ import { useAuthStore } from '@/store/authStore';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
 import { setsService } from '@/lib/supabase/sets';
+import { friendsService, type Friend } from '@/lib/supabase/friends';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { PasswordPromptModal } from '@/components/PasswordPromptModal';
-import { User, Lock, Share2, BookOpen, Trash2, Play } from 'lucide-react';
+import { User, Lock, Share2, BookOpen, Trash2, Play, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import type { Database } from '@/lib/supabase/types';
 
@@ -42,19 +43,47 @@ export default function ProfilePage() {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null);
   const [selectedSetTitle, setSelectedSetTitle] = useState<string>('');
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friendCount, setFriendCount] = useState(0);
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
 
   const isOwnProfile = currentProfile?.username === username;
 
   useEffect(() => {
     loadProfile();
+    if (isOwnProfile && user) {
+      loadFriends();
+    } else if (profile) {
+      loadFriendCount();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username]);
+  }, [username, isOwnProfile, profile]);
 
   useEffect(() => {
     if (activeTab === 'shared' && user) {
       loadSharedSets();
     }
   }, [activeTab, user]);
+
+  const loadFriends = async () => {
+    try {
+      const friendsList = await friendsService.getMyFriends();
+      setFriends(friendsList);
+      setFriendCount(friendsList.length);
+    } catch (error) {
+      console.error('Failed to load friends:', error);
+    }
+  };
+
+  const loadFriendCount = async () => {
+    if (!profile) return;
+    try {
+      const count = await friendsService.getFriendCount(profile.id);
+      setFriendCount(count);
+    } catch (error) {
+      console.error('Failed to load friend count:', error);
+    }
+  };
 
   const loadProfile = async () => {
     try {
@@ -195,9 +224,19 @@ export default function ProfilePage() {
           </div>
           <div>
             <h1 className="text-[28px] font-semibold text-content-emphasis">{profile.username}</h1>
-            <p className="text-[16px] text-content-muted">
-              {publicSets.length} {publicSets.length === 1 ? 'Cardz public' : 'Cardz publics'}
-            </p>
+            <div className="flex items-center gap-4 text-[16px] text-content-muted">
+              <span>
+                {publicSets.length} {publicSets.length === 1 ? 'Cardz public' : 'Cardz publics'}
+              </span>
+              <span>•</span>
+              <button
+                onClick={() => isOwnProfile ? setShowFriendsModal(true) : null}
+                className={`flex items-center gap-1.5 ${isOwnProfile ? 'hover:text-brand-primary transition-colors cursor-pointer' : 'cursor-default'}`}
+              >
+                <Users className="h-4 w-4" />
+                <span>{friendCount} ami{friendCount !== 1 ? 's' : ''}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -357,6 +396,67 @@ export default function ProfilePage() {
         onSubmit={handlePasswordSubmit}
         setTitle={selectedSetTitle}
       />
+
+      {/* Friends Modal */}
+      {showFriendsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowFriendsModal(false)}>
+          <div className="bg-bg-default rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-border-subtle">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-brand-primary" />
+                <h2 className="text-lg font-semibold text-content-emphasis">
+                  Mes amis ({friendCount})
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowFriendsModal(false)}
+                className="p-2 hover:bg-bg-subtle rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5 text-content-muted" />
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto max-h-[calc(80vh-80px)]">
+              {friends.length === 0 ? (
+                <div className="py-12 text-center">
+                  <Users className="h-12 w-12 text-content-subtle mx-auto mb-3 opacity-50" />
+                  <p className="text-content-muted">Vous n'avez pas encore d'amis</p>
+                  <p className="text-content-subtle text-sm mt-2">
+                    Invitez vos amis pour réviser ensemble !
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border-subtle">
+                  {friends.map((friend: any) => (
+                    <Link
+                      key={friend.id}
+                      href={`/profile/${friend.username}`}
+                      onClick={() => setShowFriendsModal(false)}
+                      className="flex items-center gap-3 p-4 hover:bg-bg-subtle transition-colors"
+                    >
+                      <div className="h-10 w-10 rounded-full bg-bg-emphasis flex items-center justify-center border border-border-subtle">
+                        {friend.avatar_url ? (
+                          <img src={friend.avatar_url} alt={friend.username} className="h-full w-full rounded-full" />
+                        ) : (
+                          <User className="h-5 w-5 text-content-muted" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-content-emphasis truncate">
+                          {friend.username}
+                        </p>
+                        <p className="text-xs text-content-muted">
+                          Ami depuis {new Date(friend.created_at).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
