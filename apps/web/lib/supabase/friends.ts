@@ -152,24 +152,24 @@ export const friendsService = {
     if (!friendships || friendships.length === 0) return [];
 
     // Get friend IDs
-    const friendIds = friendships.map((f: any) => f.friend_id);
+    const friendIds = (friendships as any[]).map((f: any) => f.friend_id);
 
     // Get profiles for these friends
-    const { data: profiles, error: profilesError } = await supabaseBrowser
-      .from('profiles')
+    const { data: profiles, error: profilesError } = await (supabaseBrowser
+      .from('profiles') as any)
       .select('id, username, avatar_url')
       .in('id', friendIds);
 
     if (profilesError) throw profilesError;
 
     // Merge friendships with profiles
-    return friendships.map((friendship: any) => {
-      const profile = profiles?.find((p: any) => p.id === friendship.friend_id);
+    return (friendships as any[]).map((friendship: any) => {
+      const profile = (profiles as any[] || []).find((p: any) => p.id === friendship.friend_id);
       return {
-        id: profile?.id || friendship.friend_id,
-        username: profile?.username || 'Unknown',
-        avatar_url: profile?.avatar_url,
-        created_at: friendship.created_at,
+        id: (profile?.id || friendship.friend_id) as string,
+        username: (profile?.username || 'Unknown') as string,
+        avatar_url: profile?.avatar_url as string | undefined,
+        created_at: friendship.created_at as string,
       };
     });
   },
