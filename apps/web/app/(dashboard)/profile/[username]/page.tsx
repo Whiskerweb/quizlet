@@ -51,13 +51,17 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfile();
-    if (isOwnProfile && user) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [username]);
+
+  useEffect(() => {
+    if (profile && isOwnProfile && user) {
       loadFriends();
-    } else if (profile) {
+    } else if (profile && !isOwnProfile) {
       loadFriendCount();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username, isOwnProfile, profile]);
+  }, [profile?.id, isOwnProfile, user]);
 
   useEffect(() => {
     if (activeTab === 'shared' && user) {
