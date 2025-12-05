@@ -91,8 +91,8 @@ export default function HomePage() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const { data: todaySessions } = await supabaseBrowser
-        .from('study_sessions')
+      const { data: todaySessions } = await (supabaseBrowser
+        .from('study_sessions') as any)
         .select('*, answers(is_correct)')
         .eq('user_id', user!.id)
         .gte('started_at', today.toISOString());
@@ -139,8 +139,8 @@ export default function HomePage() {
 
       const activeSessions = await studyService.getActiveSessions().catch(() => []);
 
-      const { data: recentSets } = await supabaseBrowser
-        .from('sets')
+      const { data: recentSets } = await (supabaseBrowser
+        .from('sets') as any)
         .select('id, title')
         .eq('user_id', user!.id)
         .order('updated_at', { ascending: false })
@@ -148,8 +148,8 @@ export default function HomePage() {
 
       const setsWithCounts = await Promise.all(
         (recentSets || []).map(async (set) => {
-          const { count } = await supabaseBrowser
-            .from('flashcards')
+          const { count } = await (supabaseBrowser
+            .from('flashcards') as any)
             .select('*', { count: 'exact', head: true })
             .eq('set_id', set.id);
           return { ...set, cards: count || 0 };
@@ -165,8 +165,8 @@ export default function HomePage() {
       weekAgo.setDate(weekAgo.getDate() - 6);
       weekAgo.setHours(0, 0, 0, 0);
       
-      const { data: weekSessions } = await supabaseBrowser
-        .from('study_sessions')
+      const { data: weekSessions } = await (supabaseBrowser
+        .from('study_sessions') as any)
         .select('*, answers(*)')
         .eq('user_id', user!.id)
         .gte('started_at', weekAgo.toISOString());
@@ -210,8 +210,8 @@ export default function HomePage() {
       const checkDate = new Date();
       checkDate.setHours(0, 0, 0, 0);
       
-      const { data: allSessions } = await supabaseBrowser
-        .from('study_sessions')
+      const { data: allSessions } = await (supabaseBrowser
+        .from('study_sessions') as any)
         .select('started_at')
         .eq('user_id', user!.id)
         .order('started_at', { ascending: false })
