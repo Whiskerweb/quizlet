@@ -70,6 +70,8 @@ export const friendsService = {
    * Validate and use an invitation code
    */
   async useInviteCode(code: string, newUserId: string): Promise<void> {
+    console.log('[FriendsService] useInviteCode START', { code, newUserId });
+    
     // Get invitation code
     const { data: inviteCode, error: codeError } = await (supabaseBrowser
       .from('invitation_codes') as any)
@@ -77,62 +79,123 @@ export const friendsService = {
       .eq('code', code)
       .single();
 
+    console.log('[FriendsService] Invite code lookup result:', { 
+      found: !!inviteCode, 
+      error: codeError?.message,
+      inviteCode 
+    });
+
     if (codeError || !inviteCode) {
+      console.error('[FriendsService] Code lookup failed:', codeError);
       throw new Error('Code d\'invitation invalide');
     }
 
     // Check if expired
-    if (new Date(inviteCode.expires_at) < new Date()) {
+    const now = new Date();
+    const expiresAt = new Date(inviteCode.expires_at);
+    if (expiresAt < now) {
+      console.error('[FriendsService] Code expired:', { expiresAt, now });
       throw new Error('Code d\'invitation expiré');
     }
 
     // Check if max uses reached
     if (inviteCode.uses_count >= inviteCode.max_uses) {
+      console.error('[FriendsService] Code exhausted:', { 
+        uses_count: inviteCode.uses_count, 
+        max_uses: inviteCode.max_uses 
+      });
       throw new Error('Code d\'invitation épuisé');
     }
 
+    console.log('[FriendsService] Code valid, checking existing friendship...');
+
     // Check if already friends
-    const { data: existingFriendship } = await (supabaseBrowser
+    const { data: existingFriendship, error: checkError } = await (supabaseBrowser
       .from('friendships') as any)
       .select('*')
       .or(`and(user_id.eq.${newUserId},friend_id.eq.${inviteCode.inviter_id}),and(user_id.eq.${inviteCode.inviter_id},friend_id.eq.${newUserId})`)
       .maybeSingle();
 
+    console.log('[FriendsService] Existing friendship check:', { 
+      exists: !!existingFriendship,
+      error: checkError?.message,
+      existingFriendship
+    });
+
     if (existingFriendship) {
       // Already friends, just increment counter
-      await (supabaseBrowser
+      console.log('[FriendsService] Already friends, incrementing counter');
+      const { error: updateError } = await (supabaseBrowser
         .from('invitation_codes') as any)
         .update({ uses_count: inviteCode.uses_count + 1 })
         .eq('id', inviteCode.id);
+      
+      if (updateError) {
+        console.error('[FriendsService] Failed to increment counter:', updateError);
+      }
       return;
     }
 
+    console.log('[FriendsService] Creating bidirectional friendship...', {
+      friendship1: { user_id: newUserId, friend_id: inviteCode.inviter_id },
+      friendship2: { user_id: inviteCode.inviter_id, friend_id: newUserId }
+    });
+
     // Create bidirectional friendship
-    const { error: friendship1Error } = await (supabaseBrowser
+    const { data: friendship1Data, error: friendship1Error } = await (supabaseBrowser
       .from('friendships') as any)
       .insert({
         user_id: newUserId,
         friend_id: inviteCode.inviter_id,
         invited_via_code: code,
-      });
+      })
+      .select()
+      .single();
 
-    if (friendship1Error) throw friendship1Error;
+    console.log('[FriendsService] Friendship 1 result:', { 
+      success: !friendship1Error,
+      error: friendship1Error?.message,
+      data: friendship1Data
+    });
 
-    const { error: friendship2Error } = await (supabaseBrowser
+    if (friendship1Error) {
+      console.error('[FriendsService] Friendship 1 failed:', friendship1Error);
+      throw friendship1Error;
+    }
+
+    const { data: friendship2Data, error: friendship2Error } = await (supabaseBrowser
       .from('friendships') as any)
       .insert({
         user_id: inviteCode.inviter_id,
         friend_id: newUserId,
         invited_via_code: code,
-      });
+      })
+      .select()
+      .single();
 
-    if (friendship2Error) throw friendship2Error;
+    console.log('[FriendsService] Friendship 2 result:', { 
+      success: !friendship2Error,
+      error: friendship2Error?.message,
+      data: friendship2Data
+    });
+
+    if (friendship2Error) {
+      console.error('[FriendsService] Friendship 2 failed:', friendship2Error);
+      throw friendship2Error;
+    }
 
     // Increment uses count
-    await (supabaseBrowser
+    console.log('[FriendsService] Incrementing uses count...');
+    const { error: incrementError } = await (supabaseBrowser
       .from('invitation_codes') as any)
       .update({ uses_count: inviteCode.uses_count + 1 })
       .eq('id', inviteCode.id);
+
+    if (incrementError) {
+      console.error('[FriendsService] Failed to increment uses count:', incrementError);
+    } else {
+      console.log('[FriendsService] useInviteCode SUCCESS ✅');
+    }
   },
 
   /**

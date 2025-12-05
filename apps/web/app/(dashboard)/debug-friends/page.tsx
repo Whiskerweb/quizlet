@@ -99,11 +99,52 @@ export default function DebugFriendsPage() {
 
   const testGenerateCode = async () => {
     try {
+      console.log('[Debug] Starting code generation...');
       const code = await friendsService.generateInviteCode();
-      alert(`Code généré: ${code.code}\nLien: ${friendsService.getInviteLink(code.code)}`);
+      console.log('[Debug] Code generated successfully:', code);
+      const link = friendsService.getInviteLink(code.code);
+      console.log('[Debug] Invite link:', link);
+      
+      alert(`Code généré: ${code.code}\nLien: ${link}\n\n✅ Vérifie la console pour les détails`);
       await loadDebugInfo();
     } catch (error: any) {
-      alert('Erreur: ' + error.message);
+      console.error('[Debug] Failed to generate code:', error);
+      alert('Erreur: ' + error.message + '\n\nVérifie la console pour les détails');
+    }
+  };
+
+  const testFullFlow = async () => {
+    try {
+      console.log('[Debug] ===== STARTING FULL INVITATION FLOW TEST =====');
+      
+      // Step 1: Generate code
+      console.log('[Debug] Step 1: Generating invite code...');
+      const code = await friendsService.generateInviteCode();
+      console.log('[Debug] ✅ Code generated:', code);
+      
+      // Step 2: Get link
+      const link = friendsService.getInviteLink(code.code);
+      console.log('[Debug] ✅ Link created:', link);
+      
+      // Step 3: Copy to clipboard
+      await navigator.clipboard.writeText(link);
+      console.log('[Debug] ✅ Link copied to clipboard');
+      
+      alert(`✅ TEST RÉUSSI !\n\n` +
+            `Code: ${code.code}\n` +
+            `Lien copié dans le presse-papier\n\n` +
+            `PROCHAINES ÉTAPES:\n` +
+            `1. Ouvre une fenêtre de navigation privée\n` +
+            `2. Colle le lien (${link})\n` +
+            `3. Crée un nouveau compte\n` +
+            `4. Reviens ici et clique sur "Rafraîchir"\n` +
+            `5. Tu devrais voir le nouvel ami !\n\n` +
+            `📝 Vérifie la console pour les logs détaillés`);
+      
+      await loadDebugInfo();
+    } catch (error: any) {
+      console.error('[Debug] ===== FULL FLOW TEST FAILED =====', error);
+      alert('❌ ERREUR: ' + error.message + '\n\nVérifie la console pour les détails');
     }
   };
 
@@ -122,10 +163,13 @@ export default function DebugFriendsPage() {
         <p className="text-content-muted mb-4">
           Cette page affiche toutes les informations sur le système d'amis
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={loadDebugInfo}>Rafraîchir</Button>
           <Button onClick={testGenerateCode} variant="outline">
-            Tester génération de code
+            Générer un code
+          </Button>
+          <Button onClick={testFullFlow} className="bg-green-600 hover:bg-green-700">
+            🧪 Test complet du flux
           </Button>
         </div>
       </div>
