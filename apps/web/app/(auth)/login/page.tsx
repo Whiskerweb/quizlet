@@ -80,7 +80,7 @@ function LoginForm() {
       <div className="flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-64px)]">
         <Card className="w-full max-w-md border border-gray-200 shadow-sm">
           <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
-            <CardTitle className="text-[20px] sm:text-[24px] font-bold text-white">
+            <CardTitle className="text-[20px] sm:text-[24px] font-bold text-content-emphasis">
               Sign in to your account
             </CardTitle>
           </CardHeader>
@@ -103,7 +103,7 @@ function LoginForm() {
                 <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-dark-background-card text-gray-500 dark:text-dark-text-muted">Ou</span>
+                <span className="px-2 bg-white dark:bg-dark-background-card text-content-muted dark:text-dark-text-muted">Ou</span>
               </div>
             </div>
 
@@ -164,7 +164,7 @@ export default function LoginPage() {
         <div className="flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-64px)]">
           <Card className="w-full max-w-md border border-gray-200 shadow-sm">
             <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
-              <CardTitle className="text-[20px] sm:text-[24px] font-bold text-white">
+              <CardTitle className="text-[20px] sm:text-[24px] font-bold text-content-emphasis">
                 Sign in to your account
               </CardTitle>
             </CardHeader>

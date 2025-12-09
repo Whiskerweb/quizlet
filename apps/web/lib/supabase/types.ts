@@ -21,6 +21,7 @@ export interface Database {
           last_name: string | null
           avatar: string | null
           is_premium: boolean
+          role: 'student' | 'teacher'
           created_at: string
           updated_at: string
         }
@@ -32,6 +33,7 @@ export interface Database {
           last_name?: string | null
           avatar?: string | null
           is_premium?: boolean
+          role?: 'student' | 'teacher'
           created_at?: string
           updated_at?: string
         }
@@ -43,6 +45,7 @@ export interface Database {
           last_name?: string | null
           avatar?: string | null
           is_premium?: boolean
+          role?: 'student' | 'teacher'
           created_at?: string
           updated_at?: string
         }

@@ -121,7 +121,8 @@ export const setsService = {
   },
 
   async getOne(id: string) {
-    const { data, error } = await supabaseBrowser
+    // First try direct query (works for owners and public sets)
+    let { data, error } = await supabaseBrowser
       .from('sets')
       .select(`
         *,
@@ -129,6 +130,85 @@ export const setsService = {
       `)
       .eq('id', id)
       .single();
+
+    // If direct query fails (RLS block), try RPC function for class module sets
+    if (error && (error.code === 'PGRST116' || error.message?.includes('0 rows'))) {
+      const { data: { user } } = await supabaseBrowser.auth.getUser();
+      if (user) {
+        const { data: rpcData, error: rpcError } = await supabaseBrowser
+          .rpc('get_student_class_set', {
+            p_set_id: id,
+            p_student_id: user.id,
+          });
+
+        if (rpcError) {
+          // If RPC also fails, throw original error
+          throw error;
+        }
+
+        // Transform RPC response to match expected format
+        const typedData = rpcData as any;
+        if (typedData && typedData[0]) {
+          const setData = typedData[0];
+          
+          // Parse flashcards if they're in JSONB format (string or array)
+          let flashcards = setData.flashcards || [];
+          if (typeof flashcards === 'string') {
+            try {
+              flashcards = JSON.parse(flashcards);
+            } catch (e) {
+              console.warn('[setsService] Failed to parse flashcards JSON:', e);
+              flashcards = [];
+            }
+          }
+          
+          // Ensure flashcards is an array and normalize format
+          let normalizedFlashcards: Flashcard[] = [];
+          if (Array.isArray(flashcards)) {
+            normalizedFlashcards = flashcards.map((fc: any) => ({
+              id: fc.id,
+              set_id: fc.set_id || setData.id,
+              front: fc.front || '',
+              back: fc.back || '',
+              image_url: fc.image_url || null,
+              audio_url: fc.audio_url || null,
+              order: typeof fc.order === 'number' ? fc.order : 0,
+              created_at: fc.created_at || new Date().toISOString(),
+              updated_at: fc.updated_at || new Date().toISOString(),
+            } as Flashcard));
+            
+            // Sort by order
+            normalizedFlashcards.sort((a, b) => (a.order || 0) - (b.order || 0));
+          }
+          
+          console.log('[setsService] RPC set loaded:', {
+            setId: setData.id,
+            title: setData.title,
+            flashcardsCount: normalizedFlashcards.length,
+            sampleCard: normalizedFlashcards[0] ? {
+              id: normalizedFlashcards[0].id,
+              hasFront: !!normalizedFlashcards[0].front,
+              hasBack: !!normalizedFlashcards[0].back,
+              order: normalizedFlashcards[0].order,
+            } : null,
+          });
+          
+          return {
+            id: setData.id,
+            title: setData.title,
+            description: setData.description,
+            is_public: setData.is_public,
+            tags: setData.tags,
+            language: setData.language,
+            user_id: setData.user_id,
+            folder_id: setData.folder_id,
+            created_at: setData.created_at,
+            updated_at: setData.updated_at,
+            flashcards: normalizedFlashcards,
+          } as SetWithFlashcards;
+        }
+      }
+    }
 
     if (error) throw error;
     
@@ -141,6 +221,30 @@ export const setsService = {
     }
     
     return typedData as SetWithFlashcards;
+  },
+
+  /**
+   * Get progress for a set (for students)
+   */
+  async getProgress(setId: string) {
+    const { data: { user } } = await supabaseBrowser.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    console.log('[setsService] Getting progress for set:', setId, 'user:', user.id);
+    const { data, error } = await supabaseBrowser
+      .rpc('get_set_progress', {
+        p_set_id: setId,
+        p_user_id: user.id,
+      });
+
+    if (error) {
+      console.error('[setsService] Error getting progress:', error);
+      throw error;
+    }
+
+    const result = data && data[0] ? data[0] : { total_cards: 0, mastered_cards: 0, progress_percentage: 0 };
+    console.log('[setsService] Progress result:', result);
+    return result;
   },
 
   async getByShareId(shareId: string) {

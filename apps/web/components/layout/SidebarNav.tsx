@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, BookOpen, Folder, Sparkles, Share2, Menu, X, ChevronLeft, Globe } from 'lucide-react';
+import { Home, BookOpen, Folder, Sparkles, Share2, Menu, X, ChevronLeft, Globe, School } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { foldersService } from '@/lib/supabase/folders';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
@@ -20,8 +20,13 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const mainNavItems: NavItem[] = [
+const mainNavItemsStudent: NavItem[] = [
   { href: '/home', label: 'Accueil', icon: Home },
+  { href: '/dashboard', label: 'Votre espace', icon: BookOpen },
+];
+
+const mainNavItemsTeacher: NavItem[] = [
+  { href: '/my-class', label: 'Mes classes', icon: School },
   { href: '/dashboard', label: 'Votre espace', icon: BookOpen },
 ];
 
@@ -34,7 +39,7 @@ interface SidebarNavProps {
 export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = false }: SidebarNavProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, profile } = useAuthStore();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(true);
   const [hasSharedSets, setHasSharedSets] = useState(false);
@@ -88,6 +93,9 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
     }
     if (href === '/public-sets') {
       return pathname === '/public-sets';
+    }
+    if (href === '/my-class') {
+      return pathname === '/my-class' || pathname?.startsWith('/class/');
     }
     return pathname?.startsWith(href);
   };
@@ -211,7 +219,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
       )}>
         {/* Main Navigation */}
         <div className="space-y-0.5 sm:space-y-1">
-          {mainNavItems.map((item) => {
+          {(profile?.role === 'teacher' ? mainNavItemsTeacher : mainNavItemsStudent).map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
             return (
@@ -231,6 +239,23 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
               </Link>
             );
           })}
+          
+          {/* Ma classe - Only for students */}
+          {profile?.role === 'student' && (
+            <Link
+              href="/my-class"
+              onClick={() => isMobile && setIsOpen(false)}
+              className={navItemClasses(isActive('/my-class'))}
+              title={!isOpen ? 'Ma classe' : undefined}
+            >
+              <School className={navIconClasses(isActive('/my-class'))} />
+              {isOpen && (
+                <span className={navLabelClasses(isActive('/my-class'))}>
+                  Ma classe
+                </span>
+              )}
+            </Link>
+          )}
         </div>
 
         {/* Divider */}

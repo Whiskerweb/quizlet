@@ -13,10 +13,23 @@ import { InviteFriendsCTA } from '@/components/InviteFriendsCTA';
 import { Plus, BookOpen, Folder, FolderPlus, Trash2, ChevronDown, Play, Pencil, Share2 } from 'lucide-react';
 import { createSetAndRedirect } from '@/lib/utils/createSetAndRedirect';
 import { useRouter } from 'next/navigation';
+import { TeacherDashboard } from '@/components/teacher/TeacherDashboard';
 
 type Set = Database['public']['Tables']['sets']['Row'];
 
 export default function DashboardPage() {
+  const { profile } = useAuthStore();
+
+  // Conditional rendering based on role
+  if (profile?.role === 'teacher') {
+    return <TeacherDashboard />;
+  }
+
+  // Student dashboard (existing code)
+  return <StudentDashboard />;
+}
+
+function StudentDashboard() {
   const router = useRouter();
   const { profile } = useAuthStore();
   const [folders, setFolders] = useState<FolderWithSets[]>([]);

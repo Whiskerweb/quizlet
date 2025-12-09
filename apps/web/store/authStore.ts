@@ -10,6 +10,7 @@ interface Profile {
   last_name?: string | null;
   avatar?: string | null;
   is_premium: boolean;
+  role?: 'student' | 'teacher';
 }
 
 interface AuthState {

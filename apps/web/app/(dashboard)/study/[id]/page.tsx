@@ -4,6 +4,8 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { setsService } from '@/lib/supabase/sets';
 import { studyService } from '@/lib/supabase/study';
+import { classModulesService } from '@/lib/supabase/class-modules';
+import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormattedText } from '@/components/FormattedText';
@@ -47,6 +49,7 @@ type ModeMemoryMap = Record<StudyMode, ModeMemory>;
 export default function StudyPage() {
   const params = useParams();
   const router = useRouter();
+  const { profile } = useAuthStore();
   const setId = params.id as string;
   const [mode, setMode] = useState<StudyMode>('flashcard');
   
@@ -65,6 +68,9 @@ export default function StudyPage() {
   const [matchCompleted, setMatchCompleted] = useState(false);
   const [showSettings, setShowSettings] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
+  const [classInfo, setClassInfo] = useState<{ class_id: string; class: any } | null>(null);
+  // Track time when card is flipped (for flashcard mode)
+  const [cardStartTime, setCardStartTime] = useState<number | null>(null);
   // Memory system: store state for each mode
   const [modeMemory, setModeMemory] = useState<ModeMemoryMap>({
     flashcard: { sessionState: null, currentCard: null, isFlipped: false, sessionId: null, flashcards: [], matchCompleted: false },
@@ -88,6 +94,38 @@ export default function StudyPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setId]);
 
+  // Check if set belongs to a class (for students only)
+  useEffect(() => {
+    const checkSetClass = async () => {
+      const userRole = (profile as any)?.role;
+      console.log('[Study] Checking if set belongs to a class:', { role: userRole, setId });
+      if (userRole === 'student' && setId) {
+        try {
+          console.log('[Study] Looking for class for set:', setId);
+          const foundClass = await classModulesService.findSetClass(setId);
+          console.log('[Study] Found class:', foundClass);
+          if (foundClass) {
+            setClassInfo(foundClass);
+            console.log('[Study] Class info set:', foundClass);
+          } else {
+            console.log('[Study] No class found for this set');
+          }
+        } catch (error) {
+          console.error('[Study] Failed to find set class:', error);
+        }
+      } else {
+        const userRole = (profile as any)?.role;
+        console.log('[Study] Not a student or no setId:', { role: userRole, setId });
+      }
+    };
+
+    if (profile) {
+      checkSetClass();
+    } else {
+      console.log('[Study] No profile yet, waiting...');
+    }
+  }, [setId, profile]);
+
   // Auto-save session state periodically (backup - main save is after each answer)
   useEffect(() => {
     if (!sessionId || !sessionState || !hasStarted || sessionId.startsWith('local-')) return;
@@ -107,24 +145,71 @@ export default function StudyPage() {
   const loadSet = async () => {
     try {
       setIsLoading(true);
+      console.log('[Study] Loading set:', setId);
       const set = await setsService.getOne(setId);
+      console.log('[Study] Set loaded:', { 
+        id: set.id, 
+        title: set.title, 
+        flashcardsCount: set.flashcards?.length || 0,
+        flashcardsType: typeof set.flashcards,
+        isArray: Array.isArray(set.flashcards),
+        sampleFlashcard: set.flashcards?.[0] ? {
+          id: set.flashcards[0].id,
+          hasFront: !!set.flashcards[0].front,
+          hasBack: !!set.flashcards[0].back,
+          frontType: typeof set.flashcards[0].front,
+          backType: typeof set.flashcards[0].back,
+        } : null,
+      });
+      
       if (set.flashcards && Array.isArray(set.flashcards) && set.flashcards.length > 0) {
         const validFlashcards = set.flashcards.filter(
           card => card && typeof card.front === 'string' && typeof card.back === 'string'
         );
+        console.log('[Study] Valid flashcards:', {
+          total: set.flashcards.length,
+          valid: validFlashcards.length,
+          invalid: set.flashcards.length - validFlashcards.length,
+          invalidCards: set.flashcards.filter(
+            card => !card || typeof card.front !== 'string' || typeof card.back !== 'string'
+          ).map(c => ({ id: c?.id, frontType: typeof c?.front, backType: typeof c?.back })),
+        });
+        
         if (validFlashcards.length > 0) {
-          setOriginalFlashcards(validFlashcards);
-          setFlashcards(validFlashcards);
+          // Ensure all flashcards have required fields
+          const processedFlashcards = validFlashcards.map(card => ({
+            id: card.id,
+            front: String(card.front || ''),
+            back: String(card.back || ''),
+            image_url: card.image_url || null,
+            audio_url: card.audio_url || null,
+            order: card.order || 0,
+            set_id: card.set_id || setId,
+            created_at: card.created_at,
+            updated_at: card.updated_at,
+          }));
+          
+          console.log('[Study] Processed flashcards:', processedFlashcards.length);
+          setOriginalFlashcards(processedFlashcards);
+          setFlashcards(processedFlashcards);
         } else {
+          console.warn('[Study] No valid flashcards found');
           setFlashcards([]);
           setOriginalFlashcards([]);
         }
       } else {
+        console.warn('[Study] No flashcards in set or set.flashcards is not an array', {
+          hasFlashcards: !!set.flashcards,
+          isArray: Array.isArray(set.flashcards),
+          length: set.flashcards?.length,
+        });
         setFlashcards([]);
+        setOriginalFlashcards([]);
       }
     } catch (error) {
-      console.error('Failed to load set:', error);
+      console.error('[Study] Failed to load set:', error);
       setFlashcards([]);
+      setOriginalFlashcards([]);
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +232,9 @@ export default function StudyPage() {
       isCorrect, 
       hasSessionId: !!sessionId, 
       hasSessionState: !!sessionState, 
-      hasCurrentCard: !!currentCard 
+      hasCurrentCard: !!currentCard,
+      mode,
+      cardStartTime: cardStartTime ? new Date(cardStartTime).toISOString() : null
     });
 
     if (!sessionState || !currentCard) {
@@ -160,112 +247,175 @@ export default function StudyPage() {
 
     const flashcardId = currentCard.flashcardId;
 
-    try {
-      // Submit to backend (only if we have a sessionId)
-      if (sessionId) {
+    // For flashcard mode, calculate time spent if card was flipped
+    if (mode === 'flashcard' && timeSpent === 0 && cardStartTime) {
+      timeSpent = Date.now() - cardStartTime;
+      console.log('[Study] Calculated time spent in flashcard mode:', timeSpent, 'ms');
+    }
+
+    // Try to submit to backend first (if we have a real session)
+    if (sessionId && !sessionId.startsWith('local-')) {
+      try {
         await studyService.submitAnswer(sessionId, {
           flashcardId,
           isCorrect,
           timeSpent,
         });
-      } else {
-        console.warn('[Study] No sessionId - answer not submitted to backend');
+        console.log('[Study] Answer submitted via API');
+      } catch (error) {
+        // If API fails, try direct save
+        console.warn('[Study] API submission failed, trying direct save:', error);
+        try {
+          await studyService.saveAnswerDirect(setId, flashcardId, isCorrect, timeSpent);
+          console.log('[Study] Answer saved directly to database');
+        } catch (directError) {
+          console.warn('[Study] Direct save also failed:', directError);
+        }
       }
+    } else {
+      // For local sessions, save directly to database
+      try {
+        await studyService.saveAnswerDirect(setId, flashcardId, isCorrect, timeSpent);
+        console.log('[Study] Answer saved directly (local session)');
+      } catch (error) {
+        console.warn('[Study] Failed to save answer directly:', error);
+      }
+    }
 
-      // Update session state
+    try {
+      // Update session state (always do this, even if backend submission failed)
       const updatedState = recordAnswer(sessionState, flashcardId, isCorrect);
-      console.log('[Study] Answer recorded:', { flashcardId, isCorrect, updatedState });
+      console.log('[Study] Answer recorded:', { 
+        flashcardId, 
+        isCorrect, 
+        masteredCount: updatedState.masteredCards.size,
+        totalCards: updatedState.cards.length,
+        allMastered: updatedState.cards.every(c => c.isMastered),
+      });
 
-      // Check if session is complete
+      // Check if session is complete BEFORE moving to next card
       if (isSessionComplete(updatedState)) {
-        console.log('[Study] Session complete');
+        console.log('[Study] ✅ All cards mastered - completing session');
         setSessionState(updatedState);
         await completeSession();
         return;
       }
 
-      // Move to next card
+      // Move to next card - just increment index
       const nextState = moveToNext(updatedState);
-      console.log('[Study] Moved to next:', { currentIndex: nextState.currentIndex, previousCardId: flashcardId });
+      const unmasteredCount = nextState.cards.filter(c => !c.isMastered).length;
+      console.log('[Study] Moved to next:', { 
+        currentIndex: nextState.currentIndex, 
+        previousCardId: flashcardId,
+        totalCards: nextState.cards.length,
+        unmasteredCount,
+        masteredCount: nextState.masteredCards.size,
+      });
       
-      // Get next card (will prioritize incorrect ones if needed)
-      // Pass current card ID to ensure we don't get the same card
-      let nextCard = getNextCard(nextState, flashcardId);
-      console.log('[Study] Next card (first attempt):', nextCard?.flashcardId);
-      
-      // If we got the same card or null, try incrementing index until we find a different card
-      let attempts = 0;
-      let finalState = nextState;
-      while ((!nextCard || nextCard.flashcardId === flashcardId) && attempts < 10) {
-        finalState = {
-          ...finalState,
-          currentIndex: finalState.currentIndex + 1,
-        };
-        nextCard = getNextCard(finalState, flashcardId);
-        attempts++;
-        console.log('[Study] Next card (attempt', attempts, '):', nextCard?.flashcardId, 'index:', finalState.currentIndex);
+      // Double-check: if no unmastered cards, complete session
+      if (unmasteredCount === 0) {
+        console.log('[Study] ✅ No unmastered cards remaining - completing session');
+        setSessionState(nextState);
+        await completeSession();
+        return;
       }
       
-      // Update state with final state
-      setSessionState(finalState);
-      console.log('[Study] Final state:', { currentIndex: finalState.currentIndex, nextCardId: nextCard?.flashcardId });
+      // Get next card (will prioritize incorrect ones if needed)
+      // Always pass current card ID to ensure we don't get the same card
+      let nextCard = getNextCard(nextState, flashcardId);
+      console.log('[Study] Next card (first attempt):', {
+        nextCardId: nextCard?.flashcardId,
+        nextCardFront: nextCard?.front?.substring(0, 50),
+        isSameCard: nextCard?.flashcardId === flashcardId,
+        availableUnmastered: nextState.cards.filter(c => !c.isMastered && c.flashcardId !== flashcardId).length,
+      });
+      
+      // If we got the same card (shouldn't happen with fixed getNextCard, but safety check)
+      // or null, we need to handle it
+      if (nextCard && nextCard.flashcardId === flashcardId) {
+        console.warn('[Study] WARNING: Got same card, finding alternative');
+        // Force get a different card by trying different states
+        const unmasteredCards = nextState.cards.filter(c => !c.isMastered && c.flashcardId !== flashcardId);
+        if (unmasteredCards.length > 0) {
+          nextCard = unmasteredCards[0];
+          console.log('[Study] Using alternative card:', nextCard.flashcardId);
+        } else {
+          nextCard = null;
+          console.log('[Study] No alternative cards available - session complete');
+        }
+      }
+      
+      // Update state
+      setSessionState(nextState);
+      console.log('[Study] Final state:', { currentIndex: nextState.currentIndex, nextCardId: nextCard?.flashcardId });
       
       // Save progress to backend immediately after each answer
       if (sessionId && sessionId.startsWith('local-') === false) {
         try {
-          await studyService.updateSessionState(sessionId, finalState);
+          await studyService.updateSessionState(sessionId, nextState);
           console.log('[Study] Progress auto-saved after answer');
         } catch (error) {
           console.warn('[Study] Failed to auto-save progress:', error);
         }
       }
       
-      if (nextCard && nextCard.flashcardId !== flashcardId) {
-        console.log('[Study] Setting new card:', nextCard.flashcardId);
-        // Use functional updates to ensure we're using the latest state
-        setCurrentCard(() => nextCard);
-        setIsFlipped(() => false);
-        
-        // Update memory with new state
-        setTimeout(() => {
-          setModeMemory(prev => ({
-            ...prev,
-            [mode]: {
-              sessionState: finalState,
-              currentCard: nextCard,
-              isFlipped: false,
-              sessionId,
-              flashcards,
-              matchCompleted,
-            },
-          }));
-        }, 0);
-      } else {
-        // All cards mastered or no more cards available
-        console.log('[Study] No more cards available, completing session');
+      // Check if we have a valid next card
+      if (!nextCard || nextCard.flashcardId === flashcardId) {
+        // No more cards available or same card - session is complete
+        console.log('[Study] ✅ No valid next card available - completing session');
         await completeSession();
+        return;
       }
+      
+      // We have a valid next card - proceed to it
+      console.log('[Study] Setting new card:', nextCard.flashcardId);
+      // Use functional updates to ensure we're using the latest state
+      setCurrentCard(() => nextCard);
+      setIsFlipped(() => false);
+      // Reset card start time for next card
+      setCardStartTime(null);
+      
+      // Update memory with new state
+      setTimeout(() => {
+        setModeMemory(prev => ({
+          ...prev,
+          [mode]: {
+            sessionState: nextState,
+            currentCard: nextCard,
+            isFlipped: false,
+            sessionId,
+            flashcards,
+            matchCompleted,
+          },
+        }));
+      }, 0);
     } catch (error) {
       console.error('Failed to submit answer:', error);
     }
-  }, [sessionId, sessionState, currentCard, mode, flashcards, matchCompleted]);
+  }, [sessionId, sessionState, currentCard, mode, flashcards, matchCompleted, cardStartTime]);
 
   const handleMatchComplete = async (correctCount: number, totalTime: number) => {
-    if (!sessionId || !sessionState) return;
+    if (!sessionState) return;
 
     // Mark all cards as correct for match mode
     let updatedState = sessionState;
     for (const card of flashcards) {
       updatedState = recordAnswer(updatedState, card.id, true);
       
+      // Save answers directly (works for both local and backend sessions)
       try {
-        await studyService.submitAnswer(sessionId, {
-          flashcardId: card.id,
-          isCorrect: true,
-          timeSpent: totalTime / flashcards.length,
-        });
+        if (sessionId && !sessionId.startsWith('local-')) {
+          await studyService.submitAnswer(sessionId, {
+            flashcardId: card.id,
+            isCorrect: true,
+            timeSpent: totalTime / flashcards.length,
+          });
+        } else {
+          // For local sessions, save directly
+          await studyService.saveAnswerDirect(setId, card.id, true, totalTime / flashcards.length);
+        }
       } catch (error) {
-        console.error('Failed to submit match answer:', error);
+        console.error('[Study] Failed to save match answer:', error);
       }
     }
 
@@ -296,13 +446,24 @@ export default function StudyPage() {
   };
 
   const completeSession = async () => {
-    if (!sessionId) return;
-
-    try {
-      await studyService.completeSession(sessionId);
-      setIsCompleted(true);
-    } catch (error) {
-      console.error('Failed to complete session:', error);
+    console.log('[Study] Completing session...', { sessionId, hasSessionState: !!sessionState });
+    
+    // Reset card start time
+    setCardStartTime(null);
+    
+    // Always mark as completed locally, even if backend call fails
+    setIsCompleted(true);
+    
+    // Try to mark as completed in backend (but don't block if it fails)
+    if (sessionId && !sessionId.startsWith('local-')) {
+      try {
+        await studyService.completeSession(sessionId);
+        console.log('[Study] ✅ Session marked as completed in backend');
+      } catch (error) {
+        console.warn('[Study] Failed to mark session as completed in backend (but marked locally):', error);
+      }
+    } else {
+      console.log('[Study] Local session - marked as completed locally only');
     }
   };
 
@@ -491,6 +652,25 @@ export default function StudyPage() {
     restoreModeState(mode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, hasStarted]);
+
+  // Track time when card is flipped in flashcard mode
+  useEffect(() => {
+    if (mode === 'flashcard' && isFlipped && !cardStartTime) {
+      // Card was just flipped, start tracking time
+      setCardStartTime(Date.now());
+      console.log('[Study] Card flipped, started tracking time');
+    } else if (mode === 'flashcard' && !isFlipped) {
+      // Card is not flipped, reset timer
+      setCardStartTime(null);
+    }
+  }, [mode, isFlipped, cardStartTime]);
+
+  // Reset card start time when card changes
+  useEffect(() => {
+    if (currentCard) {
+      setCardStartTime(null);
+    }
+  }, [currentCard?.flashcardId]);
 
   // Keyboard shortcuts for flashcard mode
   useEffect(() => {
@@ -878,6 +1058,9 @@ export default function StudyPage() {
   if (isCompleted) {
     const progress = sessionState ? getProgress(sessionState) : { progress: 100, masteredCount: flashcards.length, totalCards: flashcards.length };
 
+    console.log('[Study] Study completed, classInfo:', classInfo);
+    console.log('[Study] Will show buttons:', classInfo ? 'Finish (class)' : 'Back to Set + Study Again (personal)');
+
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="py-12 text-center">
@@ -887,12 +1070,25 @@ export default function StudyPage() {
             You mastered all {progress.totalCards} cards!
           </p>
           <div className="flex justify-center space-x-4">
-            <Button onClick={() => router.push(`/sets/${setId}`)}>
-              Back to Set
-            </Button>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Study Again
-            </Button>
+            {classInfo ? (
+              // If set belongs to a class, show "Finish" button to return to class
+              <Button onClick={() => {
+                console.log('[Study] Finish button clicked, navigating to class:', classInfo.class_id);
+                router.push(`/my-class/${classInfo.class_id}`);
+              }}>
+                Finish
+              </Button>
+            ) : (
+              // Otherwise, show normal buttons for personal sets
+              <>
+                <Button onClick={() => router.push(`/sets/${setId}`)}>
+                  Back to Set
+                </Button>
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  Study Again
+                </Button>
+              </>
+            )}
           </div>
         </Card>
       </div>

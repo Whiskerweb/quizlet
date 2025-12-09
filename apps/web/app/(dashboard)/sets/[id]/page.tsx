@@ -1,16 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { setsService } from '@/lib/supabase/sets';
 import { flashcardsService } from '@/lib/supabase/flashcards';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
+import { classModulesService } from '@/lib/supabase/class-modules';
 import type { SetWithFlashcards } from '@/lib/supabase/sets';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { FormattedText } from '@/components/FormattedText';
-import { Play, Edit, Trash2, Plus, Share2, Check } from 'lucide-react';
+import { Play, Edit, Trash2, Plus, Share2, Check, ArrowLeft } from 'lucide-react';
 import { ShareManageModal } from '@/components/ShareManageModal';
 import { hashPassword } from '@/lib/supabase/shared-sets';
 import { useAuthStore } from '@/store/authStore';
@@ -18,7 +19,8 @@ import { useAuthStore } from '@/store/authStore';
 export default function SetDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuthStore();
+  const searchParams = useSearchParams();
+  const { user, profile } = useAuthStore();
   const setId = params.id as string;
   const [set, setSet] = useState<SetWithFlashcards | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,6 +29,8 @@ export default function SetDetailPage() {
   const [isAddingToCollection, setIsAddingToCollection] = useState(false);
   const [isInCollection, setIsInCollection] = useState(false);
   const [checkingCollection, setCheckingCollection] = useState(true);
+  const [classInfo, setClassInfo] = useState<{ class_id: string; class: any } | null>(null);
+  const [progress, setProgress] = useState<{ total_cards: number; mastered_cards: number; progress_percentage: number } | null>(null);
 
   useEffect(() => {
     loadSet();
@@ -46,6 +50,55 @@ export default function SetDetailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [set, user]);
+
+  // Check if set belongs to a class (for students)
+  useEffect(() => {
+    const checkSetClass = async () => {
+      // Check if we have a classId in URL params (from "Back to Set" after study)
+      const classIdFromUrl = searchParams?.get('classId');
+      if (classIdFromUrl) {
+        console.log('[SetDetail] Found classId in URL params:', classIdFromUrl);
+        setClassInfo({ class_id: classIdFromUrl, class: { id: classIdFromUrl } });
+        return;
+      }
+
+      // Only check for students
+      if (set && profile?.role === 'student' && set.folder_id) {
+        try {
+          console.log('[SetDetail] Checking if set belongs to a class...', { setId, folderId: set.folder_id });
+          const foundClass = await classModulesService.findSetClass(setId);
+          if (foundClass) {
+            console.log('[SetDetail] Found class for set:', foundClass);
+            setClassInfo(foundClass);
+          } else {
+            console.log('[SetDetail] Set does not belong to any class');
+          }
+        } catch (error) {
+          console.warn('[SetDetail] Failed to find set class:', error);
+        }
+      }
+    };
+
+    if (set && profile) {
+      checkSetClass();
+    }
+  }, [set, profile, setId, searchParams]);
+
+  // Load progress when classInfo is available
+  useEffect(() => {
+    const loadProgress = async () => {
+      if (set && profile?.role === 'student' && classInfo) {
+        try {
+          const progressData = await setsService.getProgress(setId);
+          setProgress(progressData);
+        } catch (error) {
+          console.warn('[SetDetail] Failed to load progress:', error);
+        }
+      }
+    };
+
+    loadProgress();
+  }, [set, profile, classInfo, setId]);
 
   const loadSet = async () => {
     try {
@@ -149,6 +202,17 @@ export default function SetDetailPage() {
   return (
     <>
       <div className="mb-6">
+        {/* Back button if set belongs to a class */}
+        {classInfo && (
+          <Link 
+            href={`/my-class/${classInfo.class_id}`}
+            className="mb-4 inline-flex items-center gap-2 text-[14px] text-content-muted hover:text-content-emphasis transition"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour à la classe
+          </Link>
+        )}
+
         <div className="flex justify-between items-start mb-4">
           <div>
             <h1 className="text-[28px] font-bold text-content-emphasis">{set.title}</h1>
@@ -212,6 +276,31 @@ export default function SetDetailPage() {
           <span>{set.is_public ? 'Public' : 'Private'}</span>
           {set.language && <span>Language: {set.language}</span>}
         </div>
+
+        {/* Progress bar for class sets */}
+        {classInfo && progress && progress.total_cards > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[13px] text-content-muted">Progression</span>
+              <span className="text-[13px] font-medium text-content-emphasis">
+                {progress.progress_percentage}%
+              </span>
+            </div>
+            <div className="w-full h-2 bg-bg-subtle rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  progress.progress_percentage === 100
+                    ? 'bg-green-500'
+                    : 'bg-brand-primary'
+                }`}
+                style={{ width: `${progress.progress_percentage}%` }}
+              />
+            </div>
+            <p className="text-[12px] text-content-subtle mt-1">
+              {progress.mastered_cards} / {progress.total_cards} cartes maîtrisées
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mb-4 flex justify-between items-center">

@@ -207,7 +207,8 @@ export default function EditSetPage() {
       // Reload to get updated data
       await loadSet();
       setHasUnsavedChanges(false);
-      alert('Flashcards enregistrées avec succès !');
+      // Rediriger vers le dashboard
+      router.push('/dashboard');
     } catch (error) {
       console.error('Failed to save flashcards:', error);
       alert('Erreur lors de l\'enregistrement des flashcards');

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { createSetAndRedirect } from '@/lib/utils/createSetAndRedirect';
 import { studyService } from '@/lib/supabase/study';
 import { InviteFriendsCTA } from '@/components/InviteFriendsCTA';
+import { ClassesManagementPage } from '@/components/teacher/ClassesManagementPage';
 import { 
   Zap, 
   Flame, 
@@ -51,6 +52,18 @@ interface Stats {
 }
 
 export default function HomePage() {
+  const { profile } = useAuthStore();
+
+  // Conditional rendering: Classes for teachers, Stats for students
+  if (profile?.role === 'teacher') {
+    return <ClassesManagementPage />;
+  }
+
+  // Student dashboard (existing stats page)
+  return <StudentHomePage />;
+}
+
+function StudentHomePage() {
   const router = useRouter();
   const { profile, user } = useAuthStore();
   const [stats, setStats] = useState<Stats | null>(null);
@@ -93,7 +106,7 @@ export default function HomePage() {
       
       const { data: todaySessions } = await (supabaseBrowser
         .from('study_sessions') as any)
-        .select('*, answers(is_correct)')
+        .select('*, answers(time_spent, is_correct)')
         .eq('user_id', user!.id)
         .gte('started_at', today.toISOString());
 
@@ -101,41 +114,59 @@ export default function HomePage() {
         return sum + (s.answers?.length || 0);
       }, 0) || 0;
 
-      // Minutes: only count completed sessions OR cap at 3h for active ones
+      // Minutes: use actual time spent on cards (time_spent) instead of session duration
+      // This ensures we only count real study time, not idle time or navigation time
+      // For active sessions, only counts time from answers already submitted
       console.log('[Home] Today sessions:', todaySessions?.length);
       
       const minutesToday = todaySessions?.reduce((sum: number, s: any, idx: number) => {
-        const start = new Date(s.started_at);
+        // Calculate minutes from actual time spent on each answer (in milliseconds)
+        // This is the REAL time the user spent thinking/answering, not session duration
+        const timeSpentMs = s.answers?.reduce((answerSum: number, a: any) => {
+          return answerSum + (a.time_spent || 0);
+        }, 0) || 0;
         
-        // Only count completed sessions OR active sessions from today
-        if (s.completed_at) {
-          const end = new Date(s.completed_at);
-          const minutes = Math.floor((end.getTime() - start.getTime()) / 60000);
-          const cappedMinutes = Math.max(0, Math.min(minutes, 180)); // Cap at 3h per session
-          console.log(`[Home] Session ${idx} (completed): ${minutes}min → ${cappedMinutes}min`);
-          return sum + cappedMinutes;
-        } else {
-          // For active sessions, only count if started today
-          const now = new Date();
-          const sessionDate = new Date(s.started_at);
-          sessionDate.setHours(0, 0, 0, 0);
-          const todayDate = new Date();
-          todayDate.setHours(0, 0, 0, 0);
+        let sessionMinutes = timeSpentMs / 60000; // Convert milliseconds to minutes
+        let source = 'time_spent';
+        
+        // Fallback for old sessions without time_spent: use session duration as estimate
+        // But only if we have no time_spent data at all (all answers have null/0)
+        if (sessionMinutes === 0 && s.answers && s.answers.length > 0) {
+          const hasAnyTimeSpent = s.answers.some((a: any) => a.time_spent && a.time_spent > 0);
           
-          if (sessionDate.getTime() === todayDate.getTime()) {
-            const minutes = Math.floor((now.getTime() - start.getTime()) / 60000);
-            const cappedMinutes = Math.max(0, Math.min(minutes, 180)); // Cap at 3h
-            console.log(`[Home] Session ${idx} (active, today): ${minutes}min → ${cappedMinutes}min`);
-            return sum + cappedMinutes;
-          } else {
-            console.log(`[Home] Session ${idx} (active, not today): IGNORED`);
+          if (!hasAnyTimeSpent && s.completed_at) {
+            // Old session without time_spent: estimate from session duration
+            const start = new Date(s.started_at);
+            const end = new Date(s.completed_at);
+            const durationMinutes = (end.getTime() - start.getTime()) / 60000;
+            // Use a more conservative estimate: assume 20% of session time was actual study
+            // This accounts for idle time, navigation, reading, etc.
+            // Reduced from 30% to 20% to be more conservative
+            sessionMinutes = durationMinutes * 0.2;
+            source = 'fallback (20% of duration)';
+            console.log(`[Home] Session ${idx} (old, no time_spent): ${durationMinutes.toFixed(2)}min duration → ${sessionMinutes.toFixed(2)}min estimate (20%)`);
+          } else if (!hasAnyTimeSpent && !s.completed_at) {
+            // Active session without time_spent: don't count (could be very old)
+            console.log(`[Home] Session ${idx} (active, no time_spent): IGNORED`);
+            return sum;
           }
         }
         
-        return sum;
+        const roundedMinutes = Math.floor(sessionMinutes);
+        
+        // Cap at 2h per session to prevent outliers (reduced from 3h)
+        const cappedMinutes = Math.max(0, Math.min(roundedMinutes, 120));
+        
+        if (roundedMinutes !== cappedMinutes) {
+          console.log(`[Home] Session ${idx} (${s.completed_at ? 'completed' : 'active'}): ${sessionMinutes.toFixed(2)}min (${source}) → CAPPED at ${cappedMinutes}min`);
+        } else {
+          console.log(`[Home] Session ${idx} (${s.completed_at ? 'completed' : 'active'}): ${sessionMinutes.toFixed(2)}min (${source})`);
+        }
+        
+        return sum + cappedMinutes;
       }, 0) || 0;
       
-      console.log('[Home] Total minutes today:', minutesToday);
+      console.log('[Home] Total minutes today (from time_spent):', minutesToday);
 
       const activeSessions = await studyService.getActiveSessions().catch(() => []);
 
@@ -186,13 +217,37 @@ export default function HomePage() {
         
         const dayCards = daySessions.reduce((sum: number, s: any) => sum + (s.answers?.length || 0), 0);
         
+        // Calculate minutes from actual time spent on cards (time_spent) instead of session duration
         const dayMinutes = daySessions.reduce((sum: number, s: any) => {
-          if (s.completed_at) {
-            const start = new Date(s.started_at);
-            const end = new Date(s.completed_at);
-            return sum + Math.floor((end.getTime() - start.getTime()) / 60000);
+          // Calculate minutes from actual time spent on each answer (in milliseconds)
+          const timeSpentMs = s.answers?.reduce((answerSum: number, a: any) => {
+            return answerSum + (a.time_spent || 0);
+          }, 0) || 0;
+          
+          let sessionMinutes = timeSpentMs / 60000; // Convert milliseconds to minutes
+          
+          // Fallback for old sessions without time_spent: use session duration as estimate
+          if (sessionMinutes === 0 && s.answers && s.answers.length > 0) {
+            const hasAnyTimeSpent = s.answers.some((a: any) => a.time_spent && a.time_spent > 0);
+            
+            if (!hasAnyTimeSpent && s.completed_at) {
+              // Old session without time_spent: estimate from session duration
+              const start = new Date(s.started_at);
+              const end = new Date(s.completed_at);
+              const durationMinutes = (end.getTime() - start.getTime()) / 60000;
+              // Use a more conservative estimate: assume 20% of session time was actual study
+              sessionMinutes = durationMinutes * 0.2;
+            } else if (!hasAnyTimeSpent && !s.completed_at) {
+              // Active session without time_spent: don't count
+              return sum;
+            }
           }
-          return sum;
+          
+          const roundedMinutes = Math.floor(sessionMinutes);
+          // Cap at 2h per session to prevent outliers
+          const cappedMinutes = Math.max(0, Math.min(roundedMinutes, 120));
+          
+          return sum + cappedMinutes;
         }, 0);
         
         return {
@@ -565,12 +620,13 @@ export default function HomePage() {
         {/* Right - Quick Actions & Recent */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <Card className="p-5 sm:p-6">
+          <Card className="p-5 sm:p-6 border-border-subtle">
             <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider mb-4">
               Actions
             </h2>
             <div className="space-y-2">
               <Button
+                variant="primary"
                 className="w-full justify-between group"
                 onClick={handleCreateSet}
                 disabled={isCreating}
@@ -582,48 +638,52 @@ export default function HomePage() {
                 <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Button>
               
-              <Link href="/dashboard">
-                <Button variant="secondary" className="w-full justify-between group">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4" />
-                    <span>Mes sets</span>
+              <Link href="/dashboard" className="block">
+                <div className="group flex items-center justify-between w-full px-4 py-3 rounded-lg border border-border-subtle bg-bg-emphasis hover:border-border-default hover:bg-bg-subtle hover:shadow-card-hover transition-all cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 rounded-lg bg-bg-subtle group-hover:bg-bg-emphasis transition-colors">
+                      <BookOpen className="h-4 w-4 text-content-emphasis" />
+                    </div>
+                    <span className="text-[14px] font-medium text-content-emphasis">Mes sets</span>
                   </div>
-                  <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                </Button>
+                  <ArrowRight className="h-4 w-4 text-content-subtle opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </div>
               </Link>
 
-              <Link href="/public-sets">
-                <Button variant="secondary" className="w-full justify-between group">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    <span>Explorer</span>
+              <Link href="/public-sets" className="block">
+                <div className="group flex items-center justify-between w-full px-4 py-3 rounded-lg border border-border-subtle bg-bg-emphasis hover:border-border-default hover:bg-bg-subtle hover:shadow-card-hover transition-all cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 rounded-lg bg-bg-subtle group-hover:bg-bg-emphasis transition-colors">
+                      <Sparkles className="h-4 w-4 text-content-emphasis" />
+                    </div>
+                    <span className="text-[14px] font-medium text-content-emphasis">Explorer</span>
                   </div>
-                  <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                </Button>
+                  <ArrowRight className="h-4 w-4 text-content-subtle opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                </div>
               </Link>
             </div>
           </Card>
 
           {/* Recent Sets */}
           {stats.recentSets.length > 0 && (
-            <Card className="p-5 sm:p-6">
+            <Card className="p-5 sm:p-6 border-border-subtle">
               <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider mb-4">
                 Sets récents
               </h2>
               <div className="space-y-2">
                 {stats.recentSets.map((set: any) => (
-                  <Link key={set.id} href={`/study/${set.id}`}>
-                    <div className="group p-3 rounded-lg border border-border-subtle bg-bg-subtle hover:bg-bg-emphasis hover:border-brand-primary/50 transition-all">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-content-emphasis group-hover:text-brand-primary transition-colors truncate">
-                            {set.title}
-                          </div>
-                          <div className="text-xs text-content-muted mt-0.5">
-                            {set.cards} cartes
-                          </div>
+                  <Link key={set.id} href={`/study/${set.id}`} className="block">
+                    <div className="group flex items-center justify-between w-full px-4 py-3 rounded-lg border border-border-subtle bg-bg-emphasis hover:border-border-default hover:bg-bg-subtle hover:shadow-card-hover transition-all cursor-pointer">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[14px] font-medium text-content-emphasis truncate mb-0.5">
+                          {set.title || 'Set sans titre'}
                         </div>
-                        <Play className="h-4 w-4 text-content-muted group-hover:text-brand-primary opacity-0 group-hover:opacity-100 transition-all" />
+                        <div className="text-xs text-content-muted">
+                          {set.cards} {set.cards > 1 ? 'cartes' : 'carte'}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 ml-3">
+                        <Play className="h-4 w-4 text-content-subtle group-hover:text-brand-primary transition-colors" />
                       </div>
                     </div>
                   </Link>

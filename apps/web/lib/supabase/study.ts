@@ -69,6 +69,21 @@ export const studyService = {
     return response.json();
   },
 
+  /**
+   * Save answer directly to database (for local sessions or when API is unavailable)
+   */
+  async saveAnswerDirect(setId: string, flashcardId: string, isCorrect: boolean, timeSpent?: number) {
+    const { data, error } = await supabaseBrowser.rpc('save_answer_direct', {
+      p_set_id: setId,
+      p_flashcard_id: flashcardId,
+      p_is_correct: isCorrect,
+      p_time_spent: timeSpent ?? null,
+    } as any);
+
+    if (error) throw error;
+    return data;
+  },
+
   async completeSession(sessionId: string) {
     // Get session token for authentication
     const { data: { session } } = await supabaseBrowser.auth.getSession();

@@ -46,7 +46,8 @@ export default function CreateSetPage() {
         tags,
         language: data.language || null,
       });
-      router.push(`/sets/${set.id}`);
+      // Rediriger vers le dashboard après création
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create set');
     } finally {

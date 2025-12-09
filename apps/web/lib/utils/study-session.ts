@@ -68,12 +68,21 @@ export function recordAnswer(
   if (cardIndex === -1) return state;
 
   const card = state.cards[cardIndex];
+  
+  // Calculate new counts
+  const newCorrectCount = isCorrect ? card.correctCount + 1 : card.correctCount;
+  const newIncorrectCount = isCorrect ? card.incorrectCount : card.incorrectCount + 1;
+  
+  // A card is mastered if answered correctly at least 2 times (more forgiving)
+  // This prevents cards from being marked as mastered too quickly
+  const newIsMastered = newCorrectCount >= 2;
+  
   const updatedCard: CardReview = {
     ...card,
     lastReviewed: new Date(),
-    correctCount: isCorrect ? card.correctCount + 1 : card.correctCount,
-    incorrectCount: isCorrect ? card.incorrectCount : card.incorrectCount + 1,
-    isMastered: isCorrect && card.correctCount >= 1, // Mastered if answered correctly at least once
+    correctCount: newCorrectCount,
+    incorrectCount: newIncorrectCount,
+    isMastered: newIsMastered,
   };
 
   const newCards = [...state.cards];
@@ -90,6 +99,9 @@ export function recordAnswer(
   let newIncorrectCards = [...state.incorrectCards];
   if (!isCorrect && !newIncorrectCards.includes(flashcardId)) {
     newIncorrectCards.push(flashcardId);
+  } else if (isCorrect && newIsMastered) {
+    // Remove from incorrect queue if mastered
+    newIncorrectCards = newIncorrectCards.filter(id => id !== flashcardId);
   }
 
   return {
@@ -102,17 +114,17 @@ export function recordAnswer(
 
 /**
  * Get next card to review
- * Prioritizes incorrect cards that need review
+ * Simple sequential approach: use currentIndex to cycle through unmastered cards
  */
 export function getNextCard(state: StudySessionState, currentCardId?: string): CardReview | null {
-  // First, check if we have unmastered cards that need review
+  // Get all unmastered cards
   const unmasteredCards = state.cards.filter(c => !c.isMastered);
   
   if (unmasteredCards.length === 0) {
     return null; // All cards mastered
   }
 
-  // Filter out the current card if provided to ensure we don't return the same card
+  // Filter out the current card to ensure we don't return the same card
   const availableCards = currentCardId 
     ? unmasteredCards.filter(c => c.flashcardId !== currentCardId)
     : unmasteredCards;
@@ -122,27 +134,40 @@ export function getNextCard(state: StudySessionState, currentCardId?: string): C
     return null; // Session should complete
   }
 
-  // If we have incorrect cards in queue and we've reviewed enough new cards
+  // Prioritize incorrect cards if we have any and meet the review interval
   if (state.incorrectCards.length > 0 && state.currentIndex >= state.reviewInterval && state.currentIndex % state.reviewInterval === 0) {
     const nextIncorrectId = state.incorrectCards[0];
-    const card = state.cards.find(c => c.flashcardId === nextIncorrectId);
-    if (card && !card.isMastered && card.flashcardId !== currentCardId && availableCards.some(c => c.flashcardId === card.flashcardId)) {
-      return card;
+    const incorrectCard = availableCards.find(c => c.flashcardId === nextIncorrectId && !c.isMastered);
+    if (incorrectCard && incorrectCard.flashcardId !== currentCardId) {
+      return incorrectCard;
     }
   }
 
-  // Get next unmastered card in sequence from available cards
-  // Use currentIndex to cycle through available cards, ensuring we get a different card
-  const cardIndex = state.currentIndex % availableCards.length;
-  const selectedCard = availableCards[cardIndex];
+  // Simple sequential approach: use currentIndex modulo availableCards.length
+  // This ensures we cycle through all available cards
+  // Add debug logging
+  const nextIndex = state.currentIndex % availableCards.length;
+  const nextCard = availableCards[nextIndex];
   
-  // Final safety check: if somehow we got the same card, get the next one
-  if (currentCardId && selectedCard.flashcardId === currentCardId) {
-    const nextIndex = (cardIndex + 1) % availableCards.length;
-    return availableCards[nextIndex];
+  console.log('[getNextCard] Debug:', {
+    currentIndex: state.currentIndex,
+    availableCardsCount: availableCards.length,
+    nextIndex,
+    nextCardId: nextCard?.flashcardId,
+    currentCardId,
+    isSameCard: currentCardId && nextCard?.flashcardId === currentCardId,
+    allCardsCount: state.cards.length,
+    masteredCount: state.cards.filter(c => c.isMastered).length,
+  });
+  
+  // Double-check we're not returning the current card (shouldn't happen due to filtering above)
+  if (currentCardId && nextCard.flashcardId === currentCardId) {
+    // If somehow we got the same card, get the next one
+    const alternativeIndex = (nextIndex + 1) % availableCards.length;
+    return availableCards[alternativeIndex];
   }
   
-  return selectedCard;
+  return nextCard;
 }
 
 /**

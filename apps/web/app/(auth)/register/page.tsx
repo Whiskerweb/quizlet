@@ -14,6 +14,8 @@ import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
 import { friendsService } from '@/lib/supabase/friends';
+import { BookOpen, GraduationCap } from 'lucide-react';
+import { cn } from '@/lib/utils/cn';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -31,6 +33,7 @@ function RegisterForm() {
   const { setUser, setProfile } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState<'student' | 'teacher' | null>(null);
   const supabase = supabaseBrowser;
   
   // Get redirect URL and invite code from query params
@@ -46,6 +49,12 @@ function RegisterForm() {
   });
 
   const onSubmit = async (data: RegisterFormData) => {
+    // Validate role is selected
+    if (!role) {
+      setError('Veuillez sélectionner si vous êtes un élève ou un professeur');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -60,6 +69,7 @@ function RegisterForm() {
             username: data.username,
             first_name: data.firstName,
             last_name: data.lastName,
+            role: role, // Add role to metadata
           },
         },
       });
@@ -76,6 +86,7 @@ function RegisterForm() {
         user_id: authData.user.id,
         user_email: data.email,
         user_username: data.username,
+        user_role: role, // Pass role to RPC function
         user_first_name: data.firstName || null,
         user_last_name: data.lastName || null,
       });
@@ -141,6 +152,57 @@ function RegisterForm() {
                 {error}
               </div>
             )}
+
+            {/* Role Selection */}
+            <div>
+              <label className="block text-[13px] sm:text-sm font-medium text-gray-700 mb-3">
+                Je suis :
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRole('student')}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all hover:border-blue-400",
+                    role === 'student'
+                      ? "border-blue-600 bg-blue-50 shadow-md"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  )}
+                >
+                  <GraduationCap className={cn(
+                    "h-8 w-8 mb-2",
+                    role === 'student' ? "text-blue-600" : "text-gray-600"
+                  )} />
+                  <span className={cn(
+                    "font-medium text-sm",
+                    role === 'student' ? "text-blue-600" : "text-gray-700"
+                  )}>
+                    Élève
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('teacher')}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all hover:border-blue-400",
+                    role === 'teacher'
+                      ? "border-blue-600 bg-blue-50 shadow-md"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  )}
+                >
+                  <BookOpen className={cn(
+                    "h-8 w-8 mb-2",
+                    role === 'teacher' ? "text-blue-600" : "text-gray-600"
+                  )} />
+                  <span className={cn(
+                    "font-medium text-sm",
+                    role === 'teacher' ? "text-blue-600" : "text-gray-700"
+                  )}>
+                    Professeur
+                  </span>
+                </button>
+              </div>
+            </div>
 
             {/* Bouton de connexion Google */}
             <GoogleLoginButton 
