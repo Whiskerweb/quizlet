@@ -208,6 +208,8 @@ function RegisterForm() {
             <GoogleLoginButton 
               redirectTo={redirectUrl}
               className="mb-4"
+              disabled={!role}
+              role={role}
             />
 
             {/* Séparateur */}
@@ -293,7 +295,7 @@ function RegisterForm() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-10 sm:h-11 text-[14px] sm:text-[15px] font-medium" disabled={isLoading}>
+            <Button type="submit" className="w-full h-10 sm:h-11 text-[14px] sm:text-[15px] font-medium" disabled={isLoading || !role}>
               {isLoading ? 'Creating account...' : 'Sign up'}
             </Button>
 

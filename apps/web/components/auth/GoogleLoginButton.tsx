@@ -35,12 +35,24 @@ interface GoogleLoginButtonProps {
    * Classe CSS personnalisée
    */
   className?: string;
+  
+  /**
+   * Désactive le bouton
+   */
+  disabled?: boolean;
+  
+  /**
+   * Rôle de l'utilisateur (student ou teacher)
+   */
+  role?: 'student' | 'teacher' | null;
 }
 
 export function GoogleLoginButton({ 
   redirectTo = '/dashboard',
   label = 'Continuer avec Google',
-  className = ''
+  className = '',
+  disabled = false,
+  role = null
 }: GoogleLoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +72,11 @@ export function GoogleLoginButton({
     setError(null);
 
     try {
+      // Stocker le rôle dans sessionStorage pour le récupérer dans le callback
+      if (role) {
+        sessionStorage.setItem('oauth_role', role);
+      }
+      
       // Appel à l'API Supabase pour initier l'authentification OAuth
       // provider: 'google' indique qu'on veut utiliser Google comme fournisseur
       // 
@@ -106,7 +123,7 @@ export function GoogleLoginButton({
       <Button
         type="button"
         onClick={handleGoogleLogin}
-        disabled={isLoading}
+        disabled={isLoading || disabled}
         className={`w-full flex items-center justify-center gap-2 ${className}`}
         variant="outline"
       >

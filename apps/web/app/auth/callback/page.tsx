@@ -54,6 +54,13 @@ export default function OAuthCallbackPage() {
       // Session présente → charger le profil
       console.log('[OAuth Callback] Session found, loading profile...');
       
+      // Récupérer le rôle depuis sessionStorage (stocké avant la redirection OAuth)
+      const oauthRole = sessionStorage.getItem('oauth_role') as 'student' | 'teacher' | null;
+      console.log('[OAuth Callback] OAuth role from sessionStorage:', oauthRole);
+      
+      // Attendre un peu pour que le trigger SQL ait le temps de créer le profil
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // Charger le profil depuis Supabase
       const { data: profile, error: profileError } = await supabaseBrowser
         .from('profiles')
@@ -64,6 +71,11 @@ export default function OAuthCallbackPage() {
       if (profileError || !profile) {
         console.log('[OAuth Callback] Profile not found, creating profile...', profileError);
         
+        // Nettoyer sessionStorage après récupération
+        if (oauthRole) {
+          sessionStorage.removeItem('oauth_role');
+        }
+        
         // Créer le profil si nécessaire
         const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
         
@@ -71,6 +83,7 @@ export default function OAuthCallbackPage() {
           user_id: session.user.id,
           user_email: session.user.email || '',
           user_username: baseUsername,
+          user_role: oauthRole || 'student', // Utiliser le rôle stocké ou 'student' par défaut
           user_first_name: session.user.user_metadata?.first_name || null,
           user_last_name: session.user.user_metadata?.last_name || null,
         });
@@ -89,20 +102,98 @@ export default function OAuthCallbackPage() {
         
         if (newProfile) {
           const typedNewProfile = newProfile as Profile;
-          console.log('[OAuth Callback] Profile created/loaded:', typedNewProfile.username);
-          setUser(session.user);
-          setProfile(typedNewProfile);
+          console.log('[OAuth Callback] Profile created/loaded:', typedNewProfile.username, 'role:', typedNewProfile.role);
+          
+          // Si le rôle stocké est différent du rôle dans le profil, mettre à jour
+          if (oauthRole && typedNewProfile.role !== oauthRole) {
+            console.log('[OAuth Callback] Updating role from', typedNewProfile.role, 'to', oauthRole);
+            const { error: updateError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
+              user_id: session.user.id,
+              user_email: session.user.email || '',
+              user_username: typedNewProfile.username,
+              user_role: oauthRole,
+              user_first_name: typedNewProfile.first_name,
+              user_last_name: typedNewProfile.last_name,
+            });
+            
+            if (updateError) {
+              console.error('[OAuth Callback] Error updating role:', updateError);
+            } else {
+              // Recharger le profil avec le bon rôle
+              const { data: updatedProfile } = await supabaseBrowser
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (updatedProfile) {
+                setUser(session.user);
+                setProfile(updatedProfile as Profile);
+              } else {
+                setUser(session.user);
+                setProfile(typedNewProfile);
+              }
+            }
+          } else {
+            setUser(session.user);
+            setProfile(typedNewProfile);
+          }
         } else {
           console.error('[OAuth Callback] Failed to fetch profile after creation:', fetchError);
           // Rediriger quand même vers dashboard, le layout essaiera de charger le profil
           setUser(session.user);
         }
       } else {
-        // Profil existe, mettre à jour le store
+        // Profil existe déjà
         const typedProfile = profile as Profile;
-        console.log('[OAuth Callback] Profile loaded:', typedProfile.username);
-        setUser(session.user);
-        setProfile(typedProfile);
+        console.log('[OAuth Callback] Profile loaded:', typedProfile.username, 'current role:', typedProfile.role);
+        
+        // Vérifier si le profil vient d'être créé (créé il y a moins de 5 secondes)
+        // Si oui et qu'un rôle est stocké, mettre à jour le rôle
+        const profileCreatedAt = new Date(typedProfile.created_at).getTime();
+        const now = Date.now();
+        const isRecentlyCreated = (now - profileCreatedAt) < 5000; // 5 secondes
+        
+        if (isRecentlyCreated && oauthRole && typedProfile.role !== oauthRole) {
+          console.log('[OAuth Callback] Profile was just created, updating role from', typedProfile.role, 'to', oauthRole);
+          const { error: updateError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
+            user_id: session.user.id,
+            user_email: session.user.email || '',
+            user_username: typedProfile.username,
+            user_role: oauthRole,
+            user_first_name: typedProfile.first_name,
+            user_last_name: typedProfile.last_name,
+          });
+          
+          if (updateError) {
+            console.error('[OAuth Callback] Error updating role:', updateError);
+          } else {
+            // Recharger le profil avec le bon rôle
+            const { data: updatedProfile } = await supabaseBrowser
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (updatedProfile) {
+              console.log('[OAuth Callback] Profile role updated to:', (updatedProfile as Profile).role);
+              setUser(session.user);
+              setProfile(updatedProfile as Profile);
+            } else {
+              setUser(session.user);
+              setProfile(typedProfile);
+            }
+          }
+        } else {
+          // Profil existe et rôle correct (ou profil ancien), mettre à jour le store
+          setUser(session.user);
+          setProfile(typedProfile);
+        }
+        
+        // Nettoyer sessionStorage après utilisation
+        if (oauthRole) {
+          sessionStorage.removeItem('oauth_role');
+        }
       }
 
       // Rediriger vers dashboard
