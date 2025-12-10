@@ -15,7 +15,7 @@
  */
 
 import { ReactNode, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { SidebarNav } from '@/components/layout/SidebarNav';
 import { TopSearchBar } from '@/components/layout/TopSearchBar';
@@ -29,11 +29,15 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, profile, logout } = useAuthStore();
   const [checking, setChecking] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Détecter si on est sur une page de jeu (study)
+  const isStudyPage = pathname?.includes('/study/');
 
   // Détection mobile et gestion de la sidebar
   useEffect(() => {
@@ -59,8 +63,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       // getSession() récupère la session depuis localStorage/cookies
       // C'est la source de vérité pour l'authentification côté client
       const { data: { session }, error } = await supabaseBrowser.auth.getSession();
-      
-      console.log('[Dashboard Layout] session', { 
+
+      console.log('[Dashboard Layout] session', {
         hasSession: !!session,
         userId: session?.user?.id,
         userEmail: session?.user?.email,
@@ -77,18 +81,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       // Session présente → vérifier et charger le profil si nécessaire
       const { setUser: setStoreUser, setProfile: setStoreProfile } = useAuthStore.getState();
       const currentProfile = useAuthStore.getState().profile;
-      
+
       // Vérifier si le profil est dans le store et correspond à l'utilisateur actuel
       if (!currentProfile || currentProfile.id !== session.user.id) {
         console.log('[Dashboard Layout] Profile not in store, loading from Supabase...');
-        
+
         // Charger le profil depuis Supabase
         const { data: profileData, error: profileError } = await supabaseBrowser
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
-        
+
         if (profileData) {
           const typedProfile = profileData as Profile;
           console.log('[Dashboard Layout] Profile loaded:', typedProfile.username);
@@ -96,10 +100,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           setStoreProfile(typedProfile);
         } else if (profileError) {
           console.error('[Dashboard Layout] Error loading profile:', profileError);
-          
+
           // Créer le profil si nécessaire (fallback si le trigger SQL n'a pas fonctionné)
           const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
-          
+
           const { error: rpcError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
             user_id: session.user.id,
             user_email: session.user.email || '',
@@ -107,18 +111,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             user_first_name: session.user.user_metadata?.first_name || null,
             user_last_name: session.user.user_metadata?.last_name || null,
           });
-          
+
           if (rpcError) {
             console.error('[Dashboard Layout] Error creating profile:', rpcError);
           }
-          
+
           // Réessayer de charger le profil
           const { data: newProfile } = await supabaseBrowser
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
-          
+
           if (newProfile) {
             const typedNewProfile = newProfile as Profile;
             console.log('[Dashboard Layout] Profile created/loaded:', typedNewProfile.username);
@@ -172,60 +176,77 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         className="flex min-h-screen flex-col transition-all duration-300 ease-in-out"
         style={{ marginLeft: isMobile ? '0' : sidebarWidth }}
       >
-        <div className="bg-bg-default pb-[var(--page-bottom-margin)] pt-[var(--page-top-margin)] md:h-screen md:pb-2 md:pr-2">
-          <div className="relative h-full overflow-hidden rounded-none bg-bg-emphasis shadow-panel md:rounded-[24px]">
+        <div className={`bg-bg-default ${isStudyPage ? 'p-0 h-screen' : 'pb-[var(--page-bottom-margin)] pt-[var(--page-top-margin)] md:h-screen md:pb-2 md:pr-2'}`}>
+          <div className={`relative h-full overflow-hidden ${isStudyPage ? 'rounded-none' : 'rounded-none bg-bg-emphasis shadow-panel md:rounded-[24px]'}`}>
             <div className="flex h-full flex-col">
-              <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border-subtle/70 bg-bg-emphasis/90 px-4 sm:px-6 lg:px-8 backdrop-blur-md">
-                {isMobile && (
-                  <Button
-                    variant="icon"
-                    size="sm"
-                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    className="lg:hidden"
-                    aria-label="Ouvrir la navigation"
-                  >
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                )}
-
-                <TopSearchBar className="flex-1 min-w-0" />
-
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <Link href={`/profile/${profile?.username || 'me'}`}>
+              {/* Header - masqué sur les pages de jeu */}
+              {!isStudyPage && (
+                <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border-subtle/70 bg-bg-emphasis/90 px-4 sm:px-6 lg:px-8 backdrop-blur-md">
+                  {isMobile && (
                     <Button
-                      variant="secondary"
+                      variant="icon"
                       size="sm"
-                      className="flex items-center gap-2 rounded-full border border-border-subtle bg-bg-emphasis/80 px-2.5 py-1.5 text-left"
+                      onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                      className="lg:hidden"
+                      aria-label="Ouvrir la navigation"
                     >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bg-muted text-sm font-semibold text-content-emphasis">
-                        {initials}
-                      </div>
-                      <div className="hidden md:block">
-                        <p className="text-[13px] font-semibold text-content-emphasis leading-tight">
-                          {profile?.username || user?.email?.split('@')[0] || 'User'}
-                        </p>
-                        <p className="text-[11px] text-content-muted leading-tight">Profil</p>
-                      </div>
+                      <Menu className="h-5 w-5" />
                     </Button>
-                  </Link>
+                  )}
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={async () => {
-                      await logout();
-                      window.location.href = '/login';
-                    }}
-                    className="rounded-full border border-border-subtle px-3 py-2"
-                    aria-label="Se déconnecter"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </div>
-              </header>
+                  <TopSearchBar className="flex-1 min-w-0" />
+
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Link href={`/profile/${profile?.username || 'me'}`}>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex items-center gap-2 rounded-full border border-border-subtle bg-bg-emphasis/80 px-2.5 py-1.5 text-left"
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bg-muted text-sm font-semibold text-content-emphasis">
+                          {initials}
+                        </div>
+                        <div className="hidden md:block">
+                          <p className="text-[13px] font-semibold text-content-emphasis leading-tight">
+                            {profile?.username || user?.email?.split('@')[0] || 'User'}
+                          </p>
+                          <p className="text-[11px] text-content-muted leading-tight">Profil</p>
+                        </div>
+                      </Button>
+                    </Link>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        await logout();
+                        window.location.href = '/login';
+                      }}
+                      className="rounded-full border border-border-subtle px-3 py-2"
+                      aria-label="Se déconnecter"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </header>
+              )}
+
+              {/* Bouton hamburger flottant pour mobile sur pages de jeu */}
+              {isStudyPage && isMobile && (
+                <Button
+                  variant="icon"
+                  size="sm"
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="fixed top-3 left-3 z-40 bg-bg-emphasis/90 backdrop-blur-md border border-border-subtle shadow-lg"
+                  aria-label="Ouvrir la navigation"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              )}
 
               <main className="flex-1 overflow-y-auto bg-bg-default md:bg-transparent">
-                <div className="mx-auto w-full max-w-[1180px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+                {/* Padding ajusté selon la page */}
+                <div className={`mx-auto w-full ${isStudyPage ? 'max-w-full p-0' : 'max-w-[1180px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8'}`}>
                   {children}
                 </div>
               </main>

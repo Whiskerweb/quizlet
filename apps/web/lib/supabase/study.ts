@@ -20,14 +20,14 @@ export const studyService = {
   async startSession(data: StartSessionDto) {
     // Get session token for authentication
     const { data: { session } } = await supabaseBrowser.auth.getSession();
-    
+
     if (!session) {
       throw new Error('Not authenticated');
     }
 
     const response = await fetch('/api/study/sessions', {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`,
       },
@@ -46,14 +46,14 @@ export const studyService = {
   async submitAnswer(sessionId: string, data: AnswerFlashcardDto) {
     // Get session token for authentication
     const { data: { session } } = await supabaseBrowser.auth.getSession();
-    
+
     if (!session) {
       throw new Error('Not authenticated');
     }
 
     const response = await fetch(`/api/study/sessions/${sessionId}/answers`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`,
       },
@@ -87,7 +87,7 @@ export const studyService = {
   async completeSession(sessionId: string) {
     // Get session token for authentication
     const { data: { session } } = await supabaseBrowser.auth.getSession();
-    
+
     if (!session) {
       throw new Error('Not authenticated');
     }
@@ -110,12 +110,12 @@ export const studyService = {
 
   async getSession(sessionId: string) {
     console.log('[StudyService] Getting session:', sessionId);
-    
+
     // Get session token for authentication
     const { data: { session }, error: authError } = await supabaseBrowser.auth.getSession();
-    
+
     console.log('[StudyService] Auth session:', session ? 'Found' : 'Not found', authError ? `Error: ${authError.message}` : '');
-    
+
     if (!session) {
       console.error('[StudyService] No auth session found');
       throw new Error('Non authentifié. Veuillez vous reconnecter.');
@@ -134,11 +134,11 @@ export const studyService = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Failed to get session' }));
       console.error('[StudyService] Error response:', errorData);
-      
+
       if (response.status === 401 || response.status === 403) {
         throw new Error('Session expirée ou non autorisée. Veuillez vous reconnecter.');
       }
-      
+
       throw new Error(errorData.error || 'Impossible de récupérer la session');
     }
 
@@ -148,17 +148,18 @@ export const studyService = {
   },
 
   async updateSessionState(sessionId: string, sessionState: any) {
-    console.log('[StudyService] Updating session state for:', sessionId);
-    console.log('[StudyService] State to save:', {
-      currentIndex: sessionState.currentIndex,
-      cards: sessionState.cards?.length || 0,
-      masteredCards: sessionState.masteredCards?.size || 0,
-      incorrectCards: sessionState.incorrectCards?.length || 0,
-    });
-    
+    console.log('[Study] Updating session state for:', sessionId);
+    // Only log detailed state in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Study] State preview:', {
+        queueLength: sessionState.queue?.length || 0,
+        completedCount: sessionState.completedCards?.size || 0,
+      });
+    }
+
     // Get session token for authentication
     const { data: { session } } = await supabaseBrowser.auth.getSession();
-    
+
     if (!session) {
       console.error('[StudyService] No auth session for updateSessionState');
       throw new Error('Not authenticated');
@@ -167,8 +168,8 @@ export const studyService = {
     // Serialize Set objects before sending
     const serializedState = {
       ...sessionState,
-      masteredCards: sessionState.masteredCards instanceof Set 
-        ? Array.from(sessionState.masteredCards) 
+      masteredCards: sessionState.masteredCards instanceof Set
+        ? Array.from(sessionState.masteredCards)
         : sessionState.masteredCards,
     };
 
@@ -198,12 +199,12 @@ export const studyService = {
   async getActiveSessions(setId?: string) {
     // Get session token for authentication
     const { data: { session } } = await supabaseBrowser.auth.getSession();
-    
+
     if (!session) {
       throw new Error('Not authenticated');
     }
 
-    const url = setId 
+    const url = setId
       ? `/api/study/sessions/active?setId=${setId}`
       : '/api/study/sessions/active';
 

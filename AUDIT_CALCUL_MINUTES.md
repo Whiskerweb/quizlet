@@ -411,3 +411,5 @@ const activeMinutes = Math.min(
 Le problème principal est que **l'affichage des minutes utilise la durée totale de session** (`completed_at - started_at`) au lieu du **temps réel passé sur les cartes** (`Σ(time_spent)`). Cela explique pourquoi vous voyez 197 minutes alors que le temps réel est probablement beaucoup moins.
 
 **Action immédiate recommandée** : Corriger le calcul dans `apps/web/app/(dashboard)/home/page.tsx` pour utiliser `time_spent` des réponses.
+
+

@@ -17,6 +17,33 @@ const config: Config = {
           accentYellow: '#FBBF24',
           accentPink: '#F472B6',
         },
+        // 2025 Landing Pages - Strategic Color Palettes
+        landing: {
+          student: {
+            bg: '#121212', // Deep Charcoal - reduces eye strain, OLED-friendly
+            accent: {
+              blue: '#0073e6', // Electric Blue - high contrast action color
+              green: '#00bf7d', // Neon Green - success/validation
+            },
+            text: {
+              primary: '#FFFFFF',
+              secondary: '#B8B8B8',
+              muted: '#808080',
+            }
+          },
+          teacher: {
+            bg: '#FAFAFA', // Cream - softer than pure white, paper-like
+            accent: {
+              green: '#4CAF50', // Sage Green - calm, professional validation
+              slate: '#455A64', // Warm Slate - professional text color
+            },
+            text: {
+              primary: '#2C2C2C',
+              secondary: '#5A5A5A',
+              muted: '#888888',
+            }
+          },
+        },
         dark: {
           background: {
             base: '#05081E',

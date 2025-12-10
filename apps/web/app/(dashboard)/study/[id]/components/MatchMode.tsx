@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { FormattedText } from '@/components/FormattedText';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { playMatchSound, triggerIncorrectEffect, triggerCorrectEffect } from '@/lib/utils/game-effects';
 
 interface Flashcard {
   id: string;
@@ -25,6 +26,7 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
   const [allFlashcards, setAllFlashcards] = useState<Flashcard[]>([]);
   const [currentBatch, setCurrentBatch] = useState(0);
   const [startTime] = useState(Date.now());
+  const cardRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   useEffect(() => {
     // Shuffle all flashcards
@@ -39,34 +41,34 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
   const getCurrentBatch = () => {
     const start = currentBatch * BATCH_SIZE;
     const end = Math.min(start + BATCH_SIZE, allFlashcards.length);
-    
+
     // Get 5 complete flashcards for this batch
     const batchCards = allFlashcards.slice(start, end);
-    
+
     // Extract fronts and backs from these 5 cards
     const batchFronts = batchCards.map(card => ({
       id: card.id,
       front: card.front,
     }));
-    
+
     const batchBacks = batchCards.map(card => ({
       id: card.id,
       text: card.back,
     }));
-    
+
     // Shuffle fronts and backs separately (but they're from the same 5 cards)
     const shuffledFronts = [...batchFronts].sort(() => Math.random() - 0.5);
     const shuffledBacks = [...batchBacks].sort(() => Math.random() - 0.5);
-    
-    return { 
-      batchFronts: shuffledFronts, 
-      batchBacks: shuffledBacks, 
-      hasMore: end < allFlashcards.length 
+
+    return {
+      batchFronts: shuffledFronts,
+      batchBacks: shuffledBacks,
+      hasMore: end < allFlashcards.length
     };
   };
 
   const { batchFronts, batchBacks, hasMore } = getCurrentBatch();
-  
+
   // Check if current batch is complete
   const isBatchComplete = () => {
     return batchFronts.every(card => matchedPairs.has(card.id));
@@ -99,7 +101,14 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
   const checkMatch = (frontId: string, backId: string) => {
     // Check if front and back belong to the same flashcard
     if (frontId === backId) {
-      // Correct match
+      // Correct match - trigger success effects
+      const frontElement = cardRefs.current.get(`front-${frontId}`);
+      const backElement = cardRefs.current.get(`back-${backId}`);
+
+      playMatchSound();
+      if (frontElement) triggerCorrectEffect(frontElement);
+      if (backElement) triggerCorrectEffect(backElement);
+
       const newMatched = new Set([...matchedPairs, frontId]);
       setMatchedPairs(newMatched);
       setSelectedFront(null);
@@ -122,7 +131,14 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
         }
       }, 500);
     } else {
-      // Wrong match - reset selection after a delay
+      // Wrong match - trigger error effects
+      const frontElement = cardRefs.current.get(`front-${frontId}`);
+      const backElement = cardRefs.current.get(`back-${backId}`);
+
+      if (frontElement) triggerIncorrectEffect(frontElement);
+      if (backElement) triggerIncorrectEffect(backElement);
+
+      // Reset selection after a delay
       setTimeout(() => {
         setSelectedFront(null);
         setSelectedBack(null);
@@ -140,37 +156,37 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
 
   return (
     <div className="w-full">
-      <div className="mb-4">
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-sm font-medium text-content-muted">
+      <div className="mb-3 sm:mb-4">
+        <div className="mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+          <p className="text-xs sm:text-sm font-medium text-content-muted">
             Match each term with its definition
           </p>
-          <p className="text-sm text-content-subtle">
-            Batch {currentBatch + 1} of {Math.ceil(allFlashcards.length / BATCH_SIZE)} • {matchedPairs.size}/{batchFronts.length} in this batch
+          <p className="text-xs text-content-subtle">
+            Batch {currentBatch + 1} of {Math.ceil(allFlashcards.length / BATCH_SIZE)} • {matchedPairs.size}/{batchFronts.length}
           </p>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
+        <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2 mb-1">
           <div
-            className="bg-brand-primary h-2 rounded-full transition-all"
+            className="bg-brand-primary h-1.5 sm:h-2 rounded-full transition-all"
             style={{ width: `${(matchedPairs.size / batchFronts.length) * 100}%` }}
           />
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-[11px] sm:text-xs text-gray-500">
           Current batch: {matchedInBatch}/{batchFronts.length} matched
         </p>
       </div>
 
       {isBatchComplete() && hasMore && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-center">
-          <p className="text-green-900 font-semibold mb-2">Batch complete! Moving to next batch...</p>
+        <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+          <p className="text-sm sm:text-base text-green-900 font-semibold">Batch complete! Moving to next batch...</p>
         </div>
       )}
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4">
         {/* Fronts (Terms) */}
         <div>
-          <h3 className="mb-3 font-semibold text-content-emphasis">Terms</h3>
-          <div className="space-y-2">
+          <h3 className="mb-2 sm:mb-3 font-semibold text-content-emphasis text-sm sm:text-base">Terms</h3>
+          <div className="space-y-1.5 sm:space-y-2">
             {batchFronts.map((card) => {
               const matched = isMatched(card.id);
               const selected = isSelected(card.id, 'front');
@@ -178,22 +194,29 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
               return (
                 <button
                   key={card.id}
+                  ref={(el) => {
+                    if (el) {
+                      cardRefs.current.set(`front-${card.id}`, el);
+                    } else {
+                      cardRefs.current.delete(`front-${card.id}`);
+                    }
+                  }}
                   onClick={() => handleSelect('front', card.id, card.front)}
                   disabled={matched}
                   className={`
-                    w-full rounded-lg border-2 p-3 text-left transition-all
+                    w-full rounded-lg border-2 p-2 sm:p-3 text-left transition-all min-h-[48px]
                     ${matched
                       ? 'border-green-500 bg-green-50 text-content-emphasis opacity-60'
                       : selected
-                      ? 'border-brand-primary bg-brand-primary/10 text-content-emphasis'
-                      : 'border-border-subtle bg-bg-subtle text-content-emphasis hover:border-border-emphasis'
+                        ? 'border-blue-500 bg-blue-50 text-content-emphasis shadow-md'
+                        : 'border-blue-400 bg-white text-content-emphasis hover:border-blue-500 hover:shadow-md'
                     }
                     ${matched ? 'cursor-default' : 'cursor-pointer'}
                   `}
                 >
-                  <div className="flex items-center justify-between">
-                    <FormattedText text={card.front} className="font-medium text-content-emphasis" as="span" />
-                    {matched && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                  <div className="flex items-center justify-between gap-2">
+                    <FormattedText text={card.front} className="font-medium text-content-emphasis text-sm sm:text-base" as="span" />
+                    {matched && <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />}
                   </div>
                 </button>
               );
@@ -203,8 +226,8 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
 
         {/* Backs (Definitions) */}
         <div>
-          <h3 className="mb-3 font-semibold text-content-emphasis">Definitions</h3>
-          <div className="space-y-2">
+          <h3 className="mb-2 sm:mb-3 font-semibold text-content-emphasis text-sm sm:text-base">Definitions</h3>
+          <div className="space-y-1.5 sm:space-y-2">
             {batchBacks.map((back) => {
               const matched = isMatched(back.id);
               const selected = isSelected(back.id, 'back');
@@ -212,22 +235,29 @@ export function MatchMode({ flashcards, onComplete }: MatchModeProps) {
               return (
                 <button
                   key={back.id}
+                  ref={(el) => {
+                    if (el) {
+                      cardRefs.current.set(`back-${back.id}`, el);
+                    } else {
+                      cardRefs.current.delete(`back-${back.id}`);
+                    }
+                  }}
                   onClick={() => handleSelect('back', back.id, back.text)}
                   disabled={matched}
                   className={`
-                    w-full rounded-lg border-2 p-3 text-left transition-all
+                    w-full rounded-lg border-2 p-2 sm:p-3 text-left transition-all min-h-[48px]
                     ${matched
                       ? 'border-green-500 bg-green-50 text-content-emphasis opacity-60'
                       : selected
-                      ? 'border-brand-primary bg-brand-primary/10 text-content-emphasis'
-                      : 'border-border-subtle bg-bg-subtle text-content-emphasis hover:border-border-emphasis'
+                        ? 'border-blue-500 bg-blue-50 text-content-emphasis shadow-md'
+                        : 'border-blue-400 bg-white text-content-emphasis hover:border-blue-500 hover:shadow-md'
                     }
                     ${matched ? 'cursor-default' : 'cursor-pointer'}
                   `}
                 >
-                  <div className="flex items-center justify-between">
-                    <FormattedText text={back.text} className="font-medium text-content-emphasis" as="span" />
-                    {matched && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                  <div className="flex items-center justify-between gap-2">
+                    <FormattedText text={back.text} className="font-medium text-content-emphasis text-sm sm:text-base" as="span" />
+                    {matched && <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />}
                   </div>
                 </button>
               );

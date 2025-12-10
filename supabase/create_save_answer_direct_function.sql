@@ -1,6 +1,6 @@
 -- ============================================
--- Function to save answers directly without requiring a session
--- This allows saving answers for local sessions or when API is unavailable
+-- SECURITY FIX: Add ownership verification to save_answer_direct
+-- This prevents users from saving answers to sets they don't have access to
 -- ============================================
 
 CREATE OR REPLACE FUNCTION save_answer_direct(
@@ -20,6 +20,24 @@ BEGIN
   
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'User not authenticated';
+  END IF;
+  
+  -- ✅ SECURITY FIX: Verify user has access to this set
+  IF NOT EXISTS (
+    SELECT 1 FROM public.sets
+    WHERE id = p_set_id
+    AND (user_id = v_user_id OR is_public = true)
+  ) THEN
+    RAISE EXCEPTION 'Unauthorized: You do not have access to this set';
+  END IF;
+  
+  -- ✅ SECURITY FIX: Verify flashcard belongs to this set
+  IF NOT EXISTS (
+    SELECT 1 FROM public.flashcards
+    WHERE id = p_flashcard_id
+    AND set_id = p_set_id
+  ) THEN
+    RAISE EXCEPTION 'Invalid: Flashcard does not belong to this set';
   END IF;
   
   -- Find or create a session for this set and user
@@ -52,6 +70,11 @@ BEGIN
     RETURNING id INTO v_session_id;
   END IF;
   
+  -- ✅ SECURITY FIX: Validate time_spent is reasonable (between 0 and 5 minutes)
+  IF p_time_spent IS NOT NULL AND (p_time_spent < 0 OR p_time_spent > 300000) THEN
+    RAISE EXCEPTION 'Invalid time_spent: Must be between 0 and 300000 milliseconds';
+  END IF;
+  
   -- Insert the answer (allow multiple answers for same flashcard to count mastery correctly)
   INSERT INTO public.answers (
     session_id,
@@ -78,6 +101,5 @@ GRANT EXECUTE ON FUNCTION save_answer_direct(UUID, UUID, BOOLEAN, INTEGER) TO au
 -- Success message
 DO $$
 BEGIN
-  RAISE NOTICE '✅ Function save_answer_direct created successfully';
+  RAISE NOTICE '✅ SECURITY FIX: save_answer_direct with ownership verification applied';
 END $$;
-

@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     // Try to get user from cookies first
     let supabase = await createClient();
     let { data: { user } } = await supabase.auth.getUser();
-    
+
     // If no user from cookies, try to get from Authorization header
     if (!user) {
       const authHeader = request.headers.get('authorization');
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
         });
       }
     }
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -87,11 +87,39 @@ export async function POST(request: NextRequest) {
 
     console.log('[API] Creating new session:', { setId, mode, totalCards: actualTotalCards });
 
+    // ✅ SECURITY FIX: Validate sessionState if provided
+    if (sessionState) {
+      // Basic validation to prevent injection
+      if (typeof sessionState !== 'object') {
+        return NextResponse.json({ error: 'Invalid session state format' }, { status: 400 });
+      }
+
+      // Validate queue if present
+      if (sessionState.queue && !Array.isArray(sessionState.queue)) {
+        return NextResponse.json({ error: 'Invalid session state: queue must be an array' }, { status: 400 });
+      }
+
+      // Limit queue size to prevent abuse
+      if (sessionState.queue && sessionState.queue.length > 1000) {
+        return NextResponse.json({ error: 'Invalid session state: queue too large' }, { status: 400 });
+      }
+
+      // Validate cardData if present
+      if (sessionState.cardData) {
+        if (!Array.isArray(sessionState.cardData)) {
+          return NextResponse.json({ error: 'Invalid session state: cardData must be an array' }, { status: 400 });
+        }
+        if (sessionState.cardData.length > 1000) {
+          return NextResponse.json({ error: 'Invalid session state: too many cards' }, { status: 400 });
+        }
+      }
+    }
+
     // Create session with parameters
     // Try with new columns first, fallback to basic if they don't exist
     let session;
     let sessionError;
-    
+
     try {
       const result = await supabase
         .from('study_sessions')
@@ -113,30 +141,30 @@ export async function POST(request: NextRequest) {
           )
         `)
         .single();
-      
+
       session = result.data;
       sessionError = result.error;
     } catch (error: any) {
       // If error is due to missing columns, fallback to basic insert
       console.warn('[API] Failed to create session with new columns, falling back to basic:', error.message);
-      
+
       const result = await supabase
-      .from('study_sessions')
-      .insert({
-        user_id: user.id,
-        set_id: setId,
-        mode,
+        .from('study_sessions')
+        .insert({
+          user_id: user.id,
+          set_id: setId,
+          mode,
           total_cards: actualTotalCards,
-      })
-      .select(`
+        })
+        .select(`
         *,
         sets:set_id (
           id,
           title
         )
       `)
-      .single();
-      
+        .single();
+
       session = result.data;
       sessionError = result.error;
     }
