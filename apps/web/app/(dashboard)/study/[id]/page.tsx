@@ -15,16 +15,19 @@ import { StudySettings } from './components/StudySettings';
 import { QuizMode } from './components/QuizMode';
 import { WritingMode } from './components/WritingMode';
 import { MatchMode } from './components/MatchMode';
-import { 
-  initializeSession, 
-  recordAnswer, 
-  getNextCard, 
-  moveToNext, 
+import {
+  initializeSession,
+  recordAnswer,
+  getNextCard,
   isSessionComplete,
   getProgress,
+  migrateOldSessionState,
+  serializeState,
+  deserializeState,
   type StudySessionState,
   type CardReview
 } from '@/lib/utils/study-session';
+import { triggerCorrectEffect, triggerIncorrectEffect } from '@/lib/utils/game-effects';
 
 type StudyMode = 'flashcard' | 'quiz' | 'writing' | 'match';
 
@@ -52,7 +55,7 @@ export default function StudyPage() {
   const { profile } = useAuthStore();
   const setId = params.id as string;
   const [mode, setMode] = useState<StudyMode>('flashcard');
-  
+
   // Check if we should resume a session from URL params
   const [shouldAutoResume, setShouldAutoResume] = useState(false);
   const [resumeSessionId, setResumeSessionId] = useState<string | null>(null);
@@ -71,6 +74,13 @@ export default function StudyPage() {
   const [classInfo, setClassInfo] = useState<{ class_id: string; class: any } | null>(null);
   // Track time when card is flipped (for flashcard mode)
   const [cardStartTime, setCardStartTime] = useState<number | null>(null);
+  // Store session parameters for later DB creation (after 2 correct answers)
+  const sessionParams = useRef<{
+    shuffle?: boolean;
+    startFrom?: number;
+    cardOrder?: string[];
+    forceNew?: boolean;
+  }>({});
   // Memory system: store state for each mode
   const [modeMemory, setModeMemory] = useState<ModeMemoryMap>({
     flashcard: { sessionState: null, currentCard: null, isFlipped: false, sessionId: null, flashcards: [], matchCompleted: false },
@@ -81,7 +91,7 @@ export default function StudyPage() {
 
   useEffect(() => {
     loadSet();
-    
+
     // Check URL params for resume session
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -147,9 +157,9 @@ export default function StudyPage() {
       setIsLoading(true);
       console.log('[Study] Loading set:', setId);
       const set = await setsService.getOne(setId);
-      console.log('[Study] Set loaded:', { 
-        id: set.id, 
-        title: set.title, 
+      console.log('[Study] Set loaded:', {
+        id: set.id,
+        title: set.title,
         flashcardsCount: set.flashcards?.length || 0,
         flashcardsType: typeof set.flashcards,
         isArray: Array.isArray(set.flashcards),
@@ -161,7 +171,7 @@ export default function StudyPage() {
           backType: typeof set.flashcards[0].back,
         } : null,
       });
-      
+
       if (set.flashcards && Array.isArray(set.flashcards) && set.flashcards.length > 0) {
         const validFlashcards = set.flashcards.filter(
           card => card && typeof card.front === 'string' && typeof card.back === 'string'
@@ -174,7 +184,7 @@ export default function StudyPage() {
             card => !card || typeof card.front !== 'string' || typeof card.back !== 'string'
           ).map(c => ({ id: c?.id, frontType: typeof c?.front, backType: typeof c?.back })),
         });
-        
+
         if (validFlashcards.length > 0) {
           // Ensure all flashcards have required fields
           const processedFlashcards = validFlashcards.map(card => ({
@@ -188,7 +198,7 @@ export default function StudyPage() {
             created_at: card.created_at,
             updated_at: card.updated_at,
           }));
-          
+
           console.log('[Study] Processed flashcards:', processedFlashcards.length);
           setOriginalFlashcards(processedFlashcards);
           setFlashcards(processedFlashcards);
@@ -216,22 +226,18 @@ export default function StudyPage() {
   };
 
   const startSession = async () => {
-    try {
-      const session = await studyService.startSession({
-        setId,
-        mode,
-      });
-      setSessionId(session.id);
-    } catch (error) {
-      console.error('Failed to start session:', error);
-    }
+    // ✅ Don't create DB session yet - will be created after 2 cards
+    // Use a temporary local ID for now
+    const tempSessionId = `local-${Date.now()}`;
+    setSessionId(tempSessionId);
+    console.log('[Study] Using temporary local session until 2 cards answered');
   };
 
   const handleAnswer = useCallback(async (isCorrect: boolean, timeSpent: number = 0) => {
-    console.log('[Study] handleAnswer called:', { 
-      isCorrect, 
-      hasSessionId: !!sessionId, 
-      hasSessionState: !!sessionState, 
+    console.log('[Study] handleAnswer called:', {
+      isCorrect,
+      hasSessionId: !!sessionId,
+      hasSessionState: !!sessionState,
       hasCurrentCard: !!currentCard,
       mode,
       cardStartTime: cardStartTime ? new Date(cardStartTime).toISOString() : null
@@ -282,18 +288,25 @@ export default function StudyPage() {
       }
     }
 
+    // ✨ Trigger visual effects (confetti for correct, shake for incorrect)
+    if (isCorrect) {
+      triggerCorrectEffect(document.body);
+    } else {
+      triggerIncorrectEffect(document.body);
+    }
+
     try {
       // Update session state (always do this, even if backend submission failed)
       const updatedState = recordAnswer(sessionState, flashcardId, isCorrect);
-      console.log('[Study] Answer recorded:', { 
-        flashcardId, 
-        isCorrect, 
-        masteredCount: updatedState.masteredCards.size,
-        totalCards: updatedState.cards.length,
-        allMastered: updatedState.cards.every(c => c.isMastered),
+      console.log('[Study] Answer recorded:', {
+        flashcardId,
+        isCorrect,
+        queueLength: updatedState.queue?.length || 0,
+        completedCount: updatedState.completedCards?.size || 0,
+        totalCards: updatedState.cardData?.size || 0,
       });
 
-      // Check if session is complete BEFORE moving to next card
+      // Check if session is complete
       if (isSessionComplete(updatedState)) {
         console.log('[Study] ✅ All cards mastered - completing session');
         setSessionState(updatedState);
@@ -301,86 +314,78 @@ export default function StudyPage() {
         return;
       }
 
-      // Move to next card - just increment index
-      const nextState = moveToNext(updatedState);
-      const unmasteredCount = nextState.cards.filter(c => !c.isMastered).length;
-      console.log('[Study] Moved to next:', { 
-        currentIndex: nextState.currentIndex, 
-        previousCardId: flashcardId,
-        totalCards: nextState.cards.length,
-        unmasteredCount,
-        masteredCount: nextState.masteredCards.size,
-      });
-      
-      // Double-check: if no unmastered cards, complete session
-      if (unmasteredCount === 0) {
-        console.log('[Study] ✅ No unmastered cards remaining - completing session');
-        setSessionState(nextState);
-        await completeSession();
-        return;
-      }
-      
-      // Get next card (will prioritize incorrect ones if needed)
-      // Always pass current card ID to ensure we don't get the same card
-      let nextCard = getNextCard(nextState, flashcardId);
-      console.log('[Study] Next card (first attempt):', {
+      // Get next card from queue (simple!)
+      const nextCard = getNextCard(updatedState);
+      console.log('[Study] Next card:', {
         nextCardId: nextCard?.flashcardId,
         nextCardFront: nextCard?.front?.substring(0, 50),
-        isSameCard: nextCard?.flashcardId === flashcardId,
-        availableUnmastered: nextState.cards.filter(c => !c.isMastered && c.flashcardId !== flashcardId).length,
+        queueLength: updatedState.queue?.length || 0,
       });
-      
-      // If we got the same card (shouldn't happen with fixed getNextCard, but safety check)
-      // or null, we need to handle it
-      if (nextCard && nextCard.flashcardId === flashcardId) {
-        console.warn('[Study] WARNING: Got same card, finding alternative');
-        // Force get a different card by trying different states
-        const unmasteredCards = nextState.cards.filter(c => !c.isMastered && c.flashcardId !== flashcardId);
-        if (unmasteredCards.length > 0) {
-          nextCard = unmasteredCards[0];
-          console.log('[Study] Using alternative card:', nextCard.flashcardId);
-        } else {
-          nextCard = null;
-          console.log('[Study] No alternative cards available - session complete');
-        }
-      }
-      
+
       // Update state
-      setSessionState(nextState);
-      console.log('[Study] Final state:', { currentIndex: nextState.currentIndex, nextCardId: nextCard?.flashcardId });
-      
+      setSessionState(updatedState);
+
       // Save progress to backend immediately after each answer
-      if (sessionId && sessionId.startsWith('local-') === false) {
-        try {
-          await studyService.updateSessionState(sessionId, nextState);
-          console.log('[Study] Progress auto-saved after answer');
-        } catch (error) {
-          console.warn('[Study] Failed to auto-save progress:', error);
+      // ✅ Only create/save session if at least 2 CORRECT answers
+      const correctAnswersCount = Array.from(updatedState.cardData.values())
+        .filter(c => c.correctCount > 0)
+        .length;
+
+      console.log('[Study] Correct answers so far:', correctAnswersCount);
+
+      if (correctAnswersCount >= 2) {
+        // Create DB session if we only have a local one
+        if (sessionId && sessionId.startsWith('local-')) {
+          try {
+            console.log('[Study] Creating DB session after 2 correct answers');
+            const session = await studyService.startSession({
+              setId,
+              mode,
+              ...sessionParams.current, // Use stored params
+            });
+            setSessionId(session.id);
+            // Save the current state to the new session
+            const serializedState = serializeState(updatedState);
+            await studyService.updateSessionState(session.id, serializedState);
+            console.log('[Study] ✅ Session created and progress saved:', session.id);
+          } catch (error) {
+            console.error('[Study] Failed to create session:', error);
+          }
+        } else if (sessionId) {
+          // Update existing DB session
+          try {
+            const serializedState = serializeState(updatedState);
+            await studyService.updateSessionState(sessionId, serializedState);
+            console.log('[Study] Progress auto-saved');
+          } catch (error) {
+            console.warn('[Study] Failed to auto-save:', error);
+          }
         }
+      } else {
+        console.log('[Study] Skipping save - need 2 CORRECT answers (current:', correctAnswersCount, ')');
       }
-      
+
       // Check if we have a valid next card
-      if (!nextCard || nextCard.flashcardId === flashcardId) {
-        // No more cards available or same card - session is complete
-        console.log('[Study] ✅ No valid next card available - completing session');
+      if (!nextCard) {
+        // No more cards available - session is complete
+        console.log('[Study] ✅ No more cards in queue - completing session');
         await completeSession();
         return;
       }
-      
+
       // We have a valid next card - proceed to it
       console.log('[Study] Setting new card:', nextCard.flashcardId);
-      // Use functional updates to ensure we're using the latest state
-      setCurrentCard(() => nextCard);
-      setIsFlipped(() => false);
+      setCurrentCard(nextCard);
+      setIsFlipped(false);
       // Reset card start time for next card
       setCardStartTime(null);
-      
+
       // Update memory with new state
       setTimeout(() => {
         setModeMemory(prev => ({
           ...prev,
           [mode]: {
-            sessionState: nextState,
+            sessionState: updatedState,
             currentCard: nextCard,
             isFlipped: false,
             sessionId,
@@ -401,7 +406,7 @@ export default function StudyPage() {
     let updatedState = sessionState;
     for (const card of flashcards) {
       updatedState = recordAnswer(updatedState, card.id, true);
-      
+
       // Save answers directly (works for both local and backend sessions)
       try {
         if (sessionId && !sessionId.startsWith('local-')) {
@@ -421,7 +426,7 @@ export default function StudyPage() {
 
     setSessionState(updatedState);
     setMatchCompleted(true);
-    
+
     // Update memory for match mode
     setTimeout(() => {
       setModeMemory(prev => ({
@@ -436,7 +441,7 @@ export default function StudyPage() {
         },
       }));
     }, 0);
-    
+
     // Check if all mastered
     if (isSessionComplete(updatedState)) {
       setTimeout(() => {
@@ -445,49 +450,61 @@ export default function StudyPage() {
     }
   };
 
-  const completeSession = async () => {
+  const completeSession = useCallback(async () => {
     console.log('[Study] Completing session...', { sessionId, hasSessionState: !!sessionState });
-    
+
     // Reset card start time
     setCardStartTime(null);
-    
-    // Always mark as completed locally, even if backend call fails
+
+    if (!sessionState) return;
+
+    // ✅ Check if at least 2 CORRECT answers were given before completing
+    const correctAnswersCount = Array.from(sessionState.cardData.values())
+      .filter(c => c.correctCount > 0)
+      .length;
+
+    if (correctAnswersCount < 2) {
+      console.log('[Study] Session not saved - less than 2 CORRECT answers (current:', correctAnswersCount, ')');
+      setIsCompleted(true);
+      return;
+    }
+
     setIsCompleted(true);
-    
-    // Try to mark as completed in backend (but don't block if it fails)
+
+    // Only mark as completed in DB if it's a real session
     if (sessionId && !sessionId.startsWith('local-')) {
       try {
         await studyService.completeSession(sessionId);
-        console.log('[Study] ✅ Session marked as completed in backend');
+        console.log('[Study] Session marked as completed');
       } catch (error) {
-        console.warn('[Study] Failed to mark session as completed in backend (but marked locally):', error);
+        console.error('[Study] Failed to complete session:', error);
       }
     } else {
-      console.log('[Study] Local session - marked as completed locally only');
+      console.log('[Study] Local session - not saving to DB');
     }
-  };
+  }, [sessionId, sessionState]);
 
   const handleStartStudy = async (options: { shuffle: boolean; startFrom: number; forceNew?: boolean }) => {
     console.log('[Study] Starting study with options:', options);
-    
+
     // Start from specific card if requested (always applied to original order)
-    const startIndex = options.startFrom > 1 
+    const startIndex = options.startFrom > 1
       ? Math.min(Math.max(options.startFrom - 1, 0), originalFlashcards.length - 1)
       : 0;
-    
+
     // Create subset with original indices preserved
     let cardsToUse = originalFlashcards.slice(startIndex).map((card, idx) => ({
       ...card,
       originalIndex: startIndex + idx, // Track position in full original set
     }));
-    
+
     // Shuffle the selected subset if requested (preserves originalIndex)
     if (options.shuffle) {
       cardsToUse = [...cardsToUse].sort(() => Math.random() - 0.5);
     }
-    
+
     setFlashcards(cardsToUse);
-    
+
     // Initialize session state with cards that have originalIndex
     const initialState = initializeSession(cardsToUse);
     setSessionState(initialState);
@@ -495,47 +512,24 @@ export default function StudyPage() {
     if (firstCard) {
       setCurrentCard(firstCard);
     }
-    
+
     setShowSettings(false);
     setHasStarted(true);
-    
-    // Start session with parameters for persistence
-    try {
-      const session = await studyService.startSession({
-        setId,
-        mode,
-        shuffle: options.shuffle,
-        startFrom: options.startFrom,
-        cardOrder: cardsToUse.map(c => c.id), // Save the exact card order
-        sessionState: initialState, // Save initial session state
-        forceNew: options.forceNew, // Force creation of new session if requested
-      });
-      setSessionId(session.id);
-      
-      if (options.forceNew) {
-        console.log('[Study] New session forced and created:', session.id);
-      } else {
-        console.log('[Study] Session started (may be resumed if existing):', session.id);
-      }
-      
-      // Save initial state to memory for this mode
-      setModeMemory(prev => ({
-        ...prev,
-        [mode]: {
-          sessionState: initialState,
-          currentCard: firstCard,
-          isFlipped: false,
-          sessionId: session.id,
-          flashcards: cardsToUse,
-          matchCompleted: false,
-        },
-      }));
-    } catch (error) {
-      console.error('[Study] Failed to start session - continuing without backend persistence:', error);
-      // Continue anyway - local state is already initialized
-      // Set a temporary session ID so handleAnswer doesn't fail
-      setSessionId('local-' + Date.now());
-    }
+
+    // ✅ FIX: Use local session ID initially - DB session will be created after 2 correct answers
+    const tempSessionId = `local-${Date.now()}`;
+    setSessionId(tempSessionId);
+
+    // Store session parameters for later DB creation
+    sessionParams.current = {
+      shuffle: options.shuffle,
+      startFrom: options.startFrom,
+      cardOrder: cardsToUse.map(c => c.id),
+      forceNew: options.forceNew,
+    };
+
+    console.log('[Study] Using temporary local session:', tempSessionId);
+    console.log('[Study] Session will be saved to DB after 2 correct answers');
   };
 
   const handleCancelSettings = () => {
@@ -579,7 +573,7 @@ export default function StudyPage() {
   // Restore state from memory when switching to a mode
   const restoreModeState = async (targetMode: StudyMode) => {
     const savedState = modeMemory[targetMode];
-    
+
     if (savedState && savedState.sessionState && savedState.flashcards.length > 0) {
       // Restore from memory - use the flashcards from memory (they may be shuffled differently)
       setFlashcards(savedState.flashcards);
@@ -600,37 +594,33 @@ export default function StudyPage() {
       }
       setIsFlipped(false);
       setMatchCompleted(false);
-      
-      // Get current session to reuse its parameters
-      if (sessionId) {
-        try {
-          const currentSession = await studyService.getSession(sessionId);
-          // Create new session for this mode with SAME parameters
-          const newSession = await studyService.startSession({
-            setId,
-            mode: targetMode,
-            shuffle: currentSession.shuffle || false,
-            startFrom: currentSession.start_from || 1,
-            cardOrder: currentSession.card_order,
-            sessionState: initialState,
-          });
-          setSessionId(newSession.id);
-          // Update memory with new session
-          setModeMemory(prev => ({
-            ...prev,
-            [targetMode]: {
-              sessionState: initialState,
-              currentCard: firstCard,
-              isFlipped: false,
-              sessionId: newSession.id,
-              flashcards: cardsToUse,
-              matchCompleted: false,
-            },
-          }));
-        } catch (error) {
-          console.error('Failed to start session:', error);
-        }
-      }
+
+      // ✅ FIX: Use local session ID for new mode - DB session created after 2 correct answers
+      const tempSessionId = `local-${targetMode}-${Date.now()}`;
+      setSessionId(tempSessionId);
+
+      // Store session params for this mode
+      sessionParams.current = {
+        shuffle: false, // Reset to defaults for mode switch
+        startFrom: 1,
+        cardOrder: cardsToUse.map(c => c.id),
+        forceNew: false,
+      };
+
+      console.log('[Study] Switched to mode:', targetMode, 'with local session:', tempSessionId);
+
+      // Update memory with new session
+      setModeMemory(prev => ({
+        ...prev,
+        [targetMode]: {
+          sessionState: initialState,
+          currentCard: firstCard,
+          isFlipped: false,
+          sessionId: tempSessionId, // ✅ Local ID
+          flashcards: cardsToUse,
+          matchCompleted: false,
+        },
+      }));
     }
   };
 
@@ -677,7 +667,8 @@ export default function StudyPage() {
     if (mode !== 'flashcard' || !currentCard) return;
 
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
+      // Z pour retourner la carte
+      if (e.key.toLowerCase() === 'z') {
         e.preventDefault();
         const newFlipped = !isFlipped;
         setIsFlipped(newFlipped);
@@ -687,10 +678,14 @@ export default function StudyPage() {
             updateModeMemory();
           }
         }, 0);
-      } else if (e.key === 'ArrowLeft' && isFlipped) {
+      }
+      // Q pour incorrect (seulement si la carte est retournée)
+      else if (e.key.toLowerCase() === 'q' && isFlipped) {
         e.preventDefault();
         handleAnswer(false);
-      } else if (e.key === 'ArrowRight' && isFlipped) {
+      }
+      // D pour correct (seulement si la carte est retournée)
+      else if (e.key.toLowerCase() === 'd' && isFlipped) {
         e.preventDefault();
         handleAnswer(true);
       }
@@ -731,10 +726,10 @@ export default function StudyPage() {
     const resumeSession = async () => {
       try {
         console.log('[Study] Auto-resuming session:', resumeSessionId);
-        
+
         const session = await studyService.getSession(resumeSessionId);
         console.log('[Study] Session data received:', session);
-        
+
         if (!session) {
           throw new Error('Session introuvable en base de données');
         }
@@ -745,7 +740,7 @@ export default function StudyPage() {
 
         // Check if we have card_order, otherwise fallback to originalFlashcards
         let orderedCards;
-        
+
         if (session.card_order && Array.isArray(session.card_order) && session.card_order.length > 0) {
           console.log('[Study] Using card_order from session:', session.card_order.length, 'cards');
           orderedCards = session.card_order
@@ -762,48 +757,36 @@ export default function StudyPage() {
             originalIndex: idx,
           }));
         }
-        
+
         if (orderedCards.length === 0) {
           throw new Error('Aucune carte trouvée pour cette session');
         }
-        
+
         console.log('[Study] Cards prepared:', orderedCards.length);
         setFlashcards(orderedCards);
-        
+
         // Variables for state restoration
         let restoredState;
         let nextCard;
-        
+
         // Restore session state if available
-        if (session.session_state && session.session_state.cards && Array.isArray(session.session_state.cards)) {
-          console.log('[Study] Restoring session state with', session.session_state.cards.length, 'cards');
+        if (session.session_state) {
+          console.log('[Study] Migrating and restoring session state');
           console.log('[Study] Raw session_state:', session.session_state);
-          console.log('[Study] Current index from DB:', session.session_state.currentIndex);
-          console.log('[Study] Mastered cards from DB:', session.session_state.masteredCards);
-          
-          restoredState = {
-            ...session.session_state,
-            masteredCards: new Set(
-              Array.isArray(session.session_state.masteredCards) 
-                ? session.session_state.masteredCards 
-                : []
-            ),
-            incorrectCards: Array.isArray(session.session_state.incorrectCards)
-              ? session.session_state.incorrectCards
-              : [],
-          };
-          
+
+          // Migrate old format to new format if needed
+          restoredState = migrateOldSessionState(session.session_state);
+
           console.log('[Study] Restored state:', {
-            currentIndex: restoredState.currentIndex,
-            totalCards: restoredState.cards.length,
-            masteredCount: restoredState.masteredCards.size,
-            incorrectCount: restoredState.incorrectCards.length,
+            queueLength: restoredState.queue?.length || 0,
+            totalCards: restoredState.cardData?.size || 0,
+            completedCount: restoredState.completedCards?.size || 0,
           });
-          
+
           setSessionState(restoredState);
           nextCard = getNextCard(restoredState);
           console.log('[Study] Next card after restore:', nextCard?.flashcardId);
-          
+
           if (nextCard) {
             setCurrentCard(nextCard);
           } else {
@@ -814,11 +797,11 @@ export default function StudyPage() {
           const initialState = initializeSession(orderedCards);
           const firstCard = getNextCard(initialState);
           console.log('[Study] First card:', firstCard?.flashcardId);
-          
+
           // Use initialState as restoredState for memory
           restoredState = initialState;
           nextCard = firstCard;
-          
+
           setSessionState(initialState);
           if (firstCard) {
             setCurrentCard(firstCard);
@@ -826,39 +809,39 @@ export default function StudyPage() {
             throw new Error('Impossible d\'obtenir la première carte');
           }
         }
-        
+
         setSessionId(session.id);
         const restoredMode = session.mode || 'flashcard';
         setMode(restoredMode);
-        
+
         // IMPORTANT: Save to modeMemory BEFORE setHasStarted(true)
         // to prevent the useEffect from overwriting our restored state
         setModeMemory(prev => ({
           ...prev,
           [restoredMode]: {
             sessionState: restoredState,
-            currentCard: nextCard || restoredState.cards[0],
+            currentCard: nextCard || getNextCard(restoredState),
             isFlipped: false,
             sessionId: session.id,
             flashcards: orderedCards,
             matchCompleted: false,
           },
         }));
-        
+
         setShowSettings(false);
         setHasStarted(true);
-        
+
         console.log('[Study] ✅ Auto-resume successful:', session.id);
       } catch (error: any) {
         console.error('[Study] ❌ Failed to auto-resume session:', error);
         console.error('[Study] Error stack:', error?.stack);
-        
+
         // Clear timeout et reset
         clearTimeout(timeout);
         setShouldAutoResume(false);
         setShowSettings(true);
         setHasStarted(false);
-        
+
         alert(`Impossible de reprendre la session.\n\n${error?.message || 'Erreur inconnue'}\n\nVous pouvez créer une nouvelle session.`);
       }
     };
@@ -872,8 +855,10 @@ export default function StudyPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <p>Loading...</p>
+      <div className="min-h-screen bg-body">
+        <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8">
+          <p>Loading...</p>
+        </div>
       </div>
     );
   }
@@ -897,14 +882,14 @@ export default function StudyPage() {
       console.log('[Study] Attempting to resume session:', sessionId);
       const session = await studyService.getSession(sessionId);
       console.log('[Study] Session data received:', session);
-      
+
       if (!session) {
         throw new Error('Session not found');
       }
 
       // Check if we have card_order, otherwise fallback to originalFlashcards
       let orderedCards;
-      
+
       if (session.card_order && Array.isArray(session.card_order) && session.card_order.length > 0) {
         console.log('[Study] Using card_order from session:', session.card_order.length, 'cards');
         // Reconstruct flashcards in the saved order with original indices
@@ -923,53 +908,39 @@ export default function StudyPage() {
           originalIndex: idx,
         }));
       }
-      
+
       if (orderedCards.length === 0) {
         throw new Error('No cards found for this session');
       }
 
       console.log('[Study] Ordered cards prepared:', orderedCards.length);
       setFlashcards(orderedCards);
-      
+
       // Variables for state restoration
       let restoredState;
       let nextCard;
-      
+
       // Restore session state if available
-      if (session.session_state && session.session_state.cards && Array.isArray(session.session_state.cards)) {
-        console.log('[Study] Restoring session state with', session.session_state.cards.length, 'cards');
+      if (session.session_state) {
+        console.log('[Study] Migrating and restoring session state');
         console.log('[Study] Manual resume - Raw session_state:', session.session_state);
-        console.log('[Study] Manual resume - Current index from DB:', session.session_state.currentIndex);
-        
-        // Reconstruct the session state with proper types
-        restoredState = {
-          ...session.session_state,
-          masteredCards: new Set(
-            Array.isArray(session.session_state.masteredCards) 
-              ? session.session_state.masteredCards 
-              : []
-          ),
-          incorrectCards: Array.isArray(session.session_state.incorrectCards)
-            ? session.session_state.incorrectCards
-            : [],
-        };
-        
+
+        // Migrate old format to new format if needed
+        restoredState = migrateOldSessionState(session.session_state);
+
         console.log('[Study] Manual resume - Restored state:', {
-          currentIndex: restoredState.currentIndex,
-          totalCards: restoredState.cards.length,
-          masteredCount: restoredState.masteredCards.size,
-          incorrectCount: restoredState.incorrectCards.length,
+          queueLength: restoredState.queue?.length || 0,
+          totalCards: restoredState.cardData?.size || 0,
+          completedCount: restoredState.completedCards?.size || 0,
         });
-        
+
         setSessionState(restoredState);
         nextCard = getNextCard(restoredState);
-        console.log('[Study] Manual resume - Next card:', nextCard?.flashcardId);
-        
         if (nextCard) {
           setCurrentCard(nextCard);
         } else {
           console.warn('[Study] Manual resume - No next card found, showing first card as fallback');
-          nextCard = restoredState.cards[0];
+          nextCard = getNextCard(restoredState);
           setCurrentCard(nextCard);
         }
       } else {
@@ -978,38 +949,38 @@ export default function StudyPage() {
         const initialState = initializeSession(orderedCards);
         const firstCard = getNextCard(initialState);
         console.log('[Study] First card from fresh state:', firstCard?.flashcardId);
-        
+
         // Use initialState as restoredState for memory
         restoredState = initialState;
         nextCard = firstCard;
-        
+
         setSessionState(initialState);
         if (firstCard) {
           setCurrentCard(firstCard);
         }
       }
-      
+
       setSessionId(session.id);
       const restoredMode = session.mode || 'flashcard';
       setMode(restoredMode);
-      
+
       // IMPORTANT: Save to modeMemory BEFORE setHasStarted(true)
       // to prevent the useEffect from overwriting our restored state
       setModeMemory(prev => ({
         ...prev,
         [restoredMode]: {
           sessionState: restoredState,
-          currentCard: nextCard || restoredState.cards[0],
+          currentCard: nextCard || getNextCard(restoredState),
           isFlipped: false,
           sessionId: session.id,
           flashcards: orderedCards,
           matchCompleted: false,
         },
       }));
-      
+
       setShowSettings(false);
       setHasStarted(true);
-      
+
       console.log('[Study] Session resumed successfully:', session.id);
     } catch (error: any) {
       console.error('[Study] Failed to resume session:', error);
@@ -1066,7 +1037,7 @@ export default function StudyPage() {
         <Card className="py-12 text-center">
           <h2 className="text-2xl font-bold text-content-emphasis mb-4">Study Complete! 🎉</h2>
           <p className="text-3xl font-bold text-brand-primary mb-2">100%</p>
-          <p className="text-content-muted mb-6">
+          <p className="text-content-muted mt-1 text-sm sm:text-base">
             You mastered all {progress.totalCards} cards!
           </p>
           <div className="flex justify-center space-x-4">
@@ -1104,25 +1075,25 @@ export default function StudyPage() {
   }
 
   const progress = getProgress(sessionState);
-  
+
   // Get the card's position in the ORIGINAL full set (not the filtered subset)
   // This ensures the counter always shows the true card number (e.g., "10/52")
-  const cardInSession = sessionState.cards.find(c => c.flashcardId === currentCard.flashcardId);
+  const cardInSession = sessionState.cardData?.get(currentCard.flashcardId);
   const cardPosition = cardInSession?.originalIndex ?? 0;
 
-  // Match mode - show all flashcards at once
+  // Match mode - full screen
   if (mode === 'match') {
     return (
-      <div className="min-h-screen bg-bg-default flex flex-col">
-        {/* Top bar with mode selector centered - below search bar */}
-        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-10">
-          <StudyModeSelector currentMode={mode} onModeChange={handleModeChange} />
-        </div>
+      <div className="min-h-screen bg-bg-default">
 
-        {/* Main content - full screen */}
-        <div className="flex-1 flex items-center justify-center p-4">
+        {/* Main content - centered */}
+        <div className="flex items-center justify-center min-h-screen px-3 sm:px-4 py-4 sm:py-6">
           <div className="w-full max-w-6xl">
-            <Card className="p-6">
+            <Card className="p-4 sm:p-6">
+              {/* Mode selector as card header */}
+              <div className="mb-4 pb-4 border-b border-border-subtle">
+                <StudyModeSelector currentMode={mode} onModeChange={handleModeChange} />
+              </div>
               <MatchMode
                 flashcards={flashcards}
                 onComplete={handleMatchComplete}
@@ -1141,20 +1112,20 @@ export default function StudyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-default flex flex-col">
-      {/* Top bar with mode selector centered - below search bar */}
-      <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-10">
-        <StudyModeSelector currentMode={mode} onModeChange={setMode} />
-      </div>
+    <div className="min-h-screen bg-bg-default">
 
-      {/* Main content - full screen centered */}
-      <div className="flex-1 flex items-center justify-center p-4 pt-20">
-        <div className="w-full max-w-4xl">
-          <Card className="relative min-h-[500px] flex flex-col p-8">
-            {/* Progress bar integrated in card */}
-            <div className="mb-6">
+      {/* Main content - optimized spacing */}
+      <div className="flex items-center justify-center min-h-screen px-3 sm:px-4 py-4 sm:py-6">
+        <div className="w-full max-w-3xl">
+          <Card className="relative flex flex-col p-4 sm:p-6 md:p-8">
+            {/* Mode selector as card header */}
+            <div className="mb-4 pb-4 border-b border-border-subtle">
+              <StudyModeSelector currentMode={mode} onModeChange={setMode} />
+            </div>
+            {/* Progress bar - compact */}
+            <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-content-muted">
+                <span className="text-xs sm:text-sm text-content-muted">
                   {progress.masteredCount} / {progress.totalCards} maîtrisées
                   {progress.incorrectCount > 0 && (
                     <span className="ml-2 text-orange-400">
@@ -1162,15 +1133,15 @@ export default function StudyPage() {
                     </span>
                   )}
                 </span>
-                <span className="text-sm font-semibold text-content-emphasis">{progress.progress}%</span>
+                <span className="text-base sm:text-xl font-bold text-content-emphasis">{progress.progress}%</span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-gray-700 rounded-full h-1.5 sm:h-2">
                 <div
-                  className="bg-brand-primary h-2 rounded-full transition-all"
+                  className="bg-brand-primary h-1.5 sm:h-2 rounded-full transition-all"
                   style={{ width: `${progress.progress}%` }}
                 />
               </div>
-              <div className="mt-3 text-right text-[12px] font-medium text-content-muted">
+              <div className="mt-2 sm:mt-3 text-right text-[11px] sm:text-[12px] font-medium text-content-muted">
                 Card {cardPosition + 1} of {originalFlashcards.length}
               </div>
               {progress.needsReview && (
@@ -1183,71 +1154,73 @@ export default function StudyPage() {
             {/* Card content */}
             <div className="flex-1 flex items-center justify-center">
               {mode === 'flashcard' && (
-                <div className="text-center w-full max-w-2xl">
-            {!isFlipped ? (
-              <div className="space-y-4">
-                <p className="text-xs uppercase tracking-wide text-content-subtle mb-6">Front</p>
-                <FormattedText 
-                  text={currentCard.front || 'No front text'} 
-                  className="text-3xl md:text-4xl font-bold text-content-emphasis break-words whitespace-pre-wrap leading-relaxed" 
-                />
-                <div className="mt-8 flex flex-col items-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsFlipped(true);
-                      setTimeout(updateModeMemory, 0);
-                    }}
-                    className="w-full sm:w-auto"
-                  >
-                    Flip Card
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-xs uppercase tracking-wide text-content-subtle mb-6">Back</p>
-                <FormattedText 
-                  text={currentCard.back || 'No back text'} 
-                  className="text-3xl md:text-4xl font-bold text-content-emphasis break-words whitespace-pre-wrap leading-relaxed" 
-                />
-                <div className="mt-8 space-y-4">
-                  <div className="flex flex-col items-center">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setIsFlipped(false);
-                        setTimeout(updateModeMemory, 0);
-                      }}
-                      className="w-full sm:w-auto"
-                    >
-                      Show Front
-                    </Button>
-                  </div>
-                  <div className="flex justify-center space-x-4 mt-6">
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAnswer(false);
-                      }}
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Incorrect
-                    </Button>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAnswer(true);
-                      }}
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      Correct
-                    </Button>
-                  </div>
-                </div>
-              </div>
-                )}
+                <div className="text-center w-full max-w-2xl max-h-[55vh] sm:max-h-[60vh] overflow-y-auto">
+                  {!isFlipped ? (
+                    <div className="space-y-3 sm:space-y-4">
+                      <p className="text-xs uppercase tracking-wide text-content-subtle mb-4 sm:mb-6">Front</p>
+                      <FormattedText
+                        text={currentCard.front || 'No front text'}
+                        className="text-2xl sm:text-3xl md:text-4xl font-bold text-content-emphasis break-words whitespace-pre-wrap leading-relaxed"
+                      />
+                      <div className="mt-6 sm:mt-8 flex flex-col items-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsFlipped(true);
+                            setTimeout(updateModeMemory, 0);
+                          }}
+                          className="w-full sm:w-auto min-h-[48px] px-6 py-3"
+                        >
+                          Flip Card
+                        </Button>
+                      </div>      </div>
+                  ) : (
+                    <div className="space-y-3 sm:space-y-4">
+                      <p className="text-xs uppercase tracking-wide text-content-subtle mb-4 sm:mb-6">Back</p>
+                      <FormattedText
+                        text={currentCard.back || 'No back text'}
+                        className="text-2xl sm:text-3xl md:text-4xl font-bold text-content-emphasis break-words whitespace-pre-wrap leading-relaxed"
+                      />
+                      <div className="mt-6 sm:mt-8 space-y-3 sm:space-y-4">
+                        <div className="flex flex-col items-center">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setIsFlipped(false);
+                              setTimeout(updateModeMemory, 0);
+                            }}
+                            className="w-full sm:w-auto min-h-[48px] px-6 py-3"
+                          >
+                            Show Front
+                          </Button>
+                        </div>
+                        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mt-4 sm:mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerIncorrectEffect(e.currentTarget);
+                              handleAnswer(false);
+                            }}
+                            className="flex-1 sm:flex-none min-w-[120px] min-h-[48px]"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Incorrect
+                          </Button>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerCorrectEffect(e.currentTarget);
+                              handleAnswer(true);
+                            }}
+                            className="flex-1 sm:flex-none min-w-[120px] min-h-[48px]"
+                          >
+                            <Check className="h-4 w-4 mr-2" />
+                            Correct
+                          </Button>
+                        </div>      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1277,9 +1250,9 @@ export default function StudyPage() {
           </Card>
 
           {mode === 'flashcard' && (
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center hidden md:block">
               <p className="text-xs text-content-subtle">
-                Raccourcis : <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Entrée</kbd> pour retourner • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">←</kbd> Incorrect • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">→</kbd> Correct
+                Raccourcis : <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Z</kbd> pour retourner • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Q</kbd> Incorrect • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">D</kbd> Correct
               </p>
             </div>
           )}

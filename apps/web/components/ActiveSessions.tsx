@@ -136,11 +136,35 @@ export function ActiveSessions() {
     return `Il y a ${diffDays}j`;
   };
 
-  const getMasteredCount = (masteredCards: any) => {
-    // Handle both Set and Array
-    if (!masteredCards) return 0;
-    if (Array.isArray(masteredCards)) return masteredCards.length;
-    if (typeof masteredCards === 'object' && masteredCards.size !== undefined) return masteredCards.size;
+  const getMasteredCount = (sessionState: any) => {
+    if (!sessionState) return 0;
+
+    // ✅ FIX: The field is 'completedCards', not 'masteredCards'
+    const completedCards = sessionState.completedCards;
+
+    if (!completedCards) return 0;
+    if (Array.isArray(completedCards)) return completedCards.length;
+    if (typeof completedCards === 'object' && completedCards.size !== undefined) return completedCards.size;
+    return 0;
+  };
+
+  const getAnsweredCount = (sessionState: any) => {
+    if (!sessionState) return 0;
+
+    // Count cards with at least one answer (correct or incorrect)
+    if (sessionState.cardData) {
+      const cards = Array.isArray(sessionState.cardData)
+        ? sessionState.cardData
+        : Array.from(Object.values(sessionState.cardData));
+
+      return cards.filter((c: any) => (c.correctCount > 0 || c.incorrectCount > 0)).length;
+    }
+
+    // Fallback: if completedCards exists
+    if (sessionState.completedCards) {
+      return sessionState.completedCards.length || sessionState.completedCards.size || 0;
+    }
+
     return 0;
   };
 
@@ -207,7 +231,7 @@ export function ActiveSessions() {
             </p>
           </div>
         </div>
-        
+
         {/* Action buttons */}
         <div className="flex items-center gap-2">
           <button
@@ -219,7 +243,7 @@ export function ActiveSessions() {
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
-          
+
           <button
             onClick={handleCompleteAllSessions}
             disabled={isDeletingAll || sessions.length === 0}
@@ -283,19 +307,29 @@ export function ActiveSessions() {
                 </div>
 
                 {/* Progress indicator (if session_state available) */}
-                {session.session_state?.masteredCards && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-bg-subtle rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-green-500 transition-all"
-                        style={{
-                          width: `${(getMasteredCount(session.session_state.masteredCards) / session.total_cards) * 100}%`,
-                        }}
-                      />
+                {session.session_state && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-bg-subtle rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-500 transition-all"
+                          style={{
+                            width: `${(getMasteredCount(session.session_state) / session.total_cards) * 100}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-[11px] text-content-muted whitespace-nowrap">
+                        {getMasteredCount(session.session_state)}/{session.total_cards}
+                      </span>
                     </div>
-                    <span className="text-[11px] text-content-muted">
-                      {getMasteredCount(session.session_state.masteredCards)}/{session.total_cards}
-                    </span>
+                    <div className="flex items-center justify-between text-[11px] text-content-muted">
+                      <span className="text-green-600 font-medium">
+                        {getMasteredCount(session.session_state)} maîtrisées
+                      </span>
+                      <span>
+                        {getAnsweredCount(session.session_state)} répondues
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
