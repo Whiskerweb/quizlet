@@ -136,7 +136,7 @@ export function InviteFriendsCTA() {
                   <div className="text-sm text-content-muted mt-1 font-medium">
                     {friendCount > 0 
                       ? `${friendCount} ${friendCount > 1 ? t('friendsCount') : t('friend')} • ${t('shareYourCards')}`
-                      : `${profile?.username}, ${t('dontStudyAlone')}`}
+                      : `${profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.username || 'User'}, ${t('dontStudyAlone')}`}
                   </div>
                 </div>
               </div>

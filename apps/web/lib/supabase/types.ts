@@ -22,6 +22,8 @@ export interface Database {
           avatar: string | null
           is_premium: boolean
           role: 'student' | 'teacher'
+          study_level: string | null
+          school: string | null
           created_at: string
           updated_at: string
         }
@@ -34,6 +36,8 @@ export interface Database {
           avatar?: string | null
           is_premium?: boolean
           role?: 'student' | 'teacher'
+          study_level?: string | null
+          school?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -46,6 +50,8 @@ export interface Database {
           avatar?: string | null
           is_premium?: boolean
           role?: 'student' | 'teacher'
+          study_level?: string | null
+          school?: string | null
           created_at?: string
           updated_at?: string
         }

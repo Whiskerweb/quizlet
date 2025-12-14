@@ -25,6 +25,7 @@ import { useThemeStore } from '@/store/themeStore';
 import { useLanguageStore, languageNames, type Language } from '@/store/languageStore';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { Database } from '@/lib/supabase/types';
+import { getDisplayName, getInitials } from '@/lib/utils/profile';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -141,18 +142,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         if (profileData) {
           const typedProfile = profileData as Profile;
           console.log('[Dashboard Layout] Profile loaded:', typedProfile.username);
+          
+          // Check if onboarding is needed (profile missing role or name)
+          const needsOnboarding = !typedProfile.role || !typedProfile.first_name || !typedProfile.last_name;
+          
+          if (needsOnboarding) {
+            console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
+            router.replace('/onboarding');
+            return;
+          }
+          
           setStoreUser(session.user);
           setStoreProfile(typedProfile);
         } else if (profileError) {
           console.error('[Dashboard Layout] Error loading profile:', profileError);
 
           // Créer le profil si nécessaire (fallback si le trigger SQL n'a pas fonctionné)
+          // Generate temporary username from email (will be replaced during onboarding)
           const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
 
           const { error: rpcError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
             user_id: session.user.id,
             user_email: session.user.email || '',
-            user_username: baseUsername,
+            user_username: baseUsername, // Temporary username, will be updated during onboarding
             user_first_name: session.user.user_metadata?.first_name || null,
             user_last_name: session.user.user_metadata?.last_name || null,
           });
@@ -171,6 +183,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           if (newProfile) {
             const typedNewProfile = newProfile as Profile;
             console.log('[Dashboard Layout] Profile created/loaded:', typedNewProfile.username);
+            
+            // Check if onboarding is needed
+            const needsOnboarding = !typedNewProfile.role || !typedNewProfile.first_name || !typedNewProfile.last_name;
+            
+            if (needsOnboarding) {
+              console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
+              router.replace('/onboarding');
+              return;
+            }
+            
             setStoreUser(session.user);
             setStoreProfile(typedNewProfile);
           } else {
@@ -179,7 +201,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           }
         }
       } else {
-        // Profil déjà dans le store, mettre à jour user si nécessaire
+        // Profil déjà dans le store, vérifier si onboarding est nécessaire
+        const needsOnboarding = !currentProfile.role || !currentProfile.first_name || !currentProfile.last_name;
+        
+        if (needsOnboarding) {
+          console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
+          router.replace('/onboarding');
+          return;
+        }
+        
         console.log('[Dashboard Layout] Profile already in store:', currentProfile.username);
         setStoreUser(session.user);
       }
@@ -207,7 +237,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   const sidebarWidth = isSidebarOpen ? (isMobile ? '260px' : '260px') : (isMobile ? '0px' : '80px');
-  const initials = profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
+  const displayName = getDisplayName(profile, user?.email);
+  const initials = getInitials(profile, user?.email);
 
   return (
     <div className="app-shell min-h-screen bg-bg-default">
@@ -221,7 +252,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         className="flex min-h-screen flex-col transition-all duration-300 ease-in-out"
         style={{ marginLeft: isMobile ? '0' : sidebarWidth }}
       >
-        <div className={`bg-bg-default ${isStudyPage ? 'p-0 h-screen' : 'pb-[var(--page-bottom-margin)] pt-[var(--page-top-margin)] md:h-screen md:pb-2 md:pr-2'}`}>
+        <div className={`bg-bg-default ${isStudyPage ? 'p-0 h-screen' : 'pb-[var(--page-bottom-margin)] pt-0 md:h-screen md:pb-2 md:pr-2'}`}>
           <div className={`relative h-full overflow-hidden ${isStudyPage ? 'rounded-none' : 'rounded-none bg-bg-emphasis shadow-panel md:rounded-[24px]'}`}>
             <div className="flex h-full flex-col">
               {/* Header - masqué sur les pages de jeu */}
@@ -251,7 +282,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                           {profile?.avatar ? (
                             <img
                               src={profile.avatar}
-                              alt={profile.username || 'User'}
+                              alt={displayName}
                               className="h-full w-full rounded-full object-cover"
                             />
                           ) : (
@@ -260,7 +291,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         </div>
                         <div className="hidden md:block">
                           <p className="text-[13px] font-semibold text-content-emphasis leading-tight">
-                            {profile?.username || user?.email?.split('@')[0] || 'User'}
+                            {displayName}
                           </p>
                           <p className="text-[11px] text-content-muted leading-tight">{t('profile')}</p>
                         </div>
@@ -275,7 +306,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                               {profile?.avatar ? (
                                 <img
                                   src={profile.avatar}
-                                  alt={profile.username || 'User'}
+                                  alt={displayName}
                                   className="h-full w-full rounded-full object-cover"
                                 />
                               ) : (
@@ -284,7 +315,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-content-emphasis truncate">
-                                {profile?.username || user?.email?.split('@')[0] || 'User'}
+                                {displayName}
                               </p>
                               <p className="text-xs text-content-muted truncate">
                                 {user?.email || ''}

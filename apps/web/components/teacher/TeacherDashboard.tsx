@@ -211,7 +211,7 @@ export function TeacherDashboard() {
         <div className="space-y-1">
           <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">Dashboard Professeur</p>
           <h1 className="text-[24px] font-semibold text-content-emphasis sm:text-[28px]">
-            Bonjour, {profile?.username} 👨‍🏫
+            Bonjour, {profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : profile?.username || 'Professeur'} 👨‍🏫
           </h1>
           <p className="text-[14px] text-content-muted">
             Gérez vos modules, classes et partagez du contenu avec vos élèves.

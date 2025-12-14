@@ -1,18 +1,18 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
+import { ArrowLeft, Mail, Lock } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -75,82 +75,128 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-64px)]">
-        <Card className="w-full max-w-md border border-gray-200 shadow-sm">
-          <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
-            <CardTitle className="text-[20px] sm:text-[24px] font-bold text-content-emphasis">
-              Sign in to your account
-            </CardTitle>
-          </CardHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
+    <div className="min-h-screen bg-white">
+      {/* Header with logo and back button */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 sm:px-8 sm:py-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+            aria-label="Retour"
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
+          </button>
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <Image 
+                src="/images/logo.png" 
+                alt="CARDZ Logo" 
+                width={32} 
+                height={32}
+                className="object-contain"
+                priority
+              />
+            </div>
+          </Link>
+        </div>
+        <Link 
+          href={`/register${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
+          className="text-sm text-gray-600 hover:text-brand-primary transition-colors"
+        >
+          Don&apos;t have an account? <span className="font-semibold text-brand-primary">Sign up</span>
+        </Link>
+      </div>
+
+      {/* Main content - Two column layout */}
+      <div className="flex min-h-screen">
+        {/* Left column - Illustration placeholder (empty for now) */}
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-50 to-indigo-100 items-center justify-center p-12">
+          {/* Placeholder for illustration - will be filled later */}
+          <div className="w-full h-full flex items-center justify-center">
+            {/* Empty space for future illustration */}
+          </div>
+        </div>
+
+        {/* Right column - Login form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12">
+          <div className="w-full max-w-md">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+              Sign in
+            </h1>
+            <p className="text-sm text-gray-600 mb-8">
+              Sign in with your account
+            </p>
+
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-[13px] sm:text-[14px]">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
                 {error}
               </div>
             )}
 
-            {/* Bouton de connexion Google */}
+            {/* Google Login Button */}
             <GoogleLoginButton 
               redirectTo={redirectUrl}
-              className="mb-4"
+              className="mb-6"
             />
 
-            {/* Séparateur */}
+            {/* Separator */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-dark-background-card text-content-muted dark:text-dark-text-muted">Ou</span>
+                <span className="px-4 bg-white text-gray-500">Or continue with email address</span>
               </div>
             </div>
 
-            <div>
-              <label htmlFor="email" className="block text-[13px] sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                {...register('email')}
-                placeholder="you@example.com"
-                className="h-10 sm:h-11 text-[14px] sm:text-[15px]"
-              />
-              {errors.email && (
-                <p className="mt-1 text-[12px] sm:text-sm text-red-600">{errors.email.message}</p>
-              )}
-            </div>
+            {/* Email/Password Form */}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...register('email')}
+                    placeholder="you@example.com"
+                    className="pl-12 h-12 text-base border-gray-200 focus:border-brand-primary focus:ring-brand-primary"
+                  />
+                </div>
+                {errors.email && (
+                  <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
+                )}
+              </div>
 
-            <div>
-              <label htmlFor="password" className="block text-[13px] sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                {...register('password')}
-                placeholder="••••••••"
-                className="h-10 sm:h-11 text-[14px] sm:text-[15px]"
-              />
-              {errors.password && (
-                <p className="mt-1 text-[12px] sm:text-sm text-red-600">{errors.password.message}</p>
-              )}
-            </div>
+              <div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    {...register('password')}
+                    placeholder="••••••••"
+                    className="pl-12 h-12 text-base border-gray-200 focus:border-brand-primary focus:ring-brand-primary"
+                  />
+                </div>
+                {errors.password && (
+                  <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
+                )}
+              </div>
 
-            <Button type="submit" className="w-full h-10 sm:h-11 text-[14px] sm:text-[15px] font-medium" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </Button>
-
-            <p className="text-center text-[12px] sm:text-sm text-gray-600 pt-2">
-              Don&apos;t have an account?{' '}
-              <Link href={`/register${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="text-brand-primary hover:underline font-medium">
-                Sign up
-              </Link>
-            </p>
-          </form>
-        </Card>
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-base font-semibold" 
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing in...' : 'Sign in'}
+              </Button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -159,24 +205,11 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-64px)]">
-          <Card className="w-full max-w-md border border-gray-200 shadow-sm">
-            <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
-              <CardTitle className="text-[20px] sm:text-[24px] font-bold text-content-emphasis">
-                Sign in to your account
-              </CardTitle>
-            </CardHeader>
-            <div className="p-4 sm:p-6">
-              <p className="text-center text-gray-600 text-[14px] sm:text-[15px]">Loading...</p>
-            </div>
-          </Card>
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p className="text-gray-600">Loading...</p>
       </div>
     }>
       <LoginForm />
     </Suspense>
   );
 }
-

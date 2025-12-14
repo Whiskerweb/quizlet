@@ -77,15 +77,16 @@ export default function OAuthCallbackPage() {
         }
         
         // Créer le profil si nécessaire
+        // Generate temporary username from email (will be replaced during onboarding if name is provided)
         const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
         
         const { error: rpcError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
           user_id: session.user.id,
           user_email: session.user.email || '',
-          user_username: baseUsername,
+          user_username: baseUsername, // Temporary username, will be updated during onboarding
           user_role: oauthRole || 'student', // Utiliser le rôle stocké ou 'student' par défaut
-          user_first_name: session.user.user_metadata?.first_name || null,
-          user_last_name: session.user.user_metadata?.last_name || null,
+          user_first_name: session.user.user_metadata?.first_name || session.user.user_metadata?.full_name?.split(' ')[0] || null,
+          user_last_name: session.user.user_metadata?.last_name || session.user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || null,
         });
         
         if (rpcError) {
@@ -196,9 +197,17 @@ export default function OAuthCallbackPage() {
         }
       }
 
-      // Rediriger vers dashboard
-      console.log('[OAuth Callback] Redirecting to /dashboard');
-      router.replace('/dashboard');
+      // Check if onboarding is needed (profile missing role or name)
+      const finalProfile = updatedProfile || typedProfile;
+      const needsOnboarding = !finalProfile.role || !finalProfile.first_name || !finalProfile.last_name;
+
+      if (needsOnboarding) {
+        console.log('[OAuth Callback] Profile incomplete, redirecting to /onboarding');
+        router.replace('/onboarding');
+      } else {
+        console.log('[OAuth Callback] Profile complete, redirecting to /dashboard');
+        router.replace('/dashboard');
+      }
     };
 
     run();
