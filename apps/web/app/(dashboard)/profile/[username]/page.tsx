@@ -118,15 +118,70 @@ export default function ProfilePage() {
       setIsLoading(true);
       const supabase = supabaseBrowser;
       
-      // Load profile
+      // Decode username from URL (handle URL encoding)
+      const decodedUsername = decodeURIComponent(username);
+      
+      // Handle "me" case - redirect to current user's profile
+      if (decodedUsername === 'me') {
+        if (currentProfile?.username && currentProfile.username !== 'me') {
+          router.replace(`/profile/${currentProfile.username}`);
+          return;
+        }
+        // If no current profile but we have user, load by user ID
+        if (!currentProfile && user?.id) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (error || !data) {
+            console.error('Profile not found for current user:', error);
+            setProfile(null);
+            return;
+          }
+          
+          const typedProfileData = data as Profile;
+          setProfile(typedProfileData);
+          
+          // Load public sets
+          const { data: setsData, error: setsError } = await supabase
+            .from('sets')
+            .select('*')
+            .eq('user_id', typedProfileData.id)
+            .eq('is_public', true)
+            .order('created_at', { ascending: false });
+
+          if (setsError) {
+            console.error('Failed to load sets:', setsError);
+          } else {
+            setPublicSets(setsData || []);
+          }
+          return;
+        }
+        // If no user or profile, show error
+        setProfile(null);
+        return;
+      }
+      
+      // Load profile by username
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('username', username)
+        .eq('username', decodedUsername)
         .single();
 
       if (profileError || !profileData) {
-        console.error('Profile not found:', profileError);
+        console.error('Profile not found:', {
+          username: decodedUsername,
+          originalUsername: username,
+          error: profileError,
+          code: profileError?.code,
+          message: profileError?.message,
+          details: profileError?.details,
+          hint: profileError?.hint
+        });
+        setProfile(null);
         return;
       }
 
@@ -136,7 +191,6 @@ export default function ProfilePage() {
       setProfile(typedProfileData);
 
       // Load public sets for this user
-      // Garde : on vérifie que typedProfileData existe avant d'utiliser son id
       if (!typedProfileData) {
         console.error('Profile data is null');
         return;
@@ -156,6 +210,7 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
+      setProfile(null);
     } finally {
       setIsLoading(false);
     }

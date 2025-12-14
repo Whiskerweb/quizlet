@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormattedText } from '@/components/FormattedText';
-import { Check, X, Settings } from 'lucide-react';
+import { Check, X, Settings, RotateCcw } from 'lucide-react';
 import { StudyModeSelector } from './components/StudyModeSelector';
 import { StudySettings } from './components/StudySettings';
 import { QuizMode } from './components/QuizMode';
@@ -64,6 +64,7 @@ export default function StudyPage() {
   const [sessionState, setSessionState] = useState<StudySessionState | null>(null);
   const [currentCard, setCurrentCard] = useState<CardReview | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isReversed, setIsReversed] = useState(false);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [originalFlashcards, setOriginalFlashcards] = useState<Flashcard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1157,9 +1158,23 @@ export default function StudyPage() {
                 <div className="text-center w-full max-w-2xl max-h-[55vh] sm:max-h-[60vh] overflow-y-auto">
                   {!isFlipped ? (
                     <div className="space-y-3 sm:space-y-4">
-                      <p className="text-xs uppercase tracking-wide text-content-subtle mb-4 sm:mb-6">Front</p>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-xs uppercase tracking-wide text-content-subtle">QUESTION</p>
+                        <button
+                          onClick={() => {
+                            setIsReversed(!isReversed);
+                            setIsFlipped(false);
+                          }}
+                          className="flex items-center gap-1 sm:gap-2 rounded-lg border border-border-subtle px-2 sm:px-3 py-1.5 text-sm text-content-emphasis transition-colors hover:bg-bg-muted/70 min-h-[44px]"
+                          title={isReversed ? 'Mode normal: Question → Réponse' : 'Mode inversé: Description → Terme'}
+                          aria-label={isReversed ? 'Mode inversé' : 'Mode normal'}
+                        >
+                          <RotateCcw className="h-4 w-4 flex-shrink-0" />
+                          <span className="hidden sm:inline">{isReversed ? 'Mode inversé' : 'Mode normal'}</span>
+                        </button>
+                      </div>
                       <FormattedText
-                        text={currentCard.front || 'No front text'}
+                        text={isReversed ? (currentCard.back || 'No back text') : (currentCard.front || 'No front text')}
                         className="text-2xl sm:text-3xl md:text-4xl font-bold text-content-emphasis break-words whitespace-pre-wrap leading-relaxed"
                       />
                       <div className="mt-6 sm:mt-8 flex flex-col items-center">
@@ -1176,9 +1191,23 @@ export default function StudyPage() {
                       </div>      </div>
                   ) : (
                     <div className="space-y-3 sm:space-y-4">
-                      <p className="text-xs uppercase tracking-wide text-content-subtle mb-4 sm:mb-6">Back</p>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-xs uppercase tracking-wide text-content-subtle">ANSWER</p>
+                        <button
+                          onClick={() => {
+                            setIsReversed(!isReversed);
+                            setIsFlipped(false);
+                          }}
+                          className="flex items-center gap-1 sm:gap-2 rounded-lg border border-border-subtle px-2 sm:px-3 py-1.5 text-sm text-content-emphasis transition-colors hover:bg-bg-muted/70 min-h-[44px]"
+                          title={isReversed ? 'Mode normal: Question → Réponse' : 'Mode inversé: Description → Terme'}
+                          aria-label={isReversed ? 'Mode inversé' : 'Mode normal'}
+                        >
+                          <RotateCcw className="h-4 w-4 flex-shrink-0" />
+                          <span className="hidden sm:inline">{isReversed ? 'Mode inversé' : 'Mode normal'}</span>
+                        </button>
+                      </div>
                       <FormattedText
-                        text={currentCard.back || 'No back text'}
+                        text={isReversed ? (currentCard.front || 'No front text') : (currentCard.back || 'No back text')}
                         className="text-2xl sm:text-3xl md:text-4xl font-bold text-content-emphasis break-words whitespace-pre-wrap leading-relaxed"
                       />
                       <div className="mt-6 sm:mt-8 space-y-3 sm:space-y-4">
