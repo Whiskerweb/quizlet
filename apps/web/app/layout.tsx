@@ -18,6 +18,29 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const stored = localStorage.getItem('theme-storage');
+                  if (stored) {
+                    const parsed = JSON.parse(stored);
+                    const currentTheme = parsed?.state?.theme || 'light';
+                    document.documentElement.classList.remove('light', 'dark');
+                    document.documentElement.classList.add(currentTheme);
+                  } else {
+                    document.documentElement.classList.add('light');
+                  }
+                } catch (e) {
+                  document.documentElement.classList.add('light');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>

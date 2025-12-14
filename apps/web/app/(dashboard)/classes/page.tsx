@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { classesService } from '@/lib/supabase/classes';
 import { classModulesService } from '@/lib/supabase/class-modules';
 import { Button } from '@/components/ui/Button';
@@ -60,7 +61,7 @@ export default function ClassesPage() {
       setClasses(data || []);
     } catch (error) {
       console.error('Failed to load classes:', error);
-      alert('Erreur lors du chargement des classes.');
+      alert(t('errorLoadingClasses'));
     } finally {
       setIsLoading(false);
     }
@@ -82,19 +83,19 @@ export default function ClassesPage() {
       setIsCreateModalOpen(false);
     } catch (error) {
       console.error('Failed to create class:', error);
-      alert('Erreur lors de la création de la classe.');
+      alert(t('errorCreatingClass'));
     }
   };
 
   const handleDeleteClass = async (classId: string, className: string) => {
-    if (!confirm(`Voulez-vous vraiment supprimer la classe "${className}" ? Les élèves perdront l'accès.`)) return;
+    if (!confirm(t('confirmDeleteClass').replace('{className}', className))) return;
     
     try {
       await classesService.deleteClass(classId, user?.id);
       await loadClasses();
     } catch (error) {
       console.error('Failed to delete class:', error);
-      alert('Erreur lors de la suppression.');
+      alert(t('errorDeletingClass'));
     }
   };
 
@@ -120,7 +121,7 @@ export default function ClassesPage() {
   if (isLoading) {
     return (
       <div className="py-12 text-center">
-        <p className="text-content-muted">Chargement...</p>
+        <p className="text-content-muted">{t('loading')}</p>
       </div>
     );
   }
@@ -130,12 +131,12 @@ export default function ClassesPage() {
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-border-subtle bg-bg-emphasis p-5 sm:p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">Gestion des classes</p>
+          <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">{t('classManagement')}</p>
           <h1 className="text-[24px] font-semibold text-content-emphasis sm:text-[28px]">
-            Mes Classes
+            {t('myClasses')}
           </h1>
           <p className="text-[14px] text-content-muted">
-            Gérez vos classes, partagez des modules et suivez vos élèves.
+            {t('manageClassesShareModules')}
           </p>
         </div>
         <Button
@@ -144,7 +145,7 @@ export default function ClassesPage() {
           className="justify-center text-[13px] sm:text-[14px]"
         >
           <Plus className="h-4 w-4 sm:mr-2" />
-          Nouvelle classe
+          {t('newClass')}
         </Button>
       </div>
 
@@ -153,13 +154,13 @@ export default function ClassesPage() {
         <Card variant="emptyState" className="py-12 text-center">
           <Users className="h-12 w-12 text-content-subtle mx-auto mb-4" />
           <h3 className="text-[16px] text-content-emphasis mb-2">
-            Aucune classe créée
+            {t('noClassesCreated')}
           </h3>
           <p className="text-[15px] text-content-muted mb-4">
-            Créez votre première classe pour commencer à partager du contenu avec vos élèves
+            {t('createFirstClassDescription')}
           </p>
           <Button onClick={() => setIsCreateModalOpen(true)}>
-            Créer ma première classe
+            {t('createMyFirstClass')}
           </Button>
         </Card>
       ) : (
@@ -192,15 +193,15 @@ export default function ClassesPage() {
                     <div className="flex flex-wrap gap-4 text-[13px] text-content-muted">
                       <div className="flex items-center gap-1.5">
                         <Users className="h-4 w-4" />
-                        <span>{cls.student_count} élève{cls.student_count > 1 ? 's' : ''}</span>
+                        <span>{cls.student_count} {cls.student_count > 1 ? t('students') : t('student')}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Folder className="h-4 w-4" />
-                        <span>{modules.length} module{modules.length > 1 ? 's' : ''}</span>
+                        <span>{modules.length} {modules.length > 1 ? t('modules') : t('module')}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <BookOpen className="h-4 w-4" />
-                        <span>{modules.reduce((sum, m) => sum + m.sets_count, 0)} cardz</span>
+                        <span>{modules.reduce((sum, m) => sum + m.sets_count, 0)} {t('cards')}</span>
                       </div>
                     </div>
                   </div>
@@ -209,7 +210,7 @@ export default function ClassesPage() {
                   <div className="flex flex-col gap-3">
                     {/* Class Code */}
                     <div className="rounded-lg border border-border-subtle bg-bg-subtle p-3">
-                      <p className="text-[11px] uppercase tracking-[0.2em] text-content-subtle mb-2">Code classe</p>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-content-subtle mb-2">{t('classCode')}</p>
                       <div className="flex items-center gap-2">
                         {visibleCodes[cls.class_id] ? (
                           <>
@@ -219,14 +220,14 @@ export default function ClassesPage() {
                             <button
                               onClick={() => copyClassCode(cls.class_code)}
                               className="p-2 hover:bg-bg-emphasis rounded transition"
-                              title="Copier"
+                              title={t('copy')}
                             >
                               <Copy className="h-4 w-4 text-content-muted" />
                             </button>
                             <button
                               onClick={() => toggleCodeVisibility(cls.class_id)}
                               className="p-2 hover:bg-bg-emphasis rounded transition"
-                              title="Masquer"
+                              title={t('hide')}
                             >
                               <EyeOff className="h-4 w-4 text-content-muted" />
                             </button>
@@ -237,7 +238,7 @@ export default function ClassesPage() {
                             className="flex items-center gap-2 px-3 py-1.5 text-[13px] text-brand-primary hover:bg-blue-50 rounded transition"
                           >
                             <Eye className="h-4 w-4" />
-                            Afficher
+                            {t('show')}
                           </button>
                         )}
                       </div>
@@ -251,7 +252,7 @@ export default function ClassesPage() {
                       className="text-state-danger hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Supprimer
+                      {t('deleteFolder')}
                     </Button>
                   </div>
                 </div>
@@ -263,7 +264,7 @@ export default function ClassesPage() {
                     className="flex items-center gap-2 text-[14px] text-brand-primary hover:underline"
                   >
                     <ChevronRight className={`h-4 w-4 transition ${isExpanded ? 'rotate-90' : ''}`} />
-                    {isExpanded ? 'Masquer les détails' : 'Voir les détails'}
+                    {isExpanded ? t('hideDetails') : t('viewDetails')}
                   </button>
 
                   {isExpanded && (
@@ -271,11 +272,11 @@ export default function ClassesPage() {
                       {/* Modules shared */}
                       <div>
                         <h3 className="text-[15px] font-semibold text-content-emphasis mb-3">
-                          Modules partagés ({modules.length})
+                          {t('sharedModules')} ({modules.length})
                         </h3>
                         {modules.length === 0 ? (
                           <p className="text-[13px] text-content-muted italic">
-                            Aucun module partagé. Utilisez le glisser-déposer depuis le dashboard.
+                            {t('noSharedModules')}
                           </p>
                         ) : (
                           <div className="grid gap-2 sm:grid-cols-2">
@@ -291,7 +292,7 @@ export default function ClassesPage() {
                                       {module.module_name}
                                     </p>
                                     <p className="text-[12px] text-content-muted">
-                                      {module.sets_count} cardz
+                                      {module.sets_count} {t('cards')}
                                     </p>
                                   </div>
                                 </div>
@@ -307,13 +308,13 @@ export default function ClassesPage() {
                       {/* Students */}
                       <div>
                         <h3 className="text-[15px] font-semibold text-content-emphasis mb-3">
-                          Élèves ({cls.student_count})
+                          {t('students')} ({cls.student_count})
                         </h3>
                         <Link
                           href={`/classes/${cls.class_id}/students`}
                           className="inline-flex items-center gap-2 text-[13px] text-brand-primary hover:underline"
                         >
-                          Voir la liste des élèves
+                          {t('viewStudentsList')}
                           <ChevronRight className="h-3.5 w-3.5" />
                         </Link>
                       </div>

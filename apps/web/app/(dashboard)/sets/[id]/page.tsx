@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { setsService } from '@/lib/supabase/sets';
 import { flashcardsService } from '@/lib/supabase/flashcards';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
@@ -19,6 +20,7 @@ import { useAuthStore } from '@/store/authStore';
 export default function SetDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const { user, profile } = useAuthStore();
   const setId = params.id as string;
@@ -191,7 +193,7 @@ export default function SetDetailPage() {
   if (!set) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <p>Set not found</p>
+        <p>{t('setNotFound')}</p>
       </div>
     );
   }

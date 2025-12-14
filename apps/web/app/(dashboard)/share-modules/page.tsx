@@ -38,6 +38,7 @@ interface ClassModule {
 
 export default function ShareModulesPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [modules, setModules] = useState<FolderWithSets[]>([]);
   const [classes, setClasses] = useState<TeacherClass[]>([]);
   const [classModules, setClassModules] = useState<Record<string, ClassModule[]>>({});
@@ -155,12 +156,12 @@ export default function ShareModulesPage() {
         
         <div className="flex flex-col gap-4 rounded-2xl border border-border-subtle bg-bg-emphasis p-5 sm:p-6">
           <div className="space-y-1">
-            <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">Partage de contenu</p>
+            <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">{t('contentSharing')}</p>
             <h1 className="text-[24px] font-semibold text-content-emphasis sm:text-[28px]">
-              Partager des Modules
+              {t('shareModules')}
             </h1>
             <p className="text-[14px] text-content-muted">
-              Glissez-déposez vos modules sur vos classes pour les partager avec vos élèves.
+              {t('dragDropModulesDescription')}
             </p>
           </div>
         </div>
@@ -258,7 +259,7 @@ export default function ShareModulesPage() {
                 Aucune classe. Créez-en une pour commencer.
               </p>
               <Link href="/dashboard">
-                <Button size="sm">Créer une classe</Button>
+                <Button size="sm">{t('createClass')}</Button>
               </Link>
             </Card>
           ) : (

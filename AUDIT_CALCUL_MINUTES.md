@@ -413,3 +413,4 @@ Le problème principal est que **l'affichage des minutes utilise la durée total
 **Action immédiate recommandée** : Corriger le calcul dans `apps/web/app/(dashboard)/home/page.tsx` pour utiliser `time_spent` des réponses.
 
 
+

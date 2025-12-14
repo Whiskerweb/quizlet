@@ -14,15 +14,16 @@
  * La vérification se base uniquement sur getSession().
  */
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { SidebarNav } from '@/components/layout/SidebarNav';
-import { TopSearchBar } from '@/components/layout/TopSearchBar';
 import { Button } from '@/components/ui/Button';
-import { LogOut, Menu } from 'lucide-react';
-import Link from 'next/link';
+import { LogOut, Menu, Trophy, Settings, Sun, Moon, Globe, User as UserIcon } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useThemeStore } from '@/store/themeStore';
+import { useLanguageStore, languageNames, type Language } from '@/store/languageStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { Database } from '@/lib/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -31,13 +32,37 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, profile, logout } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
+  const { language, setLanguage } = useLanguageStore();
+  const { t } = useTranslation();
   const [checking, setChecking] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const [showLanguageChangeToast, setShowLanguageChangeToast] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const languageMenuRef = useRef<HTMLDivElement>(null);
 
   // Détecter si on est sur une page de jeu (study)
   const isStudyPage = pathname?.includes('/study/');
+
+  // Initialiser le thème au chargement
+  useEffect(() => {
+    // Appliquer le thème au chargement
+    if (typeof window !== 'undefined') {
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(theme);
+    }
+  }, [theme]);
+
+  // Mettre à jour l'attribut lang du document HTML
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.lang = language;
+    }
+  }, [language]);
 
   // Détection mobile et gestion de la sidebar
   useEffect(() => {
@@ -55,6 +80,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Fermer le menu profil quand on clique en dehors
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+      if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
+        setIsLanguageMenuOpen(false);
+      }
+    };
+
+    if (isProfileMenuOpen || isLanguageMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileMenuOpen, isLanguageMenuOpen]);
 
   // Vérification de l'authentification et initialisation du store
   useEffect(() => {
@@ -152,7 +197,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   if (checking) {
     return (
       <div className="app-shell flex min-h-screen items-center justify-center bg-bg-default">
-        <p className="text-content-muted">Chargement du dashboard…</p>
+        <p className="text-content-muted">{t('loadingDashboard')}</p>
       </div>
     );
   }
@@ -194,39 +239,187 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </Button>
                   )}
 
-                  <TopSearchBar className="flex-1 min-w-0" />
-
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <Link href={`/profile/${profile?.username || 'me'}`}>
+                  <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+                    <div className="relative" ref={profileMenuRef}>
                       <Button
                         variant="secondary"
                         size="sm"
+                        onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                         className="flex items-center gap-2 rounded-full border border-border-subtle bg-bg-emphasis/80 px-2.5 py-1.5 text-left"
                       >
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-bg-muted text-sm font-semibold text-content-emphasis">
-                          {initials}
+                          {profile?.avatar ? (
+                            <img
+                              src={profile.avatar}
+                              alt={profile.username || 'User'}
+                              className="h-full w-full rounded-full object-cover"
+                            />
+                          ) : (
+                            initials
+                          )}
                         </div>
                         <div className="hidden md:block">
                           <p className="text-[13px] font-semibold text-content-emphasis leading-tight">
                             {profile?.username || user?.email?.split('@')[0] || 'User'}
                           </p>
-                          <p className="text-[11px] text-content-muted leading-tight">Profil</p>
+                          <p className="text-[11px] text-content-muted leading-tight">{t('profile')}</p>
                         </div>
                       </Button>
-                    </Link>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={async () => {
-                        await logout();
-                        window.location.href = '/login';
-                      }}
-                      className="rounded-full border border-border-subtle px-3 py-2"
-                      aria-label="Se déconnecter"
-                    >
-                      <LogOut className="h-4 w-4" />
-                    </Button>
+                      {/* Menu dropdown */}
+                      {isProfileMenuOpen && (
+                        <div className="absolute right-0 top-full mt-2 w-72 rounded-lg border border-border-subtle bg-bg-emphasis shadow-lg z-50 overflow-hidden">
+                          {/* User info section */}
+                          <div className="flex items-center gap-3 px-4 py-3 border-b border-border-subtle">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bg-muted text-sm font-semibold text-content-emphasis flex-shrink-0">
+                              {profile?.avatar ? (
+                                <img
+                                  src={profile.avatar}
+                                  alt={profile.username || 'User'}
+                                  className="h-full w-full rounded-full object-cover"
+                                />
+                              ) : (
+                                initials
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-content-emphasis truncate">
+                                {profile?.username || user?.email?.split('@')[0] || 'User'}
+                              </p>
+                              <p className="text-xs text-content-muted truncate">
+                                {user?.email || ''}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Menu items with icons */}
+                          <div className="py-1">
+                            <button
+                              className="flex w-full items-center gap-3 px-4 py-2 text-sm text-content-emphasis hover:bg-bg-muted transition-colors"
+                              onClick={() => {
+                                setIsProfileMenuOpen(false);
+                                // TODO: Implémenter la navigation vers les réalisations
+                              }}
+                            >
+                              <Trophy className="h-4 w-4 text-content-muted" />
+                              <span>{t('achievements')}</span>
+                            </button>
+                            <div className="relative" ref={languageMenuRef}>
+                              <button
+                                className="flex w-full items-center gap-3 px-4 py-2 text-sm text-content-emphasis hover:bg-bg-muted transition-colors"
+                                onClick={() => {
+                                  setIsLanguageMenuOpen(!isLanguageMenuOpen);
+                                }}
+                              >
+                                <Globe className="h-4 w-4 text-content-muted" />
+                                <span>{t('language')}</span>
+                              </button>
+                              
+                              {/* Language submenu */}
+                              {isLanguageMenuOpen && (
+                                <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border-subtle bg-bg-emphasis shadow-lg z-50 overflow-hidden">
+                                  {(['fr', 'en', 'es', 'de'] as Language[]).map((lang) => (
+                                    <button
+                                      key={lang}
+                                      className={`flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors ${
+                                        language === lang
+                                          ? 'bg-bg-muted text-content-emphasis font-medium'
+                                          : 'text-content-emphasis hover:bg-bg-muted'
+                                      }`}
+                                      onClick={() => {
+                                        setLanguage(lang);
+                                        setIsLanguageMenuOpen(false);
+                                        setIsProfileMenuOpen(false);
+                                        // Afficher une notification de changement de langue
+                                        setShowLanguageChangeToast(true);
+                                        setTimeout(() => {
+                                          setShowLanguageChangeToast(false);
+                                        }, 2000);
+                                      }}
+                                    >
+                                      <span>{languageNames[lang]}</span>
+                                      {language === lang && (
+                                        <span className="ml-auto text-xs">✓</span>
+                                      )}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              className="flex w-full items-center gap-3 px-4 py-2 text-sm text-content-emphasis hover:bg-bg-muted transition-colors"
+                              onClick={() => {
+                                setIsProfileMenuOpen(false);
+                                toggleTheme();
+                              }}
+                            >
+                              {theme === 'light' ? (
+                                <>
+                                  <Moon className="h-4 w-4 text-content-muted" />
+                                  <span>{t('darkTheme')}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Sun className="h-4 w-4 text-content-muted" />
+                                  <span>{t('lightTheme')}</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          {/* Separator */}
+                          <div className="border-t border-border-subtle" />
+
+                          {/* Logout */}
+                          <div className="py-1">
+                            <button
+                              className="flex w-full items-center gap-3 px-4 py-2 text-sm text-content-emphasis hover:bg-bg-muted transition-colors"
+                              onClick={async () => {
+                                setIsProfileMenuOpen(false);
+                                await logout();
+                                window.location.href = '/login';
+                              }}
+                            >
+                              <span>{t('logout')}</span>
+                            </button>
+                          </div>
+
+                          {/* Separator */}
+                          <div className="border-t border-border-subtle" />
+
+                          {/* Footer links */}
+                          <div className="py-1">
+                            <button
+                              className="flex w-full items-center px-4 py-2 text-sm text-content-muted hover:bg-bg-muted transition-colors"
+                              onClick={() => {
+                                setIsProfileMenuOpen(false);
+                                // TODO: Implémenter la navigation
+                              }}
+                            >
+                              <span>{t('privacyPolicy')}</span>
+                            </button>
+                            <button
+                              className="flex w-full items-center px-4 py-2 text-sm text-content-muted hover:bg-bg-muted transition-colors"
+                              onClick={() => {
+                                setIsProfileMenuOpen(false);
+                                // TODO: Implémenter la navigation
+                              }}
+                            >
+                              <span>{t('help')}</span>
+                            </button>
+                            <button
+                              className="flex w-full items-center px-4 py-2 text-sm text-content-muted hover:bg-bg-muted transition-colors"
+                              onClick={() => {
+                                setIsProfileMenuOpen(false);
+                                // TODO: Implémenter la navigation
+                              }}
+                            >
+                              <span>{t('subscribe')}</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </header>
               )}
@@ -245,6 +438,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               )}
 
               <main className="flex-1 overflow-y-auto bg-bg-default md:bg-transparent">
+                {/* Toast notification pour changement de langue */}
+                {showLanguageChangeToast && (
+                  <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-border-subtle bg-bg-emphasis px-4 py-3 shadow-lg animate-in slide-in-from-bottom-2">
+                    <p className="text-sm text-content-emphasis">
+                      {t('languageChanged')} - {languageNames[language]}
+                    </p>
+                  </div>
+                )}
+                
                 {/* Padding ajusté selon la page */}
                 <div className={`mx-auto w-full ${isStudyPage ? 'max-w-full p-0' : 'max-w-[1180px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8'}`}>
                   {children}

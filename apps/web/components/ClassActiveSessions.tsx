@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { studyService } from '@/lib/supabase/study';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { Play, X, Clock, Shuffle, Hash } from 'lucide-react';
 
@@ -32,6 +33,7 @@ interface ClassActiveSessionsProps {
 
 export function ClassActiveSessions({ classId, moduleIds }: ClassActiveSessionsProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const [sessions, setSessions] = useState<ClassActiveSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -84,7 +86,7 @@ export function ClassActiveSessions({ classId, moduleIds }: ClassActiveSessionsP
   };
 
   const handleCompleteSession = async (sessionId: string) => {
-    if (!confirm('Voulez-vous vraiment terminer cette session ?')) return;
+    if (!confirm(t('confirmCompleteSession'))) return;
 
     try {
       await studyService.completeSession(sessionId);
@@ -111,18 +113,18 @@ export function ClassActiveSessions({ classId, moduleIds }: ClassActiveSessionsP
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'À l\'instant';
-    if (diffMins < 60) return `Il y a ${diffMins} min`;
-    if (diffHours < 24) return `Il y a ${diffHours}h`;
-    return `Il y a ${diffDays}j`;
+    if (diffMins < 1) return t('timeAgoJustNow');
+    if (diffMins < 60) return t('timeAgoMinutes').replace('{minutes}', diffMins.toString());
+    if (diffHours < 24) return t('timeAgoHours').replace('{hours}', diffHours.toString());
+    return t('timeAgoDays').replace('{days}', diffDays.toString());
   };
 
   const getModeLabel = (mode: string) => {
     const labels: Record<string, string> = {
-      flashcard: 'Flashcards',
-      quiz: 'Quiz',
-      writing: 'Écriture',
-      match: 'Association',
+      flashcard: t('modeFlashcard'),
+      quiz: t('modeQuiz'),
+      writing: t('modeWriting'),
+      match: t('modeMatch'),
     };
     return labels[mode] || mode;
   };
@@ -155,10 +157,10 @@ export function ClassActiveSessions({ classId, moduleIds }: ClassActiveSessionsP
   return (
     <Card className="p-6 border-blue-500/30 bg-blue-50/30">
       <h3 className="text-[18px] font-semibold text-content-emphasis mb-2">
-        Sessions en cours
+        {t('activeSessions')}
       </h3>
       <p className="text-[13px] text-content-muted mb-4">
-        {sessions.length} session{sessions.length > 1 ? 's' : ''} non terminée{sessions.length > 1 ? 's' : ''}
+        {sessions.length} {sessions.length > 1 ? t('sessionsNotCompleted') : t('sessionNotCompleted')}
       </p>
 
       <div className="space-y-3">
@@ -174,7 +176,7 @@ export function ClassActiveSessions({ classId, moduleIds }: ClassActiveSessionsP
                     {getModeLabel(session.mode)}
                   </span>
                   <h4 className="text-[15px] font-semibold text-content-emphasis">
-                    {session.sets?.title || 'Set inconnu'}
+                    {session.sets?.title || t('unknownSet')}
                   </h4>
                 </div>
 
@@ -185,18 +187,18 @@ export function ClassActiveSessions({ classId, moduleIds }: ClassActiveSessionsP
                   </div>
                   <div className="flex items-center gap-1">
                     <Hash className="h-3.5 w-3.5" />
-                    <span>{session.total_cards} cartes</span>
+                    <span>{session.total_cards} {t('cardsTotal')}</span>
                   </div>
                   {session.shuffle && (
                     <div className="flex items-center gap-1 text-blue-600">
                       <Shuffle className="h-3.5 w-3.5" />
-                      <span>Mélangé</span>
+                      <span>{t('shuffled')}</span>
                     </div>
                   )}
                   {session.start_from && session.start_from > 1 && (
                     <div className="flex items-center gap-1 text-orange-600">
                       <Play className="h-3.5 w-3.5" />
-                      <span>Carte {session.start_from}+</span>
+                      <span>{t('cardStartFrom').replace('{number}', session.start_from.toString())}</span>
                     </div>
                   )}
                 </div>
@@ -226,7 +228,7 @@ export function ClassActiveSessions({ classId, moduleIds }: ClassActiveSessionsP
                   className="flex items-center gap-1.5"
                 >
                   <Play className="h-3.5 w-3.5" />
-                  Reprendre
+                  {t('resume')}
                 </Button>
                 <Button
                   size="sm"
@@ -235,7 +237,7 @@ export function ClassActiveSessions({ classId, moduleIds }: ClassActiveSessionsP
                   className="flex items-center gap-1.5 hover:text-state-danger hover:border-state-danger"
                 >
                   <X className="h-3.5 w-3.5" />
-                  Terminer
+                  {t('complete')}
                 </Button>
               </div>
             </div>

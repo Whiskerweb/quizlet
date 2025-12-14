@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { evaluationsService, type Evaluation as EvaluationType } from '@/lib/supabase/evaluations';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/Button';
@@ -100,6 +101,7 @@ function EvaluationWritingMode({
 export default function EvaluationStudyPage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
   const evaluationId = params.id as string;
@@ -159,7 +161,7 @@ export default function EvaluationStudyPage() {
       
       if (!flashcardsData || flashcardsData.length === 0) {
         console.error('[EvaluationStudy] No flashcards found for evaluation');
-        alert('Aucune question dans cette évaluation');
+        alert(t('noQuestionsInEvaluation'));
         router.push(`/my-class/${evalData.class_id}`);
         return;
       }
@@ -316,7 +318,7 @@ export default function EvaluationStudyPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Card className="p-6 text-center">
-          <p className="text-content-muted">Chargement de la question...</p>
+          <p className="text-content-muted">{t('loadingQuestion')}</p>
         </Card>
       </div>
     );

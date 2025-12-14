@@ -142,10 +142,10 @@ export function RichTextEditor({
         contentEditable={!disabled}
         suppressContentEditableWarning
         className={`
-          w-full px-4 py-2 border border-[rgba(255,255,255,0.06)] rounded-lg 
-          bg-dark-background-cardMuted
+          w-full px-4 py-2 border border-border-subtle rounded-lg 
+          bg-white
           focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary
-          text-dark-text-primary
+          text-content-emphasis
           ${isFocused ? 'ring-2 ring-brand-primary' : ''}
           ${className}
         `}
@@ -155,11 +155,12 @@ export function RichTextEditor({
       <style jsx global>{`
         [contenteditable][data-placeholder]:empty:before {
           content: attr(data-placeholder);
-          color: #5D618F;
+          color: #9CA3AF;
           pointer-events: none;
         }
         [contenteditable] {
           outline: none;
+          color: #1F2937;
         }
         [contenteditable]:focus {
           outline: none;
@@ -167,27 +168,30 @@ export function RichTextEditor({
         [contenteditable] b,
         [contenteditable] strong {
           font-weight: bold;
+          color: #1F2937;
         }
         [contenteditable] i,
         [contenteditable] em {
           font-style: italic;
+          color: #1F2937;
         }
         [contenteditable] u {
           text-decoration: underline;
+          color: #1F2937;
         }
       `}</style>
       
       {/* Format Toolbar */}
-      <div className="mt-2 flex items-center gap-1 p-1 bg-dark-background-cardMuted rounded border border-[rgba(255,255,255,0.06)]">
+      <div className="mt-2 flex items-center gap-1">
         <button
           type="button"
           onClick={() => applyFormat('bold')}
           disabled={!hasSelection || disabled}
-        className={`p-1.5 rounded transition-colors ${
-          hasSelection && !disabled
-            ? 'text-dark-text-primary hover:bg-dark-states-surfaceHover'
-            : 'text-dark-text-muted cursor-not-allowed'
-        }`}
+          className={`p-1.5 rounded transition-colors ${
+            hasSelection && !disabled
+              ? 'text-content-emphasis hover:bg-bg-muted'
+              : 'text-content-subtle cursor-not-allowed'
+          }`}
           title="Bold (Ctrl+B)"
           onMouseDown={(e) => e.preventDefault()}
         >
@@ -197,11 +201,11 @@ export function RichTextEditor({
           type="button"
           onClick={() => applyFormat('italic')}
           disabled={!hasSelection || disabled}
-        className={`p-1.5 rounded transition-colors ${
-          hasSelection && !disabled
-            ? 'text-dark-text-primary hover:bg-dark-states-surfaceHover'
-            : 'text-dark-text-muted cursor-not-allowed'
-        }`}
+          className={`p-1.5 rounded transition-colors ${
+            hasSelection && !disabled
+              ? 'text-content-emphasis hover:bg-bg-muted'
+              : 'text-content-subtle cursor-not-allowed'
+          }`}
           title="Italic (Ctrl+I)"
           onMouseDown={(e) => e.preventDefault()}
         >
@@ -211,11 +215,11 @@ export function RichTextEditor({
           type="button"
           onClick={() => applyFormat('underline')}
           disabled={!hasSelection || disabled}
-        className={`p-1.5 rounded transition-colors ${
-          hasSelection && !disabled
-            ? 'text-dark-text-primary hover:bg-dark-states-surfaceHover'
-            : 'text-dark-text-muted cursor-not-allowed'
-        }`}
+          className={`p-1.5 rounded transition-colors ${
+            hasSelection && !disabled
+              ? 'text-content-emphasis hover:bg-bg-muted'
+              : 'text-content-subtle cursor-not-allowed'
+          }`}
           title="Underline (Ctrl+U)"
           onMouseDown={(e) => e.preventDefault()}
         >

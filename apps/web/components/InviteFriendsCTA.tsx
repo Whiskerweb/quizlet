@@ -5,6 +5,7 @@ import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { friendsService, type InvitationCode } from '@/lib/supabase/friends';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { 
   Users, 
   Link as LinkIcon, 
@@ -18,6 +19,7 @@ import {
 
 export function InviteFriendsCTA() {
   const { profile } = useAuthStore();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [inviteCode, setInviteCode] = useState<InvitationCode | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -128,19 +130,19 @@ export function InviteFriendsCTA() {
                 </div>
                 <div className="text-left">
                   <div className="text-base sm:text-lg font-bold text-content-emphasis flex items-center gap-2">
-                    Invite tes amis
+                    {t('inviteFriends')}
                     <Sparkles className="h-5 w-5 text-brand-primary animate-pulse" />
                   </div>
                   <div className="text-sm text-content-muted mt-1 font-medium">
                     {friendCount > 0 
-                      ? `${friendCount} ami${friendCount > 1 ? 's' : ''} • Partagez vos cardz`
-                      : `${profile?.username}, tu vas quand même pas réviser tout(e) seul(e) non ????`}
+                      ? `${friendCount} ${friendCount > 1 ? t('friendsCount') : t('friend')} • ${t('shareYourCards')}`
+                      : `${profile?.username}, ${t('dontStudyAlone')}`}
                   </div>
                 </div>
               </div>
               <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-0 group-hover:translate-x-1">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-primary/10 border border-brand-primary/20">
-                  <span className="text-xs font-semibold text-brand-primary hidden sm:inline">Découvrir</span>
+                  <span className="text-xs font-semibold text-brand-primary hidden sm:inline">{t('discover')}</span>
                   <UserPlus className="h-5 w-5 text-brand-primary" />
                 </div>
               </div>
@@ -150,7 +152,7 @@ export function InviteFriendsCTA() {
             <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-primary text-content-inverted text-[10px] font-bold uppercase tracking-wider shadow-lg animate-bounce">
                 <Sparkles className="h-3 w-3" />
-                Nouveau
+                {t('new')}
               </div>
             </div>
           </div>
@@ -170,7 +172,7 @@ export function InviteFriendsCTA() {
             </div>
             <div>
               <h3 className="text-base font-semibold text-content-emphasis flex items-center gap-2">
-                Invite tes amis
+                {t('inviteFriends')}
                 <Sparkles className="h-4 w-4 text-yellow-500" />
               </h3>
               <p className="text-xs text-content-muted mt-0.5">

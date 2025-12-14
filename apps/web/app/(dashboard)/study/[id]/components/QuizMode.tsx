@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormattedText } from '@/components/FormattedText';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
 import { triggerCorrectEffect, triggerIncorrectEffect } from '@/lib/utils/game-effects';
 
@@ -20,6 +21,7 @@ interface QuizModeProps {
 }
 
 export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) {
+  const { t } = useTranslation();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [options, setOptions] = useState<string[]>([]);
@@ -173,10 +175,10 @@ export function QuizMode({ flashcard, allFlashcards, onAnswer }: QuizModeProps) 
         <div className="mt-4 p-4 rounded-lg bg-bg-subtle">
           <p className="text-sm text-content-muted">
             {selectedAnswer === correctAnswer
-              ? '✓ Correct!'
+              ? `✓ ${t('correctExclamation')}`
               : (
                 <>
-                  ✗ Incorrect. The correct answer is: <FormattedText text={correctAnswer} as="span" />
+                  ✗ {t('incorrectCorrectAnswer')} <FormattedText text={correctAnswer} as="span" />
                 </>
               )
             }

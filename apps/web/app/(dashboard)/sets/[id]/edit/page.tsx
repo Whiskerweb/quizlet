@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { setsService } from '@/lib/supabase/sets';
 import { flashcardsService } from '@/lib/supabase/flashcards';
 import type { SetWithFlashcards } from '@/lib/supabase/sets';
@@ -24,6 +25,7 @@ interface FlashcardItem {
 export default function EditSetPage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const setId = params.id as string;
   const [set, setSet] = useState<SetWithFlashcards | null>(null);
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([]);
@@ -300,7 +302,7 @@ export default function EditSetPage() {
   if (!set) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <p>Set not found</p>
+        <p>{t('setNotFound')}</p>
       </div>
     );
   }
@@ -311,13 +313,13 @@ export default function EditSetPage() {
       <div className="mb-6">
         <div className="mb-4">
           <label htmlFor="set-title" className="mb-1.5 block text-[13px] font-medium text-content-emphasis sm:text-[14px] sm:mb-2">
-            Titre du set *
+            {t('setTitle')} *
           </label>
           <Input
             id="set-title"
             value={setTitle}
             onChange={(e) => handleSetTitleChange(e.target.value)}
-            placeholder="ex: Vocabulaire français"
+            placeholder={t('setTitlePlaceholder')}
             className="text-[14px] sm:text-[15px]"
           />
         </div>
@@ -339,11 +341,11 @@ export default function EditSetPage() {
       {/* Import Button */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-[20px] font-semibold text-content-emphasis mb-1">Cardz</h2>
-          <p className="text-[13px] text-content-muted">Gérez vos cartes ou importez-les en masse</p>
+          <h2 className="text-[20px] font-semibold text-content-emphasis mb-1">{t('cards')}</h2>
+          <p className="text-[13px] text-content-muted">{t('manageOrImportCards')}</p>
         </div>
         <Button onClick={() => setIsImportModalOpen(true)}>
-          Importer
+          {t('import')}
         </Button>
       </div>
 
@@ -428,10 +430,10 @@ export default function EditSetPage() {
                 <button
                   onClick={() => {
                     // Image button - placeholder for future image upload
-                    alert('Image upload coming soon');
+                    alert(t('imageUploadComingSoon'));
                   }}
                   className="p-2 text-content-subtle hover:text-content-muted transition-colors"
-                  title="Add image"
+                  title={t('addImage')}
                 >
                   <ImageIcon className="h-5 w-5" />
                 </button>
@@ -452,7 +454,7 @@ export default function EditSetPage() {
             <button
               onClick={() => handleAddCard(index)}
               className="rounded-full bg-brand-primary p-2 text-content-inverted shadow-lg transition-colors hover:bg-brand-primaryDark"
-              title="Add card below"
+              title={t('addCardBelow')}
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -465,21 +467,21 @@ export default function EditSetPage() {
       <div className="mb-6">
         <Button variant="outline" onClick={() => handleAddCard()}>
           <Plus className="h-4 w-4 mr-2" />
-          Ajouter une carte
+          {t('addCard')}
         </Button>
       </div>
 
       {/* Save Button */}
       <div className="flex justify-between items-center pt-4 border-t">
         {hasUnsavedChanges && (
-          <p className="text-[13px] text-state-warning">Vous avez des modifications non enregistrées</p>
+          <p className="text-[13px] text-state-warning">{t('unsavedChanges')}</p>
         )}
         <div className="flex justify-end space-x-4 ml-auto">
           <Button variant="outline" onClick={() => router.back()}>
-            Annuler
+            {t('cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving || !hasUnsavedChanges}>
-            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+            {isSaving ? t('saving') : t('save')}
           </Button>
         </div>
       </div>

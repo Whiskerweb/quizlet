@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FormattedText } from '@/components/FormattedText';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { CheckCircle2, XCircle, Check, RotateCcw } from 'lucide-react';
 import { isSimilarEnough, getSimilarityFeedback } from '@/lib/utils/text-similarity';
 import { triggerCorrectEffect, triggerIncorrectEffect } from '@/lib/utils/game-effects';
@@ -20,6 +21,7 @@ interface WritingModeProps {
 }
 
 export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
+  const { t } = useTranslation();
   const [answer, setAnswer] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -149,14 +151,14 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
             {similarity !== null && (
               <div className="mt-2">
                 <p className="text-sm text-gray-700 mb-1">
-                  Similarity: <span className="font-semibold">{similarity.toFixed(1)}%</span>
+                  {t('similarity')}: <span className="font-semibold">{similarity.toFixed(1)}%</span>
                 </p>
                 {!isCorrect && (
                   <>
-                    <p className="text-sm text-gray-700 mb-1">Correct answer:</p>
+                    <p className="text-sm text-gray-700 mb-1">{t('correctAnswer')}:</p>
                     <FormattedText text={correctAnswerText} className="font-semibold text-gray-900" as="p" />
                     <p className="text-xs text-gray-600 mt-2">
-                      You need at least 90% similarity to pass.
+                      {t('need90PercentSimilarity')}
                     </p>
                   </>
                 )}
@@ -171,7 +173,7 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
             disabled={!answer.trim()}
             className="w-full min-h-[48px]"
           >
-            Check Answer
+            {t('checkAnswer')}
           </Button>
         ) : (
           <div className="space-y-2">
@@ -180,7 +182,7 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
                 onClick={handleContinue}
                 className="w-full min-h-[48px]"
               >
-                Continue
+                {t('continue')}
               </Button>
             ) : (
               <>
@@ -189,8 +191,8 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
                   variant="outline"
                   className="w-full min-h-[48px] text-sm sm:text-base"
                 >
-                  <span className="hidden sm:inline">Accepter l'erreur et continuer</span>
-                  <span className="sm:hidden">Accepter</span>
+                  <span className="hidden sm:inline">{t('acceptErrorAndContinue')}</span>
+                  <span className="sm:hidden">{t('accept')}</span>
                 </Button>
                 <Button
                   onClick={handleMarkAsCorrect}
@@ -198,8 +200,8 @@ export function WritingMode({ flashcard, onAnswer }: WritingModeProps) {
                   className="w-full border-green-600 text-green-600 hover:bg-green-50 min-h-[48px] text-sm sm:text-base"
                 >
                   <Check className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Marquer comme correct</span>
-                  <span className="sm:hidden">Correct</span>
+                  <span className="hidden sm:inline">{t('markAsCorrect')}</span>
+                  <span className="sm:hidden">{t('correct')}</span>
                 </Button>
               </>
             )}

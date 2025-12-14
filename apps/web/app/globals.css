@@ -7,6 +7,7 @@
   --font-satoshi: 'Satoshi';
   --font-geist-mono: 'Geist Mono';
 
+  /* Light theme (default) */
   --bg-default: #f5f4f0;
   --bg-muted: #efede7;
   --bg-subtle: #e2e0d9;
@@ -34,6 +35,34 @@
 
   --page-top-margin: clamp(20px, 4vw, 48px);
   --page-bottom-margin: clamp(32px, 6vw, 64px);
+}
+
+/* Dark theme */
+.dark {
+  --bg-default: #05081E;
+  --bg-muted: #070B28;
+  --bg-subtle: #101632;
+  --bg-emphasis: #151B3B;
+  --bg-inverted: #ffffff;
+  --bg-info: #1e3a5f;
+  --bg-success: #1a3d2e;
+  --bg-attention: #3d2e1a;
+  --bg-error: #3d1a1a;
+
+  --border-default: rgba(255, 255, 255, 0.18);
+  --border-muted: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-emphasis: rgba(255, 255, 255, 0.24);
+
+  --content-default: #FFFFFF;
+  --content-muted: #C5C9FF;
+  --content-subtle: #8B8FBE;
+  --content-emphasis: #FFFFFF;
+  --content-inverted: #111315;
+  --content-info: #93C5FD;
+  --content-success: #3BD373;
+  --content-attention: #FCD34D;
+  --content-error: #FF4B5C;
 }
 
 @layer base {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useAuthStore } from '@/store/authStore';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
@@ -35,6 +36,7 @@ type SharedSetWithDetails = {
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const username = params.username as string;
   const { profile: currentProfile, user } = useAuthStore();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -289,7 +291,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-content-muted">Profil non trouvé</p>
+        <p className="text-content-muted">{t('profileNotFound')}</p>
       </div>
     );
   }
@@ -377,9 +379,9 @@ export default function ProfilePage() {
           {publicSets.length === 0 ? (
             <Card variant="emptyState" className="py-12 text-center">
               <BookOpen className="h-12 w-12 text-content-subtle mx-auto mb-4" />
-              <h3 className="text-[16px] text-content-emphasis mb-2">Aucun set public</h3>
+              <h3 className="text-[16px] text-content-emphasis mb-2">{t('noPublicSets')}</h3>
               <p className="text-[15px] text-content-muted">
-                {isOwnProfile ? 'Rendez vos Cardz publics pour qu\'ils apparaissent ici' : 'Cet utilisateur n\'a pas de Cardz publics'}
+                {isOwnProfile ? t('makeYourCardsPublic') : t('userHasNoPublicCards')}
               </p>
             </Card>
           ) : (
@@ -432,9 +434,9 @@ export default function ProfilePage() {
           {sharedSets.length === 0 ? (
             <Card variant="emptyState" className="py-12 text-center">
               <Share2 className="h-12 w-12 text-content-subtle mx-auto mb-4" />
-              <h3 className="text-[16px] text-content-emphasis mb-2">Aucun set partagé</h3>
+              <h3 className="text-[16px] text-content-emphasis mb-2">{t('noSharedSets')}</h3>
               <p className="text-[15px] text-content-muted">
-                Les Cardz que vous ajoutez depuis les profils d'autres utilisateurs apparaîtront ici
+                {t('cardsAddedFromOtherProfiles')}
               </p>
             </Card>
           ) : (

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { X } from 'lucide-react';
 
 interface CreateFolderModalProps {
@@ -12,6 +13,7 @@ interface CreateFolderModalProps {
 }
 
 export function CreateFolderModal({ isOpen, onClose, onCreate }: CreateFolderModalProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,7 +51,7 @@ export function CreateFolderModal({ isOpen, onClose, onCreate }: CreateFolderMod
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-900">Create Folder</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('createFolder')}</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -61,23 +63,23 @@ export function CreateFolderModal({ isOpen, onClose, onCreate }: CreateFolderMod
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-4">
             <label htmlFor="folderName" className="block text-sm font-medium text-gray-700 mb-2">
-              Folder Name
+              {t('folderName')}
             </label>
             <Input
               id="folderName"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter folder name..."
+              placeholder={t('enterFolderName')}
               autoFocus
             />
           </div>
 
           <div className="flex justify-end space-x-3">
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={!name.trim()}>
-              Create
+              {t('create')}
             </Button>
           </div>
         </form>

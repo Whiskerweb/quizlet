@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { foldersService, type FolderWithSets } from '@/lib/supabase/folders';
 import type { Database } from '@/lib/supabase/types';
 import { Button } from '@/components/ui/Button';
@@ -32,6 +33,7 @@ export default function DashboardPage() {
 function StudentDashboard() {
   const router = useRouter();
   const { profile } = useAuthStore();
+  const { t } = useTranslation();
   const [folders, setFolders] = useState<FolderWithSets[]>([]);
   const [setsWithoutFolder, setSetsWithoutFolder] = useState<Set[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,14 +51,14 @@ function StudentDashboard() {
   };
 
   const handleDeleteSet = async (setId: string) => {
-    if (!confirm('Voulez-vous supprimer ce cardz ?')) return;
+    if (!confirm(t('deleteCardzConfirm'))) return;
     try {
       const { setsService } = await import('@/lib/supabase/sets');
       await setsService.delete(setId);
       await loadData();
     } catch (error) {
       console.error('Failed to delete set:', error);
-      alert('Suppression impossible.');
+      alert(t('deletionFailed'));
     }
   };
 
@@ -65,18 +67,18 @@ function StudentDashboard() {
       'flex h-8 w-8 items-center justify-center rounded-full border border-border-subtle text-content-muted transition hover:text-content-emphasis';
     return (
       <div className="flex items-center gap-2">
-        <Link href={`/study/${setId}`} aria-label="Étudier ce cardz" className={iconClasses}>
+        <Link href={`/study/${setId}`} aria-label={t('studyThisCard')} className={iconClasses}>
           <Play className="h-3.5 w-3.5" />
         </Link>
-        <Link href={`/sets/${setId}/edit`} aria-label="Modifier ce cardz" className={iconClasses}>
+        <Link href={`/sets/${setId}/edit`} aria-label={t('editThisCard')} className={iconClasses}>
           <Pencil className="h-3.5 w-3.5" />
         </Link>
-        <Link href={`/sets/${setId}`} aria-label="Partager ce cardz" className={iconClasses}>
+        <Link href={`/sets/${setId}`} aria-label={t('shareThisCard')} className={iconClasses}>
           <Share2 className="h-3.5 w-3.5" />
         </Link>
         <button
           className={`${iconClasses} hover:text-state-danger`}
-          aria-label="Supprimer ce cardz"
+          aria-label={t('deleteThisCard')}
           onClick={() => handleDeleteSet(setId)}
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -139,7 +141,7 @@ function StudentDashboard() {
       await loadData();
     } catch (error) {
       console.error('Failed to delete folder:', error);
-      alert('Failed to delete folder');
+      alert(t('deleteFolderFailed'));
     }
   };
 
@@ -184,19 +186,19 @@ function StudentDashboard() {
 
   const insights = [
     {
-      label: 'Cardz organisés',
+      label: t('organizedCards'),
       value: totalSets,
-      detail: `${folders.length} dossiers actifs`,
+      detail: `${folders.length} ${t('activeFolders')}`,
     },
     {
-      label: 'Cardz hors dossier',
+      label: t('cardsWithoutFolder'),
       value: setsWithoutFolder.length,
-      detail: setsWithoutFolder.length > 0 ? 'À classer rapidement' : 'Tout est rangé',
+      detail: setsWithoutFolder.length > 0 ? t('toClassifyQuickly') : t('everythingOrganized'),
     },
     {
-      label: 'Dossiers collaboratifs',
+      label: t('collaborativeFolders'),
       value: folders.filter((folder) => folder.sets.length > 0).length,
-      detail: 'Dossiers contenant des cardz',
+      detail: t('foldersWithCards'),
     },
   ];
 
@@ -204,12 +206,12 @@ function StudentDashboard() {
     <>
       <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-border-subtle bg-bg-emphasis p-5 sm:p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">Tableau de bord</p>
+          <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">{t('dashboard')}</p>
           <h1 className="text-[24px] font-semibold text-content-emphasis sm:text-[28px]">
-            Welcome back, {profile?.username}!
+            {t('welcomeBack')}, {profile?.username}!
           </h1>
           <p className="text-[14px] text-content-muted">
-            Visualisez votre progression et organisez vos cardz en un clin d’œil.
+            {t('visualizeProgress')}
           </p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
@@ -220,7 +222,7 @@ function StudentDashboard() {
             onClick={() => setIsCreateFolderModalOpen(true)}
           >
             <FolderPlus className="h-4 w-4 sm:mr-2" />
-            Nouveau dossier
+            {t('newFolder')}
           </Button>
           <Button
             size="sm"
@@ -240,7 +242,7 @@ function StudentDashboard() {
             disabled={isCreatingSet}
           >
             <Plus className="h-4 w-4 sm:mr-2" />
-            {isCreatingSet ? 'Création…' : 'Créer un cardz'}
+            {isCreatingSet ? t('creating') : t('createSet')}
           </Button>
         </div>
       </div>
@@ -276,16 +278,16 @@ function StudentDashboard() {
 
       {isLoading ? (
         <div className="py-12 text-center">
-          <p className="text-content-muted">Loading your Cardz...</p>
+          <p className="text-content-muted">{t('loadingYourCards')}</p>
         </div>
       ) : folders.length === 0 && setsWithoutFolder.length === 0 ? (
         <Card variant="emptyState" className="py-12 text-center">
           <BookOpen className="h-12 w-12 text-content-subtle mx-auto mb-4" />
           <h3 className="text-[16px] text-content-emphasis mb-2">
-            No Cardz yet
+            {t('noCardsYet')}
           </h3>
           <p className="text-[15px] text-content-muted mb-4">
-            Create your first study set to get started
+            {t('createFirstSet')}
           </p>
           <Button
             onClick={async () => {
@@ -302,7 +304,7 @@ function StudentDashboard() {
             }}
             disabled={isCreatingSet}
           >
-            {isCreatingSet ? 'Création...' : 'Créer votre premier set'}
+            {isCreatingSet ? t('creating') : t('createYourFirstSet')}
           </Button>
         </Card>
       ) : (
@@ -330,24 +332,24 @@ function StudentDashboard() {
                     </div>
                     <div>
                       <h2 className="text-[18px] font-semibold text-content-emphasis">{folder.name}</h2>
-                      <p className="text-[13px] text-content-muted">{folder.sets.length} cardz</p>
+                      <p className="text-[13px] text-content-muted">{folder.sets.length} {t('cardsTotal')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => toggleFolderCollapse(folder.id)}
                       className="rounded-full border border-border-subtle p-2 text-content-muted transition hover:text-content-emphasis"
-                      aria-label={isCollapsed ? 'Déplier le dossier' : 'Replier le dossier'}
+                      aria-label={isCollapsed ? t('expandFolder') : t('collapseFolder')}
                     >
                       <ChevronDown className={`h-4 w-4 transition ${isCollapsed ? '-rotate-90' : ''}`} />
                     </button>
                     <Link href={`/folders/${folder.id}`} className="text-[13px] text-content-muted hover:text-content-emphasis">
-                      Voir le dossier
+                      {t('viewFolder')}
                     </Link>
                     <button
                       onClick={() => handleDeleteFolder(folder.id)}
                       className="rounded-full border border-border-subtle p-2 text-content-subtle transition-colors hover:text-state-danger"
-                      title="Supprimer le dossier"
+                      title={t('deleteFolder')}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -358,7 +360,7 @@ function StudentDashboard() {
                   <div className="space-y-3">
                   {previewSets.length === 0 && (
                     <div className="rounded-xl border border-dashed border-border-muted p-4 text-center text-content-subtle">
-                      Glissez-déposez vos cardz ici pour organiser ce dossier.
+                      {t('dragCardsHere')}
                     </div>
                   )}
 
@@ -377,9 +379,9 @@ function StudentDashboard() {
                             <Link href={`/sets/${set.id}`} className="text-[15px] font-semibold text-content-emphasis line-clamp-1">
                               {set.title}
                             </Link>
-                            <span className="text-[12px] text-content-muted">{set.is_public ? 'Public' : 'Privé'}</span>
+                            <span className="text-[12px] text-content-muted">{set.is_public ? t('public') : t('private')}</span>
                           </div>
-                          <p className="text-[13px] text-content-muted line-clamp-2">{set.description || 'Aucune description'}</p>
+                          <p className="text-[13px] text-content-muted line-clamp-2">{set.description || t('noDescription')}</p>
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[12px] text-content-muted">{new Date(set.created_at).toLocaleDateString('fr-FR')}</span>
                             {renderSetActions(set.id)}
@@ -394,8 +396,8 @@ function StudentDashboard() {
                           href={`/folders/${folder.id}`}
                           className="flex items-center gap-2 rounded-xl border border-dashed border-border-muted px-4 py-2 text-sm font-medium text-content-muted hover:text-content-emphasis"
                         >
-                          <span className="text-[12px] uppercase tracking-[0.2em]">Voir plus</span>
-                          <span>+ {remaining} cardz</span>
+                          <span className="text-[12px] uppercase tracking-[0.2em]">{t('seeMore')}</span>
+                          <span>+ {remaining} {t('cardsTotal')}</span>
                         </Link>
                       </div>
                     )}
@@ -420,20 +422,20 @@ function StudentDashboard() {
                     <Folder className="h-4 w-4" />
                   </div>
                   <div>
-                    <h2 className="text-[18px] font-semibold text-content-emphasis">Other Cardz</h2>
-                    <p className="text-[13px] text-content-muted">{setsWithoutFolder.length} cardz à organiser</p>
+                    <h2 className="text-[18px] font-semibold text-content-emphasis">{t('otherCards')}</h2>
+                    <p className="text-[13px] text-content-muted">{setsWithoutFolder.length} {t('cardsToOrganize')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsOtherCollapsed((prev) => !prev)}
                     className="rounded-full border border-border-subtle p-2 text-content-muted transition hover:text-content-emphasis"
-                    aria-label={isOtherCollapsed ? 'Déployer Other Cardz' : 'Replier Other Cardz'}
+                    aria-label={isOtherCollapsed ? t('expandOtherCards') : t('collapseOtherCards')}
                   >
                     <ChevronDown className={`h-4 w-4 transition ${isOtherCollapsed ? '-rotate-90' : ''}`} />
                   </button>
                   <Link href="/dashboard" className="text-[13px] text-content-muted hover:text-content-emphasis">
-                    Tout afficher
+                    {t('showAll')}
                   </Link>
                 </div>
               </div>
@@ -455,9 +457,9 @@ function StudentDashboard() {
                           <Link href={`/sets/${set.id}`} className="text-[15px] font-semibold text-content-emphasis line-clamp-1">
                             {set.title}
                           </Link>
-                          <span className="text-[12px] text-content-muted">{set.is_public ? 'Public' : 'Privé'}</span>
+                          <span className="text-[12px] text-content-muted">{set.is_public ? t('public') : t('private')}</span>
                         </div>
-                        <p className="text-[13px] text-content-muted line-clamp-2">{set.description || 'Aucune description'}</p>
+                        <p className="text-[13px] text-content-muted line-clamp-2">{set.description || t('noDescription')}</p>
                         <div className="flex items-center justify-between text-[12px] text-content-muted pt-1">
                           <span>{new Date(set.created_at).toLocaleDateString('fr-FR')}</span>
                           {renderSetActions(set.id)}

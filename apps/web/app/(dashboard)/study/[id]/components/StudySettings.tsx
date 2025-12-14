@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Shuffle, Play, ArrowLeft, RotateCw } from 'lucide-react';
 import { studyService } from '@/lib/supabase/study';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface StudySettingsProps {
   totalCards: number;
@@ -26,6 +27,7 @@ interface ActiveSession {
 }
 
 export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCancel }: StudySettingsProps) {
+  const { t } = useTranslation();
   const [shuffle, setShuffle] = useState(false);
   const [startFrom, setStartFrom] = useState(1);
   const [useStartFrom, setUseStartFrom] = useState(false);
@@ -61,11 +63,11 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
       const progressPercent = totalCards > 0 ? Math.round((currentProgress / totalCards) * 100) : 0;
       
       const confirmMessage = 
-        `⚠️ Une session ${mode} est déjà en cours pour ce set.\n\n` +
-        `Progression actuelle : ${currentProgress}/${totalCards} cartes (${progressPercent}%)\n\n` +
-        `Que voulez-vous faire ?\n\n` +
-        `• OK = REPRENDRE cette session (recommandé)\n` +
-        `• Annuler = Je vais choisir autre chose`;
+        `${t('sessionAlreadyInProgress').replace('{mode}', t(`mode${mode.charAt(0).toUpperCase() + mode.slice(1)}`))}\n\n` +
+        `${t('currentProgress')} : ${currentProgress}/${totalCards} ${t('cardsTotal')} (${progressPercent}%)\n\n` +
+        `${t('whatDoYouWant')}\n\n` +
+        `• ${t('okResume')}\n` +
+        `• ${t('cancelChooseOther')}`;
       
       if (confirm(confirmMessage)) {
         // User wants to resume
@@ -76,9 +78,9 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
       
       // User cancelled - ask what they want to do
       const replaceMessage = 
-        `Voulez-vous TERMINER l'ancienne session et en créer une nouvelle ?\n\n` +
-        `• OK = Terminer l'ancienne et créer une nouvelle\n` +
-        `• Annuler = Garder les deux sessions (doublon)`;
+        `${t('terminateOldAndCreateNew')}\n\n` +
+        `• ${t('okTerminateAndCreate')}\n` +
+        `• ${t('cancelKeepBoth')}`;
       
       if (confirm(replaceMessage)) {
         // Terminate the old session first
@@ -111,10 +113,10 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
     <div className="flex min-h-screen items-center justify-center bg-bg-default p-4">
       <Card className="w-full max-w-lg space-y-6 rounded-3xl p-6 sm:p-8">
         <div>
-          <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">Préparation</p>
-          <h2 className="text-2xl font-semibold text-content-emphasis">Personnalisez votre session</h2>
+          <p className="text-[12px] uppercase tracking-[0.2em] text-content-subtle">{t('preparation')}</p>
+          <h2 className="text-2xl font-semibold text-content-emphasis">{t('customizeSession')}</h2>
           <p className="text-sm text-content-muted">
-            {totalCards} cartes disponibles. Choisissez l'ordre et le point de départ de votre session.
+            {totalCards} {t('cardsAvailable')}. {t('chooseOrderAndStart')}
           </p>
         </div>
 
@@ -124,11 +126,11 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
             <div className="flex items-center gap-2 mb-2">
               <RotateCw className="h-5 w-5 text-blue-600" />
               <p className="text-[13px] font-semibold text-blue-900">
-                Sessions en cours ({activeSessions.length})
+                {t('activeSessions')} ({activeSessions.length})
               </p>
             </div>
             <p className="text-[12px] text-blue-800 mb-3">
-              Vous avez des sessions non terminées. Reprendre une session ou en créer une nouvelle ?
+              {t('youHaveUnfinishedSessions')}
             </p>
             <div className="space-y-2 max-h-[200px] overflow-y-auto">
               {activeSessions.map((session) => (
@@ -140,15 +142,15 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm font-medium text-content-emphasis">
-                        Mode: {session.mode}
+                        {t('mode')}: {t(`mode${session.mode.charAt(0).toUpperCase() + session.mode.slice(1)}`)}
                       </p>
                       <p className="text-xs text-content-muted mt-1">
-                        {session.shuffle ? 'Mélangé' : 'Ordre original'} • 
-                        {session.start_from > 1 ? ` Carte ${session.start_from}+` : ' Toutes les cartes'} •
-                        {' '}{session.total_cards} cartes
+                        {session.shuffle ? t('shuffled') : t('originalOrder')} • 
+                        {session.start_from > 1 ? ` ${t('cardStartFrom').replace('{number}', session.start_from.toString())}` : ` ${t('allCards')}`} •
+                        {' '}{session.total_cards} {t('cardsTotal')}
                       </p>
                       <p className="text-xs text-content-subtle mt-1">
-                        Démarré: {new Date(session.started_at).toLocaleString('fr-FR', { 
+                        {t('started')}: {new Date(session.started_at).toLocaleString('fr-FR', { 
                           day: 'numeric', 
                           month: 'short', 
                           hour: '2-digit', 
@@ -169,9 +171,9 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
           <div className="rounded-2xl border border-border-subtle bg-bg-emphasis/70 p-4">
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <p className="text-[13px] font-semibold text-content-emphasis">Ordre des cartes</p>
+                <p className="text-[13px] font-semibold text-content-emphasis">{t('cardOrder')}</p>
                 <p className="text-[12px] text-content-muted">
-                  Ordre original ou aléatoire. Le mélange s'applique aux cartes sélectionnées.
+                  {t('cardOrderDescription')}
                 </p>
               </div>
               <Shuffle className="h-5 w-5 text-brand-primary" />
@@ -182,14 +184,14 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
                 className="flex-1"
                 onClick={() => setShuffle(true)}
               >
-                Mélanger
+                {t('shuffle')}
               </Button>
               <Button
                 variant={!shuffle ? 'primary' : 'outline'}
                 className="flex-1"
                 onClick={() => setShuffle(false)}
               >
-                Ordre original
+                {t('originalOrder')}
               </Button>
             </div>
           </div>
@@ -205,10 +207,10 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
               />
               <div>
                 <p className="text-[13px] font-semibold text-content-emphasis">
-                  Commencer à une carte précise
+                  {t('startFromSpecificCard')}
                 </p>
                 <p className="text-[12px] text-content-muted">
-                  Étudiez uniquement les cartes à partir de ce numéro. Les cartes précédentes n'apparaîtront pas.
+                  {t('startFromSpecificCardDescription')}
                 </p>
               </div>
             </label>
@@ -216,7 +218,7 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
             {useStartFrom && (
               <div className="space-y-2 border-t border-border-muted pt-3">
                 <label className="text-[12px] text-content-subtle">
-                  Carte de départ (1 – {totalCards})
+                  {t('startingCard')} (1 – {totalCards})
                 </label>
                 <input
                   type="number"
@@ -230,8 +232,8 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
                   className="w-full rounded-xl border border-border-subtle bg-bg-emphasis px-4 py-2 text-content-emphasis focus:outline-none focus:ring-2 focus:ring-brand-primary"
                 />
                 <p className="text-[12px] text-content-muted">
-                  Vous étudierez {totalCards - startFrom + 1} carte{totalCards - startFrom + 1 > 1 ? 's' : ''} (de la carte {startFrom} à {totalCards}). 
-                  {startFrom > 1 && ` Les ${startFrom - 1} premières seront ignorées.`}
+                  {t('youWillStudy').replace('{count}', (totalCards - startFrom + 1).toString()).replace('{start}', startFrom.toString()).replace('{end}', totalCards.toString())}
+                  {startFrom > 1 && ` ${t('firstCardsIgnored').replace('{count}', (startFrom - 1).toString())}`}
                 </p>
               </div>
             )}
@@ -241,11 +243,11 @@ export function StudySettings({ totalCards, setId, mode, onStart, onResume, onCa
         <div className="flex gap-3 pt-2">
           <Button variant="outline" onClick={onCancel} className="flex-1">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Annuler
+            {t('cancel')}
           </Button>
           <Button onClick={handleStart} className="flex-1">
             <Play className="h-4 w-4 mr-2" />
-            Lancer
+            {t('launch')}
           </Button>
         </div>
       </Card>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useAuthStore } from '@/store/authStore';
 import { classesService } from '@/lib/supabase/classes';
 import { classModulesService } from '@/lib/supabase/class-modules';
@@ -583,7 +584,7 @@ function OverviewTab({ classId, stats, students, modules, onShareClick, onAnalyt
           ) : recentActivity.length === 0 ? (
             <div className="py-12 text-center">
               <Activity className="h-10 w-10 text-content-subtle mx-auto mb-3 opacity-50" />
-              <p className="text-[14px] text-content-muted">Aucune activité récente</p>
+              <p className="text-[14px] text-content-muted">{t('noRecentActivity')}</p>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -653,7 +654,7 @@ function OverviewTab({ classId, stats, students, modules, onShareClick, onAnalyt
               <h3 className="text-[15px] font-semibold text-content-emphasis">Besoin d'aide</h3>
             </div>
             {studentsNeedingHelp.length === 0 ? (
-              <p className="text-[13px] text-content-muted italic">Tous progressent bien !</p>
+              <p className="text-[13px] text-content-muted italic">{t('everyoneProgressingWell')}</p>
             ) : (
               <div className="space-y-2.5">
                 {studentsNeedingHelp.map((student) => {
@@ -816,7 +817,7 @@ function ModulesTab({ classId, modules, onRefresh, onShare }: { classId: string;
       {modules.length === 0 ? (
         <div className="py-16 text-center">
           <Folder className="h-14 w-14 text-content-subtle mx-auto mb-4 opacity-40" />
-          <p className="text-[15px] font-medium text-content-emphasis mb-1">Aucun module partagé</p>
+          <p className="text-[15px] font-medium text-content-emphasis mb-1">{t('noSharedModules')}</p>
           <p className="text-[13px] text-content-muted mb-4">Créez d'abord un module dans "Votre espace"</p>
           <Button variant="primary" size="sm" onClick={onShare}>
             <Share2 className="h-4 w-4 mr-2" />
@@ -971,7 +972,7 @@ function EvaluationsTab({ classId, onRefresh, onCreateClick }: { classId: string
           <p className="text-[15px] font-medium text-content-emphasis mb-1">
             Aucune évaluation
           </p>
-          <p className="text-[13px] text-content-muted mb-4">Créez votre première évaluation pour votre classe</p>
+          <p className="text-[13px] text-content-muted mb-4">{t('createFirstEvaluationDescription')}</p>
           <Button variant="primary" onClick={onCreateClick}>
             <Target className="h-4 w-4 mr-2" />
             Créer une évaluation
@@ -1088,7 +1089,7 @@ function AnalyticsTab({ classId, stats, students, modules }: { classId: string; 
         </h3>
         {students.length === 0 ? (
           <p className="text-[14px] text-content-muted italic text-center py-8">
-            Aucun élève dans cette classe
+            {t('noStudentsInThisClass')}
           </p>
         ) : (
           <div className="space-y-4">

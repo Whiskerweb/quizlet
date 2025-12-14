@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils/cn';
 import { foldersService } from '@/lib/supabase/folders';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { createSetAndRedirect } from '@/lib/utils/createSetAndRedirect';
 import type { Database } from '@/lib/supabase/types';
 
@@ -20,14 +21,15 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const mainNavItemsStudent: NavItem[] = [
-  { href: '/home', label: 'Accueil', icon: Home },
-  { href: '/dashboard', label: 'Votre espace', icon: BookOpen },
+// These will be dynamically translated in the component
+const mainNavItemsStudentKeys = [
+  { href: '/home', labelKey: 'home' as const, icon: Home },
+  { href: '/dashboard', labelKey: 'yourSpace' as const, icon: BookOpen },
 ];
 
-const mainNavItemsTeacher: NavItem[] = [
-  { href: '/my-class', label: 'Mes classes', icon: School },
-  { href: '/dashboard', label: 'Votre espace', icon: BookOpen },
+const mainNavItemsTeacherKeys = [
+  { href: '/my-class', labelKey: 'myClasses' as const, icon: School },
+  { href: '/dashboard', labelKey: 'yourSpace' as const, icon: BookOpen },
 ];
 
 interface SidebarNavProps {
@@ -40,12 +42,24 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
   const pathname = usePathname();
   const router = useRouter();
   const { user, profile } = useAuthStore();
+  const { t } = useTranslation();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(true);
   const [hasSharedSets, setHasSharedSets] = useState(false);
   const [isLoadingSharedSets, setIsLoadingSharedSets] = useState(true);
   const [internalIsOpen, setInternalIsOpen] = useState(!isMobile); // Open on desktop, closed on mobile
   const [isCreatingSet, setIsCreatingSet] = useState(false);
+  
+  // Convert keys to labels with translations
+  const mainNavItemsStudent = mainNavItemsStudentKeys.map(item => ({
+    ...item,
+    label: t(item.labelKey),
+  }));
+  
+  const mainNavItemsTeacher = mainNavItemsTeacherKeys.map(item => ({
+    ...item,
+    label: t(item.labelKey),
+  }));
   
   // Use controlled state if provided, otherwise use internal state
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
@@ -201,7 +215,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                 'p-1.5 sm:p-2 rounded-lg text-content-muted hover:text-content-emphasis hover:bg-bg-emphasis transition-all duration-200 border border-transparent hover:border-border-subtle flex-shrink-0',
                 !isOpen && 'mx-auto'
               )}
-              aria-label={isOpen ? 'Fermer la sidebar' : 'Ouvrir la sidebar'}
+              aria-label={isOpen ? t('closeSidebar') : t('openSidebar')}
             >
               {isOpen ? (
                 <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -246,12 +260,12 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
               href="/my-class"
               onClick={() => isMobile && setIsOpen(false)}
               className={navItemClasses(isActive('/my-class'))}
-              title={!isOpen ? 'Ma classe' : undefined}
+              title={!isOpen ? t('myClass') : undefined}
             >
               <School className={navIconClasses(isActive('/my-class'))} />
               {isOpen && (
                 <span className={navLabelClasses(isActive('/my-class'))}>
-                  Ma classe
+                  {t('myClass')}
                 </span>
               )}
             </Link>
@@ -268,7 +282,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
         <div className="mb-1">
           {isOpen && (
             <p className="text-[10px] sm:text-[11px] font-semibold tracking-[0.2em] text-content-muted/70 uppercase mb-2.5 sm:mb-3 px-3 sm:px-4">
-              Vos dossiers
+              {t('yourFolders')}
             </p>
           )}
           {isLoadingFolders ? (
@@ -276,7 +290,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
               'text-[12px] text-content-muted/80',
               isOpen ? 'px-3 sm:px-4' : 'text-center'
             )}>
-              {isOpen ? 'Chargement...' : '...'}
+              {isOpen ? t('loading') : '...'}
             </div>
           ) : (
             <div className="space-y-0.5 sm:space-y-1">
@@ -286,12 +300,12 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                   href="/folders/shared"
                   onClick={() => isMobile && setIsOpen(false)}
                   className={navItemClasses(pathname === '/folders/shared')}
-                  title={!isOpen ? 'Cardz partagés' : undefined}
+                  title={!isOpen ? t('sharedCards') : undefined}
                 >
                   <Share2 className={navIconClasses(pathname === '/folders/shared')} />
                   {isOpen && (
                     <span className={navLabelClasses(pathname === '/folders/shared')}>
-                      Cardz partagés
+                      {t('sharedCards')}
                     </span>
                   )}
                 </Link>
@@ -303,7 +317,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
                   'text-[12px] text-content-muted/80',
                   isOpen ? 'px-3 sm:px-4 py-2' : 'text-center py-2'
                 )}>
-                  {isOpen ? 'Aucun dossier' : ''}
+                  {isOpen ? t('noFolders') : ''}
                 </div>
               ) : (
                 folders.map((folder) => {
@@ -337,7 +351,7 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
         <div className={cn('mt-5 sm:mt-6')}>
           {isOpen && (
             <p className="text-[10px] sm:text-[11px] font-semibold tracking-[0.2em] text-content-muted/70 uppercase mb-2.5 sm:mb-3 px-3 sm:px-4">
-              Commencez ici
+              {t('startHere')}
             </p>
           )}
           <button
@@ -360,12 +374,12 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
               'w-full',
               isCreatingSet && 'opacity-50 cursor-not-allowed'
             )}
-            title={!isOpen ? 'Créer des cardz' : undefined}
+            title={!isOpen ? t('createCards') : undefined}
           >
             <Sparkles className={navIconClasses(false)} />
             {isOpen && (
               <span className="text-[14px] sm:text-[15px] font-medium whitespace-nowrap transition-colors text-content-emphasis">
-                {isCreatingSet ? 'Création...' : 'Créer des cardz'}
+                {isCreatingSet ? t('creating') : t('createCards')}
               </span>
             )}
           </button>
@@ -375,12 +389,12 @@ export function SidebarNav({ isOpen: controlledIsOpen, onToggle, isMobile = fals
             href="/public-sets"
             onClick={() => isMobile && setIsOpen(false)}
             className={cn(navItemClasses(pathname === '/public-sets'), 'mt-2')}
-            title={!isOpen ? 'Cardz publique' : undefined}
+            title={!isOpen ? t('publicCards') : undefined}
           >
             <Globe className={navIconClasses(pathname === '/public-sets')} />
             {isOpen && (
               <span className={navLabelClasses(pathname === '/public-sets')}>
-                Cardz publique
+                {t('publicCards')}
               </span>
             )}
           </Link>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { sharedSetsService } from '@/lib/supabase/shared-sets';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -15,6 +16,7 @@ type SharedSet = SharedSetWithDetails;
 
 export default function SharedSetsFolderPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [sharedSets, setSharedSets] = useState<SharedSet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -102,9 +104,9 @@ export default function SharedSetsFolderPage() {
       {sharedSets.length === 0 ? (
         <Card variant="emptyState" className="py-12 text-center">
           <Share2 className="h-12 w-12 text-content-subtle mx-auto mb-4" />
-          <h3 className="text-[16px] text-content-emphasis mb-2">Aucun set partagé</h3>
+          <h3 className="text-[16px] text-content-emphasis mb-2">{t('noSharedSets')}</h3>
           <p className="text-[15px] text-content-muted mb-4">
-            Les Cardz que vous ajoutez depuis les profils d'autres utilisateurs apparaîtront ici
+            {t('cardsAddedFromOtherProfiles')}
           </p>
           <Link href="/dashboard">
             <Button>Retour au dashboard</Button>

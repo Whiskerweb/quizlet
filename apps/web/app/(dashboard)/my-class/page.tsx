@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { classesService } from '@/lib/supabase/classes';
 import { classModulesService } from '@/lib/supabase/class-modules';
 import { Button } from '@/components/ui/Button';
@@ -36,6 +37,7 @@ interface ClassModule {
 
 export default function MyClassPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, profile } = useAuthStore();
   const [classes, setClasses] = useState<StudentClass[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +94,7 @@ export default function MyClassPage() {
     }
 
     if (!joinCode.trim()) {
-      setJoinError('Veuillez entrer un code');
+      setJoinError(t('pleaseEnterCode'));
       return;
     }
 
@@ -111,7 +113,7 @@ export default function MyClassPage() {
       await loadClasses();
     } catch (error: any) {
       console.error('[MyClass] Failed to join class:', error);
-      setJoinError(error.message || 'Code invalide ou classe introuvable');
+      setJoinError(error.message || t('invalidCodeOrClassNotFound'));
     } finally {
       setJoining(false);
     }
@@ -152,10 +154,10 @@ export default function MyClassPage() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-[28px] sm:text-[32px] font-semibold text-content-emphasis mb-2">
-          Mes classes
+          {t('myClasses')}
         </h1>
         <p className="text-[15px] text-content-muted">
-          Accédez aux modules partagés par vos professeurs
+          {t('accessModulesFromTeachers')}
         </p>
       </div>
 
@@ -165,10 +167,10 @@ export default function MyClassPage() {
           <div className="flex items-center justify-between p-5">
             <div>
               <h2 className="text-[18px] font-semibold text-content-emphasis mb-1">
-                Rejoindre une classe
+                {t('joinClass')}
               </h2>
               <p className="text-[14px] text-content-muted">
-                Entrez le code classe fourni par votre professeur
+                {t('enterClassCodeFromTeacher')}
               </p>
             </div>
             <Button 
@@ -176,18 +178,18 @@ export default function MyClassPage() {
               onClick={() => setShowJoinForm(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Rejoindre
+              {t('join')}
             </Button>
           </div>
         ) : (
           <form onSubmit={handleJoinClass} className="p-5">
             <h2 className="text-[18px] font-semibold text-content-emphasis mb-4">
-              Rejoindre une classe
+              {t('joinClass')}
             </h2>
             <div className="space-y-4">
               <div>
                 <label htmlFor="classCode" className="block text-[14px] font-medium text-content-emphasis mb-2">
-                  Code de la classe
+                  {t('classCode')}
                 </label>
                 <input
                   id="classCode"
@@ -227,7 +229,7 @@ export default function MyClassPage() {
                   className="flex-1"
                   disabled={joining}
                 >
-                  Annuler
+                  {t('cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -235,7 +237,7 @@ export default function MyClassPage() {
                   disabled={joining || !joinCode.trim()}
                   className="flex-1"
                 >
-                  {joining ? 'Connexion...' : 'Rejoindre'}
+                  {joining ? t('connecting') : t('join')}
                 </Button>
               </div>
             </div>
@@ -248,10 +250,10 @@ export default function MyClassPage() {
         <Card className="p-12 text-center border-border-subtle">
           <School className="h-12 w-12 text-content-subtle mx-auto mb-4" />
           <h3 className="text-[18px] font-semibold text-content-emphasis mb-2">
-            Aucune classe rejointe
+            {t('noClassesJoined')}
           </h3>
           <p className="text-[15px] text-content-muted">
-            Rejoignez une classe avec un code pour accéder aux modules de votre professeur
+            {t('joinClassWithCodeToAccessModules')}
           </p>
         </Card>
       ) : (
@@ -284,7 +286,7 @@ export default function MyClassPage() {
                         </p>
                       )}
                       <p className="text-[13px] text-content-subtle">
-                        Par {cls.teacher_name} • Rejoint le {new Date(cls.joined_at).toLocaleDateString('fr-FR')}
+                        {t('by')} {cls.teacher_name} • {t('joinedOn')} {new Date(cls.joined_at).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
                   </div>
@@ -292,16 +294,16 @@ export default function MyClassPage() {
                   <div className="flex items-center gap-6 mb-4">
                     <div className="flex items-center gap-2 text-[13px] text-content-muted">
                       <Folder className="h-4 w-4" />
-                      <span>{classModules.length} module{classModules.length > 1 ? 's' : ''}</span>
+                      <span>{classModules.length} {classModules.length > 1 ? t('modules') : t('module')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-[13px] text-content-muted">
                       <BookOpen className="h-4 w-4" />
-                      <span>{totalCards} cardz</span>
+                      <span>{totalCards} {t('cards')}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 text-[14px] font-medium text-brand-primary">
-                    Voir les détails
+                    {t('viewDetails')}
                     <ArrowRight className="h-4 w-4" />
                   </div>
                 </div>

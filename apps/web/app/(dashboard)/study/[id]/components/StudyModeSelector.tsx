@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { ChevronDown } from 'lucide-react';
 
 type StudyMode = 'flashcard' | 'quiz' | 'writing' | 'match';
@@ -9,40 +10,48 @@ type StudyMode = 'flashcard' | 'quiz' | 'writing' | 'match';
 interface StudyModeSelectorProps {
   currentMode: StudyMode;
   onModeChange: (mode: StudyMode) => void;
+  incorrectCount?: number;
 }
 
-export function StudyModeSelector({ currentMode, onModeChange }: StudyModeSelectorProps) {
+export function StudyModeSelector({ currentMode, onModeChange, incorrectCount }: StudyModeSelectorProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const modes: { id: StudyMode; label: string; image: string; description: string }[] = [
+  const modes: { id: StudyMode; labelKey: string; image: string; descriptionKey: string }[] = [
     {
       id: 'flashcard',
-      label: 'Cardz',
+      labelKey: 'modeFlashcard',
       image: '/images/study-modes/cardz.png',
-      description: 'Flip through cards',
+      descriptionKey: 'modeFlashcardDescription',
     },
     {
       id: 'quiz',
-      label: 'Quiz',
+      labelKey: 'modeQuiz',
       image: '/images/study-modes/quiz.png',
-      description: 'Multiple choice',
+      descriptionKey: 'modeQuizDescription',
     },
     {
       id: 'writing',
-      label: 'Writing',
+      labelKey: 'modeWriting',
       image: '/images/study-modes/writing.png',
-      description: 'Type the answer',
+      descriptionKey: 'modeWritingDescription',
     },
     {
       id: 'match',
-      label: 'Match',
+      labelKey: 'modeMatch',
       image: '/images/study-modes/match.png',
-      description: 'Match terms',
+      descriptionKey: 'modeMatchDescription',
     },
   ];
+  
+  const modesWithLabels = modes.map(mode => ({
+    ...mode,
+    label: t(mode.labelKey as any),
+    description: t(mode.descriptionKey as any),
+  }));
 
-  const currentModeData = modes.find(m => m.id === currentMode) || modes[0];
+  const currentModeData = modesWithLabels.find(m => m.id === currentMode) || modesWithLabels[0];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -74,13 +83,18 @@ export function StudyModeSelector({ currentMode, onModeChange }: StudyModeSelect
           className="h-8 w-8 object-contain"
         />
         <span>{currentModeData.label}</span>
+        {incorrectCount !== undefined && incorrectCount > 0 && (
+          <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-orange-500 text-white text-xs font-semibold">
+            {incorrectCount}
+          </span>
+        )}
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
         <div className="absolute top-full left-0 mt-2 w-56 rounded-lg border border-border-subtle bg-bg-emphasis shadow-lg z-50">
           <div className="p-2">
-            {modes.map((mode) => {
+            {modesWithLabels.map((mode) => {
               const isActive = currentMode === mode.id;
 
               return (

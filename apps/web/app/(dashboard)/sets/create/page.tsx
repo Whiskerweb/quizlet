@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { setsService } from '@/lib/supabase/sets';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -22,6 +23,7 @@ type CreateSetFormData = z.infer<typeof createSetSchema>;
 
 export default function CreateSetPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,7 +51,7 @@ export default function CreateSetPage() {
       // Rediriger vers le dashboard après création
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create set');
+      setError(err.response?.data?.message || t('failedToCreateSet'));
     } finally {
       setIsLoading(false);
     }
@@ -57,11 +59,11 @@ export default function CreateSetPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-3xl font-semibold text-content-emphasis">Create New Set</h1>
+      <h1 className="mb-8 text-3xl font-semibold text-content-emphasis">{t('createNewSet')}</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-[16px]">Set Details</CardTitle>
+          <CardTitle className="text-[16px]">{t('setDetails')}</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-6">
           {error && (
@@ -72,12 +74,12 @@ export default function CreateSetPage() {
 
           <div>
             <label htmlFor="title" className="mb-1 block text-sm font-medium text-content-emphasis">
-              Title *
+              {t('title')} *
             </label>
             <Input
               id="title"
               {...register('title')}
-              placeholder="e.g., French Vocabulary"
+              placeholder={t('setTitlePlaceholder')}
             />
             {errors.title && (
               <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
@@ -86,36 +88,36 @@ export default function CreateSetPage() {
 
           <div>
             <label htmlFor="description" className="mb-1 block text-sm font-medium text-content-emphasis">
-              Description
+              {t('description')}
             </label>
             <textarea
               id="description"
               {...register('description')}
               rows={4}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary text-gray-900 bg-white"
-              placeholder="Describe your set..."
+              placeholder={t('setDescriptionPlaceholder')}
             />
           </div>
 
           <div>
             <label htmlFor="tags" className="mb-1 block text-sm font-medium text-content-emphasis">
-              Tags (comma-separated)
+              {t('tagsCommaSeparated')}
             </label>
             <Input
               id="tags"
               {...register('tags')}
-              placeholder="french, vocabulary, language"
+              placeholder={t('tagsPlaceholder')}
             />
           </div>
 
           <div>
             <label htmlFor="language" className="mb-1 block text-sm font-medium text-content-emphasis">
-              Language
+              {t('language')}
             </label>
             <Input
               id="language"
               {...register('language')}
-              placeholder="e.g., French, English"
+              placeholder={t('languagePlaceholder')}
             />
           </div>
 
@@ -127,20 +129,20 @@ export default function CreateSetPage() {
               className="h-4 w-4 text-brand-primary focus:ring-brand-primary border-gray-300 rounded"
             />
             <label htmlFor="isPublic" className="ml-2 block text-sm text-content-emphasis">
-              Make this set public
+              {t('makeThisSetPublic')}
             </label>
           </div>
 
           <div className="flex space-x-4">
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Creating...' : 'Create Set'}
+              {isLoading ? t('creating') : t('createSet')}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => router.back()}
             >
-              Cancel
+              {t('cancel')}
             </Button>
           </div>
         </form>

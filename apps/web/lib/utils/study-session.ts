@@ -189,13 +189,27 @@ export function getProgress(state: StudySessionState) {
   const inProgressCount = state.queue.length;
   const progress = totalCards > 0 ? (masteredCount / totalCards) * 100 : 0;
 
+  // Count cards with incorrect answers that haven't been mastered yet
+  // This represents cards that need to be reviewed because of mistakes
+  const incorrectCount = Array.from(state.cardData.values())
+    .filter(card => 
+      card.incorrectCount > 0 && 
+      !state.completedCards.has(card.flashcardId)
+    ).length;
+
+  // Check if there are cards that haven't been mastered yet
+  // A card needs review if it's in the queue OR if it exists in cardData but isn't in completedCards
+  const unmasteredCards = Array.from(state.cardData.values())
+    .filter(card => !state.completedCards.has(card.flashcardId));
+  const needsReview = unmasteredCards.length > 0;
+
   return {
     totalCards,
     masteredCount,
-    incorrectCount: inProgressCount, // For backwards compatibility
+    incorrectCount, // Number of cards with incorrect answers that need review
     inProgressCount,
     progress: Math.round(progress),
-    needsReview: inProgressCount > 0,
+    needsReview,
   };
 }
 

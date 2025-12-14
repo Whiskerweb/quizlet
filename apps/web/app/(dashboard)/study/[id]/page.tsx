@@ -6,6 +6,7 @@ import { setsService } from '@/lib/supabase/sets';
 import { studyService } from '@/lib/supabase/study';
 import { classModulesService } from '@/lib/supabase/class-modules';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FormattedText } from '@/components/FormattedText';
@@ -52,6 +53,7 @@ type ModeMemoryMap = Record<StudyMode, ModeMemory>;
 export default function StudyPage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const { profile } = useAuthStore();
   const setId = params.id as string;
   const [mode, setMode] = useState<StudyMode>('flashcard');
@@ -868,9 +870,9 @@ export default function StudyPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="text-center py-12">
-          <p className="text-gray-600 mb-4">No cardz in this set</p>
+          <p className="text-gray-600 mb-4">{t('noCardsInThisSet')}</p>
           <Button onClick={() => router.push(`/sets/${setId}`)}>
-            Back to Set
+                  {t('backToSet')}
           </Button>
         </Card>
       </div>
@@ -1016,8 +1018,8 @@ export default function StudyPage() {
         <Card className="text-center py-12">
           <div className="flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
-            <p className="text-content-emphasis font-medium">Reprise de la session en cours...</p>
-            <p className="text-content-muted text-sm">Chargement de votre progression</p>
+            <p className="text-content-emphasis font-medium">{t('resumingSession')}</p>
+            <p className="text-content-muted text-sm">{t('loadingProgress')}</p>
             <p className="text-content-subtle text-xs mt-2">
               Ouvrez la console (F12) pour voir les détails
             </p>
@@ -1036,10 +1038,10 @@ export default function StudyPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="py-12 text-center">
-          <h2 className="text-2xl font-bold text-content-emphasis mb-4">Study Complete! 🎉</h2>
+          <h2 className="text-2xl font-bold text-content-emphasis mb-4">{t('studyComplete')} 🎉</h2>
           <p className="text-3xl font-bold text-brand-primary mb-2">100%</p>
           <p className="text-content-muted mt-1 text-sm sm:text-base">
-            You mastered all {progress.totalCards} cards!
+            {t('youMasteredAllCards').replace('{count}', progress.totalCards.toString())}
           </p>
           <div className="flex justify-center space-x-4">
             {classInfo ? (
@@ -1048,16 +1050,16 @@ export default function StudyPage() {
                 console.log('[Study] Finish button clicked, navigating to class:', classInfo.class_id);
                 router.push(`/my-class/${classInfo.class_id}`);
               }}>
-                Finish
+                {t('finish')}
               </Button>
             ) : (
               // Otherwise, show normal buttons for personal sets
               <>
                 <Button onClick={() => router.push(`/sets/${setId}`)}>
-                  Back to Set
+                  {t('backToSet')}
                 </Button>
                 <Button variant="outline" onClick={() => window.location.reload()}>
-                  Study Again
+                  {t('studyAgain')}
                 </Button>
               </>
             )}
@@ -1070,7 +1072,7 @@ export default function StudyPage() {
   if (!flashcards || flashcards.length === 0 || !currentCard || !sessionState) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <p>No cardz available</p>
+        <p>{t('noCardsAvailable')}</p>
       </div>
     );
   }
@@ -1093,7 +1095,7 @@ export default function StudyPage() {
             <Card className="p-4 sm:p-6">
               {/* Mode selector as card header */}
               <div className="mb-4 pb-4 border-b border-border-subtle">
-                <StudyModeSelector currentMode={mode} onModeChange={handleModeChange} />
+                <StudyModeSelector currentMode={mode} onModeChange={handleModeChange} incorrectCount={progress.incorrectCount} />
               </div>
               <MatchMode
                 flashcards={flashcards}
@@ -1121,16 +1123,16 @@ export default function StudyPage() {
           <Card className="relative flex flex-col p-4 sm:p-6 md:p-8">
             {/* Mode selector as card header */}
             <div className="mb-4 pb-4 border-b border-border-subtle">
-              <StudyModeSelector currentMode={mode} onModeChange={setMode} />
+              <StudyModeSelector currentMode={mode} onModeChange={setMode} incorrectCount={progress.incorrectCount} />
             </div>
             {/* Progress bar - compact */}
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs sm:text-sm text-content-muted">
-                  {progress.masteredCount} / {progress.totalCards} maîtrisées
+                  {progress.masteredCount} / {progress.totalCards} {t('mastered')}
                   {progress.incorrectCount > 0 && (
                     <span className="ml-2 text-orange-400">
-                      ({progress.incorrectCount} à revoir)
+                      ({progress.incorrectCount} {t('toReview')})
                     </span>
                   )}
                 </span>
@@ -1145,9 +1147,9 @@ export default function StudyPage() {
               <div className="mt-2 sm:mt-3 text-right text-[11px] sm:text-[12px] font-medium text-content-muted">
                 Card {cardPosition + 1} of {originalFlashcards.length}
               </div>
-              {progress.needsReview && (
+              {progress.incorrectCount > 0 && (
                 <p className="text-xs text-orange-400 mt-2">
-                  ⚠️ Vous devez maîtriser toutes les cartes avant de terminer.
+                  ⚠️ {t('mustMasterAllCards')}
                 </p>
               )}
             </div>
@@ -1159,18 +1161,18 @@ export default function StudyPage() {
                   {!isFlipped ? (
                     <div className="space-y-3 sm:space-y-4">
                       <div className="mb-2 flex items-center justify-between gap-2">
-                        <p className="text-xs uppercase tracking-wide text-content-subtle">QUESTION</p>
+                        <p className="text-xs uppercase tracking-wide text-content-subtle">{t('question')}</p>
                         <button
                           onClick={() => {
                             setIsReversed(!isReversed);
                             setIsFlipped(false);
                           }}
                           className="flex items-center gap-1 sm:gap-2 rounded-lg border border-border-subtle px-2 sm:px-3 py-1.5 text-sm text-content-emphasis transition-colors hover:bg-bg-muted/70 min-h-[44px]"
-                          title={isReversed ? 'Mode normal: Question → Réponse' : 'Mode inversé: Description → Terme'}
-                          aria-label={isReversed ? 'Mode inversé' : 'Mode normal'}
+                          title={isReversed ? t('normalModeTitle') : t('reversedModeTitle')}
+                          aria-label={isReversed ? t('reversedMode') : t('normalMode')}
                         >
                           <RotateCcw className="h-4 w-4 flex-shrink-0" />
-                          <span className="hidden sm:inline">{isReversed ? 'Mode inversé' : 'Mode normal'}</span>
+                          <span className="hidden sm:inline">{isReversed ? t('reversedMode') : t('normalMode')}</span>
                         </button>
                       </div>
                       <FormattedText
@@ -1192,18 +1194,18 @@ export default function StudyPage() {
                   ) : (
                     <div className="space-y-3 sm:space-y-4">
                       <div className="mb-2 flex items-center justify-between gap-2">
-                        <p className="text-xs uppercase tracking-wide text-content-subtle">ANSWER</p>
+                        <p className="text-xs uppercase tracking-wide text-content-subtle">{t('answer')}</p>
                         <button
                           onClick={() => {
                             setIsReversed(!isReversed);
                             setIsFlipped(false);
                           }}
                           className="flex items-center gap-1 sm:gap-2 rounded-lg border border-border-subtle px-2 sm:px-3 py-1.5 text-sm text-content-emphasis transition-colors hover:bg-bg-muted/70 min-h-[44px]"
-                          title={isReversed ? 'Mode normal: Question → Réponse' : 'Mode inversé: Description → Terme'}
-                          aria-label={isReversed ? 'Mode inversé' : 'Mode normal'}
+                          title={isReversed ? t('normalModeTitle') : t('reversedModeTitle')}
+                          aria-label={isReversed ? t('reversedMode') : t('normalMode')}
                         >
                           <RotateCcw className="h-4 w-4 flex-shrink-0" />
-                          <span className="hidden sm:inline">{isReversed ? 'Mode inversé' : 'Mode normal'}</span>
+                          <span className="hidden sm:inline">{isReversed ? t('reversedMode') : t('normalMode')}</span>
                         </button>
                       </div>
                       <FormattedText
@@ -1234,7 +1236,7 @@ export default function StudyPage() {
                             className="flex-1 sm:flex-none min-w-[120px] min-h-[48px]"
                           >
                             <X className="h-4 w-4 mr-2" />
-                            Incorrect
+                            {t('incorrect')}
                           </Button>
                           <Button
                             onClick={(e) => {
@@ -1245,7 +1247,7 @@ export default function StudyPage() {
                             className="flex-1 sm:flex-none min-w-[120px] min-h-[48px]"
                           >
                             <Check className="h-4 w-4 mr-2" />
-                            Correct
+                            {t('correct')}
                           </Button>
                         </div>      </div>
                     </div>
@@ -1281,7 +1283,7 @@ export default function StudyPage() {
           {mode === 'flashcard' && (
             <div className="mt-6 text-center hidden md:block">
               <p className="text-xs text-content-subtle">
-                Raccourcis : <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Z</kbd> pour retourner • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Q</kbd> Incorrect • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">D</kbd> Correct
+                {t('shortcuts')} : <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Z</kbd> {t('flipCard')} • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">Q</kbd> {t('incorrect')} • <kbd className="px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs font-mono">D</kbd> {t('correct')}
               </p>
             </div>
           )}

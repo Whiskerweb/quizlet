@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -66,6 +67,7 @@ export default function HomePage() {
 function StudentHomePage() {
   const router = useRouter();
   const { profile, user } = useAuthStore();
+  const { t } = useTranslation();
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -367,14 +369,14 @@ function StudentHomePage() {
       {/* Greeting */}
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-semibold text-content-emphasis">
-          {stats.cardsToday > 0 ? '🎯' : '👋'} {profile?.username || 'Étudiant'}
+          {stats.cardsToday > 0 ? '🎯' : '👋'} {profile?.username || t('student')}
         </h1>
         <p className="text-sm text-content-muted">
           {stats.cardsToday > 0 
-            ? `Belle session ! ${stats.cardsToday} cartes révisées` 
+            ? `${t('greatSession')} ${stats.cardsToday} ${t('cardsReviewed')}` 
             : stats.activeSessions.length > 0
-            ? 'Reprenez là où vous en étiez'
-            : 'Prêt à apprendre quelque chose de nouveau ?'}
+            ? t('resumeWhereYouLeft')
+            : t('readyToLearn')}
         </p>
       </div>
 
@@ -388,9 +390,9 @@ function StudentHomePage() {
                 {stats.level}
               </div>
               <div>
-                <div className="text-xs text-content-muted uppercase tracking-wider">Niveau</div>
+                <div className="text-xs text-content-muted uppercase tracking-wider">{t('level')}</div>
                 <div className="text-2xl font-bold text-content-emphasis">{stats.level}</div>
-                <div className="text-xs text-content-muted mt-0.5">{xpToNext} XP jusqu'au niveau {stats.level + 1}</div>
+                <div className="text-xs text-content-muted mt-0.5">{xpToNext} {t('xpToNextLevel')} {stats.level + 1}</div>
               </div>
             </div>
             
@@ -398,8 +400,8 @@ function StudentHomePage() {
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-200">
                 <Flame className="h-4 w-4 text-orange-500" />
                 <div className="text-right">
-                  <div className="text-xs text-orange-600 font-medium">{stats.currentStreak} jours</div>
-                  <div className="text-[10px] text-orange-500 uppercase tracking-wider">Série</div>
+                  <div className="text-xs text-orange-600 font-medium">{stats.currentStreak} {t('days')}</div>
+                  <div className="text-[10px] text-orange-500 uppercase tracking-wider">{t('streak')}</div>
                 </div>
               </div>
             )}
@@ -428,23 +430,23 @@ function StudentHomePage() {
       <Card className="p-5 sm:p-6">
         <div className="flex items-center gap-2 mb-4">
           <Calendar className="h-4 w-4 text-brand-primary" />
-          <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider">Aujourd'hui</h2>
+          <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider">{t('today')}</h2>
         </div>
         
         <div className="grid grid-cols-3 divide-x divide-border-subtle">
           <div className="flex flex-col items-center py-2">
             <div className="text-3xl font-bold text-content-emphasis">{stats.cardsToday}</div>
-            <div className="text-xs text-content-muted mt-1">Cartes</div>
+            <div className="text-xs text-content-muted mt-1">{t('cards')}</div>
           </div>
           
           <div className="flex flex-col items-center py-2">
             <div className="text-3xl font-bold text-content-emphasis">{stats.minutesToday}</div>
-            <div className="text-xs text-content-muted mt-1">Minutes</div>
+            <div className="text-xs text-content-muted mt-1">{t('minutes')}</div>
           </div>
           
           <div className="flex flex-col items-center py-2">
             <div className="text-3xl font-bold text-content-emphasis">{stats.masteryRate}%</div>
-            <div className="text-xs text-content-muted mt-1">Maîtrise</div>
+            <div className="text-xs text-content-muted mt-1">{t('mastery')}</div>
           </div>
         </div>
       </Card>
@@ -457,10 +459,10 @@ function StudentHomePage() {
           <Card className="p-5 sm:p-6 relative">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider">
-                Activité (7 jours)
+                {t('activity7Days')}
               </h2>
               <span className="text-xs text-content-muted">
-                {stats.weeklyActivity.reduce((sum: number, d: any) => sum + d.cards, 0)} cartes
+                {stats.weeklyActivity.reduce((sum: number, d: any) => sum + d.cards, 0)} {t('cardsTotal')}
               </span>
             </div>
             
@@ -516,14 +518,14 @@ function StudentHomePage() {
                       </div>
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between gap-6">
-                          <span className="text-xs text-white/70">Cartes révisées</span>
+                          <span className="text-xs text-white/70">{t('cardsReviewedTooltip')}</span>
                           <span className="text-sm font-bold text-white">
                             {stats.weeklyActivity[hoveredDay].cards}
                           </span>
                         </div>
                         {stats.weeklyActivity[hoveredDay].minutes > 0 && (
                           <div className="flex items-center justify-between gap-6">
-                            <span className="text-xs text-white/70">Temps d'étude</span>
+                            <span className="text-xs text-white/70">{t('studyTime')}</span>
                             <span className="text-sm font-bold text-white">
                               {stats.weeklyActivity[hoveredDay].minutes}min
                             </span>
@@ -531,7 +533,7 @@ function StudentHomePage() {
                         )}
                         {stats.weeklyActivity[hoveredDay].sessionsCount > 0 && (
                           <div className="flex items-center justify-between gap-6">
-                            <span className="text-xs text-white/70">Sessions</span>
+                            <span className="text-xs text-white/70">{t('sessions')}</span>
                             <span className="text-sm font-bold text-white">
                               {stats.weeklyActivity[hoveredDay].sessionsCount}
                             </span>
@@ -539,7 +541,7 @@ function StudentHomePage() {
                         )}
                         {stats.weeklyActivity[hoveredDay].cards === 0 && (
                           <div className="text-xs text-white/50 italic">
-                            Aucune activité
+                            {t('noActivity')}
                           </div>
                         )}
                       </div>
@@ -557,7 +559,7 @@ function StudentHomePage() {
             <Card className="p-5 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider">
-                  Sessions en cours
+                  {t('activeSessions')}
                 </h2>
                 <span className="px-2 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-medium">
                   {stats.activeSessions.length}
@@ -582,7 +584,7 @@ function StudentHomePage() {
                         <div className="flex items-center gap-2 text-xs text-content-muted">
                           <span className="capitalize">{session.mode}</span>
                           <span>•</span>
-                          <span>{progress}/{total} cartes</span>
+                          <span>{progress}/{total} {t('cardsTotal')}</span>
                           <span>•</span>
                           <span className="text-brand-primary font-medium">{percentage}%</span>
                         </div>
@@ -607,10 +609,10 @@ function StudentHomePage() {
             <Card className="p-5 sm:p-6 text-center">
               <div className="py-8">
                 <BookOpen className="h-12 w-12 text-content-subtle mx-auto mb-3 opacity-50" />
-                <p className="text-sm text-content-muted mb-4">Aucune session en cours</p>
+                <p className="text-sm text-content-muted mb-4">{t('noActiveSessions')}</p>
                 <Button onClick={handleCreateSet} disabled={isCreating}>
                   <Plus className="h-4 w-4" />
-                  Créer un set
+                  {t('createSet')}
                 </Button>
               </div>
             </Card>
@@ -622,7 +624,7 @@ function StudentHomePage() {
           {/* Quick Actions */}
           <Card className="p-5 sm:p-6 border-border-subtle">
             <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider mb-4">
-              Actions
+              {t('actions')}
             </h2>
             <div className="space-y-2">
               <Button
@@ -633,7 +635,7 @@ function StudentHomePage() {
               >
                 <div className="flex items-center gap-2">
                   <Plus className="h-4 w-4" />
-                  <span>Créer un set</span>
+                  <span>{t('createSet')}</span>
                 </div>
                 <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Button>
@@ -644,7 +646,7 @@ function StudentHomePage() {
                     <div className="p-1.5 rounded-lg bg-bg-subtle group-hover:bg-bg-emphasis transition-colors">
                       <BookOpen className="h-4 w-4 text-content-emphasis" />
                     </div>
-                    <span className="text-[14px] font-medium text-content-emphasis">Mes sets</span>
+                    <span className="text-[14px] font-medium text-content-emphasis">{t('mySets')}</span>
                   </div>
                   <ArrowRight className="h-4 w-4 text-content-subtle opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                 </div>
@@ -656,7 +658,7 @@ function StudentHomePage() {
                     <div className="p-1.5 rounded-lg bg-bg-subtle group-hover:bg-bg-emphasis transition-colors">
                       <Sparkles className="h-4 w-4 text-content-emphasis" />
                     </div>
-                    <span className="text-[14px] font-medium text-content-emphasis">Explorer</span>
+                    <span className="text-[14px] font-medium text-content-emphasis">{t('explore')}</span>
                   </div>
                   <ArrowRight className="h-4 w-4 text-content-subtle opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                 </div>
@@ -668,7 +670,7 @@ function StudentHomePage() {
           {stats.recentSets.length > 0 && (
             <Card className="p-5 sm:p-6 border-border-subtle">
               <h2 className="text-sm font-semibold text-content-emphasis uppercase tracking-wider mb-4">
-                Sets récents
+                {t('recentSets')}
               </h2>
               <div className="space-y-2">
                 {stats.recentSets.map((set: any) => (
@@ -676,10 +678,10 @@ function StudentHomePage() {
                     <div className="group flex items-center justify-between w-full px-4 py-3 rounded-lg border border-border-subtle bg-bg-emphasis hover:border-border-default hover:bg-bg-subtle hover:shadow-card-hover transition-all cursor-pointer">
                       <div className="flex-1 min-w-0">
                         <div className="text-[14px] font-medium text-content-emphasis truncate mb-0.5">
-                          {set.title || 'Set sans titre'}
+                          {set.title || t('untitledSet')}
                         </div>
                         <div className="text-xs text-content-muted">
-                          {set.cards} {set.cards > 1 ? 'cartes' : 'carte'}
+                          {set.cards} {set.cards > 1 ? t('cardsTotal') : t('card')}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 ml-3">
@@ -698,14 +700,14 @@ function StudentHomePage() {
             <div className="relative">
               <div className="flex items-center gap-2 mb-3">
                 <Brain className="h-4 w-4 text-brand-primary" />
-                <h3 className="text-sm font-semibold text-content-emphasis">Défi du jour</h3>
+                <h3 className="text-sm font-semibold text-content-emphasis">{t('dailyChallenge')}</h3>
               </div>
               <p className="text-xs text-content-muted mb-4">
-                Révisez 20 cartes pour gagner <span className="font-semibold text-brand-primary">+50 XP</span>
+                {t('review20Cards')} <span className="font-semibold text-brand-primary">+50 {t('plusXP')}</span>
               </p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-content-muted">Progression</span>
+                  <span className="text-content-muted">{t('progress')}</span>
                   <span className="font-medium text-content-emphasis">{stats.cardsToday}/20</span>
                 </div>
                 <div className="h-2 w-full bg-bg-subtle rounded-full overflow-hidden">
