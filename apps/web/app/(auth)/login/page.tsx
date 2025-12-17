@@ -80,7 +80,7 @@ function LoginForm() {
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4 sm:px-8 sm:py-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push('/')}
             className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
             aria-label="Retour"
           >

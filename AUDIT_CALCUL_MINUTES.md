@@ -414,3 +414,6 @@ Le problème principal est que **l'affichage des minutes utilise la durée total
 
 
 
+
+
+

@@ -4,133 +4,135 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
-import { 
-  BookOpen, 
-  FileText, 
-  Zap, 
-  List, 
-  Users, 
-  Share2, 
-  FolderOpen, 
-  TrendingUp,
-  Heart,
-  MessageCircle,
-  Sparkles,
-  ArrowRight,
-  Check,
-  Star,
-  Target,
-  Clock,
-  ChevronDown,
-  Menu,
-  X
-} from 'lucide-react';
-import ScrollStack, { ScrollStackItem } from '@/components/ScrollStack';
-import ScrollVelocity from '@/components/ScrollVelocity';
-import BlurText from '@/components/BlurText';
-import DotGrid from '@/components/DotGrid';
-import MagicBento from '@/components/MagicBento';
-import { MarqueeDemoVertical } from '@/components/MarqueeDemoVertical';
-import { BentoDemo } from '@/components/BentoDemo';
+import { Menu, X, UserPlus, FileText, BookOpen, Gamepad2 } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export default function HomePage() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const heroRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [carouselImages] = useState([
+    '/caroussel/1.png',
+    '/caroussel/2.png',
+    '/caroussel/3.png',
+    '/caroussel/4.png',
+    '/caroussel/5.png',
+    '/caroussel/6.png',
+    '/caroussel/7.png',
+  ]);
 
+  // Infinite scroll carousel with proper loop
   useEffect(() => {
-    setIsVisible(true);
-    
-    // Intersection Observer for scroll animations
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-fade-in');
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
+    const carousel = carouselRef.current;
+    if (!carousel) return;
 
-    const elements = document.querySelectorAll('.scroll-animate');
-    elements.forEach((el) => observer.observe(el));
+    let animationFrame: number;
+    let scrollPosition = 0;
+    const scrollSpeed = 0.5;
+    let isUserScrolling = false;
+    let scrollTimeout: NodeJS.Timeout;
+
+    // Calculate the width of one set of images
+    const getSingleSetWidth = () => {
+      const firstImage = carousel.querySelector('a');
+      if (!firstImage) return 0;
+      const imageWidth = (firstImage as HTMLElement).offsetWidth;
+      const gap = 16; // gap-4 = 1rem = 16px
+      return (imageWidth + gap) * carouselImages.length;
+    };
+
+    const scroll = () => {
+      if (!isPaused && !isUserScrolling) {
+        scrollPosition += scrollSpeed;
+        carousel.scrollLeft = scrollPosition;
+
+        const singleSetWidth = getSingleSetWidth();
+        // When we've scrolled through one set, reset seamlessly
+        if (scrollPosition >= singleSetWidth) {
+          scrollPosition = 0;
+          carousel.scrollLeft = 0;
+        }
+      }
+
+      animationFrame = requestAnimationFrame(scroll);
+    };
+
+    // Handle user scroll
+    const handleScroll = () => {
+      isUserScrolling = true;
+      scrollPosition = carousel.scrollLeft;
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        isUserScrolling = false;
+      }, 150);
+    };
+
+    // Start auto-scroll
+    animationFrame = requestAnimationFrame(scroll);
+    carousel.addEventListener('scroll', handleScroll);
 
     return () => {
-      elements.forEach((el) => observer.unobserve(el));
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+      carousel.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
     };
-  }, []);
-
-  const faqs = [
-    {
-      question: 'Est-ce que CARDZ est vraiment 100% gratuit ?',
-      answer: 'Oui. Il n\'y a pas de version payante, pas de fonctionnalités cachées derrière un abonnement, pas d\'essai limité dans le temps. Tu peux créer, réviser et partager tes Cardz sans payer.'
-    },
-    {
-      question: 'Pour qui est faite l\'app ?',
-      answer: 'Pour les lycéens, étudiants, préparationnaires, et plus largement toute personne qui a besoin de mémoriser des notions : vocabulaire, dates, formules, définitions, concepts…'
-    },
-    {
-      question: 'Sur quels appareils puis-je utiliser CARDZ ?',
-      answer: 'Tu peux utiliser CARDZ directement depuis ton navigateur. L\'app est pensée pour fonctionner aussi bien sur ordinateur que sur mobile.'
-    },
-    {
-      question: 'Comment vous contacter si j\'ai un problème ou une idée ?',
-      answer: 'Tu peux nous contacter via la page "Contact" de l\'app. On lit tous les messages et on se sert de vos retours pour décider des prochaines améliorations.'
-    }
-  ];
+  }, [isPaused, carouselImages.length]);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20">
+    <div className="min-h-screen bg-white overflow-x-hidden">
+      {/* Header - Barre flottante */}
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-4xl">
+        <nav className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-full shadow-lg px-4 sm:px-6">
+          <div className="flex justify-between items-center h-12 sm:h-14">
+            {/* Logo */}
             <Link href="/" className="flex items-center space-x-2 group">
-              <div className="w-10 h-10 flex items-center justify-center transition-opacity group-hover:opacity-80">
+              <div className="w-8 h-8 flex items-center justify-center transition-opacity group-hover:opacity-80">
                 <Image 
                   src="/images/logo.png" 
                   alt="CARDZ Logo" 
-                  width={40} 
-                  height={40}
+                  width={32} 
+                  height={32}
                   className="object-contain"
                   priority
                 />
               </div>
-              <span className="text-xl sm:text-2xl font-bold text-gray-900">CARDZ</span>
+              <span className="text-lg sm:text-xl font-bold text-gray-900">CARDZ</span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
-              <Link href="/login" className="px-4 py-2 text-sm lg:text-base text-gray-700 hover:text-brand-primary transition-colors rounded-lg hover:bg-gray-50">
-                Se connecter
-              </Link>
+            {/* Desktop Action Buttons */}
+            <div className="hidden md:flex items-center space-x-2">
               <Link href="/register">
-                <Button size="sm" className="ml-2">
-                  Commencer gratuitement
+                <Button variant="outline" size="sm" className="border-gray-200 text-xs sm:text-sm px-3 sm:px-4 h-8 sm:h-9 rounded-full">
+                  + Créer
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button size="sm" className="bg-brand-primary hover:bg-brand-primaryDark text-xs sm:text-sm px-3 sm:px-4 h-8 sm:h-9 rounded-full">
+                  Se connecter
                 </Button>
               </Link>
             </div>
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 text-gray-700 hover:text-brand-primary transition-colors"
+              className="md:hidden p-2 text-gray-700 hover:text-brand-primary transition-colors rounded-full"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200">
+            <div className="md:hidden py-3 border-t border-gray-200 mt-2">
               <div className="flex flex-col space-y-2">
-                <Link href="/login" className="px-4 py-2 text-base text-gray-700 hover:text-brand-primary hover:bg-gray-50 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link href="/login" className="px-4 py-2 text-sm text-gray-700 hover:text-brand-primary hover:bg-gray-50 rounded-lg" onClick={() => setIsMobileMenuOpen(false)}>
                   Se connecter
                 </Link>
                 <Link href="/register" className="px-4 py-2" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button className="w-full">Commencer gratuitement</Button>
+                  <Button className="w-full rounded-full">+ Créer</Button>
                 </Link>
               </div>
             </div>
@@ -138,365 +140,535 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <main>
+      <main className="pt-20 sm:pt-24">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-blue-50 via-white to-indigo-50 overflow-hidden pt-20 sm:pt-28 lg:pt-36 pb-32 sm:pb-40 lg:pb-48">
-          <div className="absolute inset-0 opacity-30">
-            <DotGrid
-              dotSize={6}
-              gap={20}
-              baseColor="#93C5FD"
-              activeColor="#60A5FA"
-              proximity={100}
-              shockRadius={200}
-              shockStrength={3}
-              resistance={750}
-              returnDuration={1.5}
-            />
-          </div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-secondaryTeal/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-          
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div 
-              ref={heroRef}
-              className={`text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
-            >
-              <BlurText
-                text="STUDY FOR FREE"
-                delay={150}
-                animateBy="words"
-                direction="top"
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 mb-8 sm:mb-12 md:mb-16 leading-tight max-w-5xl mx-auto uppercase"
-              />
-              
-              <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-gray-700 mb-12 sm:mb-16 md:mb-20 max-w-4xl mx-auto leading-relaxed font-medium px-4">
-                CARDZ, l'app 100% gratuite qui mixe révision et mini-jeux pour t'aider à assurer le jour de l'exam.
+        <section className="relative bg-white py-[9px]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-4xl mx-auto">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+                Apprendre n'a jamais été aussi simple (ni aussi fun).
+              </h1>
+              <p className="text-lg sm:text-xl text-gray-600 mb-8 leading-relaxed">
+                Transformez vos corvées de révision en sessions de jeu. Flashcards, tests et activités : CARDZ rend l'apprentissage interactif et addictif.
               </p>
-              
-              <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mb-16 sm:mb-20 md:mb-24">
+              <div className="flex flex-col sm:flex-row justify-center gap-4 mb-4">
                 <Link href="/register">
                   <Button 
                     size="lg" 
-                    className="w-full sm:w-auto text-base sm:text-lg md:text-xl px-10 sm:px-12 md:px-14 py-5 sm:py-6 md:py-7 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                    className="w-full sm:w-auto text-base sm:text-lg px-8 sm:px-10 py-3 sm:py-4 bg-brand-primary hover:bg-brand-primaryDark"
                   >
-                    Créer une CARDZ
-                    <ArrowRight className="ml-2 h-5 w-5 md:h-6 md:w-6" />
+                    S'inscrire gratuitement
                   </Button>
                 </Link>
               </div>
-
-              {/* Scroll Velocity */}
-              <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mt-12 sm:mt-16 md:mt-20 overflow-hidden">
-                <ScrollVelocity
-                  texts={['100% gratuit ✦ Sans pub ✦ Créée par et pour les étudiants ✦', '100% gratuit ✦ Sans pub ✦ Créée par et pour les étudiants ✦']}
-                  velocity={50}
-                  className="text-gray-900"
-                />
-              </div>
+              <Link href="/register" className="text-brand-primary hover:underline text-sm sm:text-base">
+                Je suis enseignant
+              </Link>
             </div>
           </div>
         </section>
 
-        {/* How it works */}
-        <section id="features" className="py-24 sm:py-32 lg:py-40 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-              <ScrollStack
-                useWindowScroll={true}
-                itemDistance={200}
-                itemStackDistance={50}
-                stackPosition="25%"
-                baseScale={0.88}
-                itemScale={0.03}
-                rotationAmount={1.5}
-                blurAmount={1.5}
+        {/* Carousel Section */}
+        <section 
+          className="pt-4 pb-20 sm:pb-24 bg-white relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          <div className="relative group/carousel py-0">
+            {/* Navigation Buttons - Show on hover */}
+            <button
+              onClick={() => {
+                if (carouselRef.current) {
+                  const scrollAmount = carouselRef.current.offsetWidth * 0.8;
+                  carouselRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                }
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300 hover:bg-gray-50 hover:shadow-xl"
+              aria-label="Précédent"
+            >
+              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => {
+                if (carouselRef.current) {
+                  const scrollAmount = carouselRef.current.offsetWidth * 0.8;
+                  carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                }
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300 hover:bg-gray-50 hover:shadow-xl"
+              aria-label="Suivant"
+            >
+              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Infinite Carousel Container */}
+            <div className="overflow-hidden">
+              <div
+                ref={carouselRef}
+                className="flex gap-4 scrollbar-hide"
+                style={{
+                  scrollBehavior: 'auto',
+                  WebkitOverflowScrolling: 'touch',
+                  overflowX: 'auto',
+                  overflowY: 'visible',
+                }}
               >
-                {[
-                  {
-                    step: '1',
-                    title: 'Crée tes Cardz en quelques secondes',
-                    description: 'Ajoute tes notions de cours, tes définitions, tes formules ou ton vocab. Regroupe tout dans des Cardz pour chaque matière ou chapitre.',
-                    icon: BookOpen,
-                    color: 'from-blue-500 to-blue-600',
-                    bgColor: 'bg-blue-50'
-                  },
-                  {
-                    step: '2',
-                    title: 'Choisis ton mode de révision',
-                    description: 'Cardz, quiz, écriture, associations… Tu sélectionnes le mode qui te convient le mieux pour le moment, ou tu alternes pour mieux mémoriser.',
-                    icon: Zap,
-                    color: 'from-cyan-500 to-cyan-600',
-                    bgColor: 'bg-cyan-50'
-                  },
-                  {
-                    step: '3',
-                    title: 'Joue, répète, ancre dans ta tête',
-                    description: 'Tu réponds, tu te trompes, tu recommences. Les mini-jeux rendent les révisions moins chiantes et plus efficaces.',
-                    icon: Target,
-                    color: 'from-yellow-500 to-yellow-600',
-                    bgColor: 'bg-yellow-50'
-                  },
-                  {
-                    step: '4',
-                    title: 'Suis ta progression',
-                    description: 'XP, niveaux, séries de révision, stats… Tu vois concrètement tes progrès et ça te motive à continuer jusqu\'au jour J.',
-                    icon: TrendingUp,
-                    color: 'from-pink-500 to-pink-600',
-                    bgColor: 'bg-pink-50'
-                  }
-                ].map((item, index) => {
-                  const Icon = item.icon;
+                {/* Duplicate images for infinite scroll (3 sets for seamless loop) */}
+                {[...carouselImages, ...carouselImages, ...carouselImages].map((image, index) => {
+                  const imageIndex = index % carouselImages.length;
                   return (
-                    <ScrollStackItem
-                      key={index}
-                      itemClassName={`${item.bgColor} border-2 border-gray-200`}
+                    <Link
+                      key={`${image}-${index}`}
+                      href="/register"
+                      className="group/item flex-shrink-0 relative cursor-pointer block"
+                      style={{ 
+                        paddingTop: '60px',
+                        paddingBottom: '60px',
+                      }}
                     >
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center text-white font-bold text-xl`}>
-                          {item.step}
-                        </div>
-                        <Icon className="h-6 w-6 text-gray-400" />
+                      {/* Container that grows with the image - extra padding prevents crop */}
+                      <div className="relative w-[280px] h-[350px] sm:w-[320px] sm:h-[400px] lg:w-[360px] lg:h-[450px] transition-all duration-500 ease-out group-hover/item:scale-110 origin-center will-change-transform">
+                        <Image
+                          src={image}
+                          alt={`Carousel image ${imageIndex + 1}`}
+                          fill
+                          className="object-contain transition-transform duration-500 ease-out"
+                          sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, 360px"
+                          priority={index < 7}
+                        />
                       </div>
-                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
-                        {item.title}
-                      </h3>
-                      <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                        {item.description}
-                      </p>
-                    </ScrollStackItem>
+                    </Link>
                   );
                 })}
-              </ScrollStack>
-            </div>
-          </div>
-        </section>
-
-        {/* Study Modes */}
-        <section className="py-24 sm:py-32 lg:py-40 bg-gradient-to-b from-gray-50 to-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 sm:mb-20 md:mb-24 scroll-animate">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 md:mb-10">
-                Des modes de révision qui s'adaptent à ton cerveau
-              </h2>
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Parce qu'on n'apprend pas tous de la même façon, CARDZ te propose plusieurs types de mini-jeux.
-              </p>
-            </div>
-
-            <MagicBento
-              textAutoHide={false}
-              enableStars={true}
-              enableSpotlight={true}
-              enableBorderGlow={true}
-              enableTilt={true}
-              enableMagnetism={true}
-              clickEffect={true}
-              spotlightRadius={300}
-              particleCount={12}
-              glowColor="96, 165, 250"
-              cardData={[
-                {
-                  color: '#0f172a',
-                  title: 'Cardz',
-                  description: 'Le classique qui fonctionne toujours. Tu retournes les cartes pour révéler la réponse et vérifier si tu maîtrises bien.',
-                  label: 'Mémoire'
-                },
-                {
-                  color: '#0f172a',
-                  title: 'Quiz',
-                  description: 'Questions à choix multiples pour tester tes connaissances rapidement. Parfait pour un check express avant un contrôle.',
-                  label: 'Rapidité'
-                },
-                {
-                  color: '#0f172a',
-                  title: 'Écriture',
-                  description: 'Tu tapes la réponse toi-même. Idéal pour vraiment ancrer les infos dans ta mémoire.',
-                  label: 'Mémorisation'
-                },
-                {
-                  color: '#0f172a',
-                  title: 'Match',
-                  description: 'Associe les termes à leurs définitions. Top pour le vocabulaire, les dates, les concepts clés.',
-                  label: 'Association'
-                }
-              ]}
-            />
-          </div>
-        </section>
-
-        {/* App That Listens */}
-        <section className="py-24 sm:py-32 lg:py-40 bg-gradient-to-b from-white to-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 lg:gap-20 items-center">
-              <div className="scroll-animate order-2 lg:order-1">
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 md:mb-10">
-                  Une app qui évolue avec tes retours
-            </h2>
-                <p className="text-lg sm:text-xl md:text-2xl text-gray-600 leading-relaxed mb-8 sm:mb-10">
-                  CARDZ est construite avec la communauté. Chaque bug signalé, chaque idée, chaque suggestion compte. On lit tous les messages et on utilise vos retours pour améliorer l'app en continu.
-                </p>
-                <div className="bg-gradient-to-br from-brand-primary/10 via-brand-secondaryTeal/10 to-brand-accentPink/10 p-8 sm:p-10 md:p-12 rounded-3xl border border-brand-primary/20">
-                  <p className="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed">
-                    <strong className="text-gray-900">Tu vois un bug ? Tu as une idée de nouvelle fonctionnalité ou d'un mode de jeu ?</strong> Tu peux nous contacter directement : on répond à chaque message.
-                  </p>
-                </div>
-              </div>
-              <div className="scroll-animate order-1 lg:order-2">
-                <MarqueeDemoVertical />
               </div>
             </div>
           </div>
         </section>
 
-        {/* All You Need */}
-        <section className="py-24 sm:py-32 lg:py-40 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 sm:mb-20 md:mb-24 scroll-animate">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 md:mb-10">
-                Tous tes cours, rangés au même endroit
+        {/* Roadmap Section - From Registration to Games */}
+        <section className="py-16 sm:py-20 lg:py-24 bg-white relative overflow-hidden">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            {/* Section Header */}
+            <header className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                Votre parcours d'apprentissage
               </h2>
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Des outils simples mais puissants pour organiser tes révisions.
+              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                De l'inscription à la maîtrise, découvrez comment CARDZ transforme chaque étape de votre apprentissage en expérience ludique et efficace.
               </p>
-            </div>
+            </header>
 
-            <div className="scroll-animate">
-              <BentoDemo />
-            </div>
-          </div>
-        </section>
+            {/* Timeline Container */}
+            <div className="relative">
+              {/* Central Timeline Line */}
+              <motion.div 
+                className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full hidden md:block overflow-hidden"
+                initial={{ opacity: 0, scaleY: 0 }}
+                whileInView={{ opacity: 1, scaleY: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                style={{ transformOrigin: 'top' }}
+              >
+                {/* Base line with gradient */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-200 via-gray-300 to-gray-200 rounded-full"></div>
+                {/* Animated shine effect */}
+                <div 
+                  className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-transparent rounded-full"
+                  style={{
+                    animation: 'timeline-shine 3s ease-in-out infinite',
+                  }}
+                ></div>
+              </motion.div>
+              
 
-        {/* FAQ */}
-        <section id="faq" className="py-24 sm:py-32 lg:py-40 bg-white">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 sm:mb-20 md:mb-24 scroll-animate">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 md:mb-10">
-                Questions fréquentes
-              </h2>
-            </div>
-
-            <div className="space-y-6 sm:space-y-8">
-              {faqs.map((faq, index) => (
-                <div
-                  key={index}
-                  className="scroll-animate bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-brand-primary/50 transition-colors"
-                  style={{ animationDelay: `${index * 50}ms` }}
+              {/* Timeline Steps */}
+              <div className="space-y-12 sm:space-y-16 md:space-y-20">
+                {/* Step 1: Inscription - Left Side */}
+                <motion.article
+                  className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8"
+                  initial={{ opacity: 0, x: -50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
                 >
-                  <button
-                    className="w-full p-8 sm:p-10 md:p-12 text-left flex items-center justify-between gap-6 hover:bg-gray-50 transition-colors"
-                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  >
-                    <span className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 flex-1 leading-relaxed">
-                      {faq.question}
-                    </span>
-                    <ChevronDown
-                      className={`h-6 w-6 md:h-7 md:w-7 text-gray-500 flex-shrink-0 transition-transform duration-300 ${
-                        openFaq === index ? 'transform rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-                  {openFaq === index && (
-                    <div className="px-8 sm:px-10 md:px-12 pb-8 sm:pb-10 md:pb-12">
-                      <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed">
-                        {faq.answer}
-                      </p>
+                  {/* Timeline Node */}
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-900 rounded-full z-10 hidden md:block"></div>
+                  
+                  {/* Content Card - Left Side */}
+                  <div className="w-full md:w-[calc(50%-3rem)] md:pr-8 flex-shrink-0">
+                    <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 sm:p-8 hover:shadow-xl transition-shadow duration-300 overflow-visible">
+                      <div className="flex flex-col sm:flex-row gap-6">
+                        {/* Image - avec effet qui sort de la box */}
+                        <div className="w-full sm:w-52 h-64 rounded-xl flex items-center justify-center flex-shrink-0 relative bg-transparent overflow-visible -ml-4 sm:-ml-6 -mt-4 sm:-mt-6">
+                          <div className="relative w-full h-full flex items-center justify-center" style={{ transform: 'rotate(-12deg)' }}>
+                            <Image
+                              src="/images/parcrours/phone.png"
+                              alt="CARDZ app mobile optimisée"
+                              width={240}
+                              height={240}
+                              className="object-contain"
+                              style={{
+                                filter: 'drop-shadow(0 25px 35px rgba(0, 0, 0, 0.2))',
+                              }}
+                              priority
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Text Content */}
+                        <div className="flex-1">
+                          <h3 className="text-[16px] font-bold text-gray-900 mb-3">
+                            Disponible en app web
+                          </h3>
+                          <p className="text-[13px] text-gray-600 leading-relaxed mb-6">
+                            La version mobile est 100% adaptée mobile. Accédez à tous les outils d'apprentissage CARDZ depuis votre navigateur, où que vous soyez.
+                          </p>
+                          <Link href="/register">
+                            <Button className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold">
+                              Je crée mon compte
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                  
+                  {/* Empty space for right side on desktop */}
+                  <div className="hidden md:block w-[calc(50%-3rem)]"></div>
+                </motion.article>
+
+                {/* Step 2: Création - Right Side */}
+                <motion.article
+                  className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8"
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                >
+                  {/* Timeline Node */}
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-900 rounded-full z-10 hidden md:block"></div>
+                  
+                  {/* Empty space for left side on desktop */}
+                  <div className="hidden md:block w-[calc(50%-3rem)]"></div>
+                  
+                  {/* Content Card - Right Side */}
+                  <div className="w-full md:w-[calc(50%-3rem)] md:pl-8 flex-shrink-0">
+                    <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 sm:p-8 hover:shadow-xl transition-shadow duration-300 overflow-visible">
+                      <div className="flex flex-col sm:flex-row gap-6">
+                        {/* Text Content */}
+                        <div className="flex-1 order-2 sm:order-1">
+                          <h3 className="text-[16px] font-bold text-gray-900 mb-3">
+                            Créez vos sets de <span className="text-gray-400 line-through decoration-2 decoration-gray-400/70 relative">
+                              flashcards
+                            </span> <span className="text-gray-900">cardz</span>
+                          </h3>
+                          <p className="text-[13px] text-gray-600 leading-relaxed mb-6">
+                            Créez vos cardz avec du texte, des images et de l'audio. Organisez-les par matière ou explorez ceux de la communauté.
+                          </p>
+                          <Link href="/register">
+                            <Button className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold">
+                              Je crée mes flashcards
+                            </Button>
+                          </Link>
+                        </div>
+                        
+                        {/* Image - avec effet qui sort de la box */}
+                        <div className="w-full sm:w-64 h-80 rounded-xl flex items-center justify-center flex-shrink-0 relative bg-transparent overflow-visible -mr-6 sm:-mr-8 -mt-6 sm:-mt-8 order-1 sm:order-2">
+                          <div className="relative w-full h-full flex items-center justify-center" style={{ transform: 'rotate(12deg)' }}>
+                            <Image
+                              src="/images/parcrours/happy.png"
+                              alt="Création de cardz"
+                              width={320}
+                              height={320}
+                              className="object-contain"
+                              style={{
+                                filter: 'drop-shadow(0 25px 35px rgba(0, 0, 0, 0.2))',
+                              }}
+                              priority
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.article>
+
+                {/* Step 3: Étude - Left Side */}
+                <motion.article
+                  className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8"
+                  initial={{ opacity: 0, x: -50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                >
+                  {/* Timeline Node */}
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-900 rounded-full z-10 hidden md:block"></div>
+                  
+                  {/* Content Card - Left Side */}
+                  <div className="w-full md:w-[calc(50%-3rem)] md:pr-8 flex-shrink-0">
+                    <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 sm:p-8 hover:shadow-xl transition-shadow duration-300 overflow-visible">
+                      <div className="flex flex-col sm:flex-row gap-6">
+                        {/* Image */}
+                        <div className="w-full sm:w-48 h-48 rounded-xl flex items-center justify-center flex-shrink-0 order-1 sm:order-1 overflow-visible">
+                          <Image
+                            src="/images/parcrours/cerveau.png"
+                            alt="Apprentissage espacé"
+                            width={192}
+                            height={192}
+                            className="object-contain w-full h-full"
+                            priority
+                          />
+                        </div>
+                        
+                        {/* Text Content */}
+                        <div className="flex-1 order-2 sm:order-2">
+                          <h3 className="text-[16px] font-bold text-gray-900 mb-3">
+                            Apprentissage espacé
+                          </h3>
+                          <p className="text-[13px] text-gray-600 leading-relaxed mb-6">
+                            Notre système d'apprentissage espacé optimise votre mémorisation en vous faisant réviser au bon moment, pour une rétention à long terme maximale.
+                          </p>
+                          <Link href="/register">
+                            <Button className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold">
+                              Je commence à réviser
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Empty space for right side on desktop */}
+                  <div className="hidden md:block w-[calc(50%-3rem)]"></div>
+                </motion.article>
+
+                {/* Step 4: Jeux - Right Side */}
+                <motion.article
+                  className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8"
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                >
+                  {/* Timeline Node */}
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-900 rounded-full z-10 hidden md:block"></div>
+                  
+                  {/* Empty space for left side on desktop */}
+                  <div className="hidden md:block w-[calc(50%-3rem)]"></div>
+                  
+                  {/* Content Card - Right Side */}
+                  <div className="w-full md:w-[calc(50%-3rem)] md:pl-8 flex-shrink-0">
+                    <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 sm:p-8 hover:shadow-xl transition-shadow duration-300 overflow-visible">
+                      <div className="flex flex-col sm:flex-row gap-6">
+                        {/* Text Content */}
+                        <div className="flex-1 order-2 sm:order-1">
+                          <h3 className="text-[16px] font-bold text-gray-900 mb-3">
+                            Rejoignez vos classes avec My Class
+                          </h3>
+                          <p className="text-[13px] text-gray-600 leading-relaxed mb-6">
+                            Rejoignez les classes de vos professeurs avec un simple code. Accédez à leurs modules de cardz et étudiez directement depuis votre espace.
+                          </p>
+                          <Link href="/register">
+                            <Button className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold">
+                              Découvrir My Class
+                            </Button>
+                          </Link>
+                        </div>
+                        
+                        {/* Image */}
+                        <div className="w-full sm:w-48 h-48 rounded-xl flex items-center justify-center flex-shrink-0 order-1 sm:order-2 overflow-visible">
+                          <Image
+                            src="/images/parcrours/prof.png"
+                            alt="My Class - Rejoindre une classe"
+                            width={192}
+                            height={192}
+                            className="object-contain w-full h-full"
+                            priority
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.article>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="py-24 sm:py-32 lg:py-40 bg-gradient-to-br from-brand-primary/10 via-brand-secondaryTeal/10 to-brand-accentPink/10">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="scroll-animate">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 md:mb-10">
-                Prêt·e à réviser autrement ?
-              </h2>
-              <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-12 sm:mb-16 md:mb-20 max-w-3xl mx-auto leading-relaxed">
-                Crée ton compte en moins d'une minute, crée tes premières cardz et teste les modes de révision. Tu verras vite si CARDZ te convient… sans dépenser un centime.
+        {/* Section Enseignants - plein écran pastel */}
+        <section className="py-14 bg-sky-50 relative">
+          <motion.div
+            className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center gap-10"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          >
+            {/* Contenu texte */}
+            <div className="flex-1 text-center md:text-left">
+              <p className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 border border-slate-200 text-xs sm:text-sm font-medium text-slate-700 mb-4 shadow-sm">
+                Pensé pour l'enseignement
               </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 md:gap-8">
-                <Link href="/register">
-                  <Button 
-                    size="lg" 
-                    className="w-full sm:w-auto text-base sm:text-lg md:text-xl px-10 sm:px-12 md:px-14 py-5 sm:py-6 md:py-7 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                  >
-                    Commencer maintenant
-                    <ArrowRight className="ml-2 h-5 w-5 md:h-6 md:w-6" />
-                  </Button>
-                </Link>
-                <Link href="/search">
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="w-full sm:w-auto text-base sm:text-lg md:text-xl px-10 sm:px-12 md:px-14 py-5 sm:py-6 md:py-7 border-2 hover:bg-white transition-all duration-300"
-                  >
-                    Découvrir des Cardz publics
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 leading-tight">
+                CARDZ, votre allié pour faire progresser toute la classe.
+              </h2>
+              <p className="text-base sm:text-lg text-slate-700 mb-8 leading-relaxed max-w-xl mx-auto md:mx-0">
+                Créez des classes, partagez vos modules de cardz et vos évaluations à vos élèves en quelques clics, puis suivez leur progression depuis un espace unique, pensé pour les enseignants.
+              </p>
+              <div className="flex items-center justify-center md:justify-start">
+                <Link href="/enseignants">
+                  <Button className="bg-slate-900 text-white hover:bg-slate-800 px-7 py-3 text-sm sm:text-base rounded-full font-semibold shadow-md">
+                    Découvrir CARDZ pour les enseignants
                   </Button>
                 </Link>
               </div>
             </div>
-          </div>
+
+            {/* Image */}
+            <div className="w-full md:w-1/2 h-64 md:h-96 relative mt-10 md:mt-0">
+              <Image
+                src="/images/parcrours/CTAPROF.png"
+                alt="CARDZ pour les enseignants"
+                fill
+                className="object-contain md:object-cover rounded-3xl"
+                priority
+              />
+            </div>
+          </motion.div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 sm:gap-12 mb-8 sm:mb-12">
+      <footer className="bg-white text-gray-900 py-8 sm:py-12 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-12 lg:gap-16 mb-6">
+            {/* Left Section: Logo */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 flex items-center justify-center">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 flex items-center justify-center">
                   <Image 
                     src="/images/logo.png" 
                     alt="CARDZ Logo" 
-                    width={24} 
-                    height={24}
+                    width={40} 
+                    height={40}
                     className="object-contain"
                   />
                 </div>
-                <span className="text-xl font-bold">CARDZ</span>
+                <span className="text-2xl font-bold text-gray-900">CARDZ</span>
               </div>
-              <p className="text-gray-400 text-sm sm:text-base">
-                L'app de révision 100% gratuite, créée par et pour la communauté étudiante.
-              </p>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-base sm:text-lg">Produit</h4>
-              <ul className="space-y-2 text-sm sm:text-base text-gray-400">
-                <li><Link href="#features" className="hover:text-white transition-colors">Fonctionnalités</Link></li>
-                <li><Link href="/search" className="hover:text-white transition-colors">Découvrir des Cardz</Link></li>
-                <li><Link href="/register" className="hover:text-white transition-colors">S'inscrire</Link></li>
-                <li><Link href="/login" className="hover:text-white transition-colors">Se connecter</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-base sm:text-lg">Communauté</h4>
-              <ul className="space-y-2 text-sm sm:text-base text-gray-400">
-                <li><a href="https://www.linkedin.com/in/lucas-roncey/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">LinkedIn</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-base sm:text-lg">Légal</h4>
-              <ul className="space-y-2 text-sm sm:text-base text-gray-400">
-                <li><Link href="/legal/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link></li>
-                <li><Link href="/legal/politique-confidentialite" className="hover:text-white transition-colors">Politique de confidentialité</Link></li>
-                <li><Link href="/legal/cgu" className="hover:text-white transition-colors">CGU</Link></li>
-              </ul>
+
+            {/* Right Section: Three Columns */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 lg:gap-12">
+              {/* Contact Column */}
+              <div>
+                <h4 className="text-gray-700 text-sm font-semibold mb-4">Contact</h4>
+                <ul className="space-y-0">
+                  <li>
+                    <a href="mailto:contact@cardz.app" className="text-gray-800 hover:text-gray-900 transition-colors text-sm">
+                      contact@cardz.app
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Navigation Column */}
+              <div>
+                <h4 className="text-gray-700 text-sm font-semibold mb-4">Navigation</h4>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <Link href="/search" className="text-gray-800 hover:text-gray-900 transition-colors block">
+                      Découvrir des Cardz
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/register" className="text-gray-800 hover:text-gray-900 transition-colors block">
+                      S'inscrire
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/login" className="text-gray-800 hover:text-gray-900 transition-colors block">
+                      Se connecter
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Social Column */}
+              <div>
+                <h4 className="text-gray-700 text-sm font-semibold mb-4">Social</h4>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <a 
+                      href="https://www.linkedin.com/in/lucas-roncey/" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-gray-800 hover:text-gray-900 transition-colors inline-flex items-center gap-2"
+                    >
+                      <span>LinkedIn</span>
+                      <span className="inline-flex items-center justify-center w-4 h-4 bg-orange-500 text-white text-[10px] rounded-sm">↗</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-sm sm:text-base text-gray-400">
-            <p>© {new Date().getFullYear()} CARDZ. Tous droits réservés.</p>
-            <p className="mt-2">Fait avec ❤️ pour la communauté étudiante</p>
+
+          {/* CARDZ Image - entre les colonnes et les mentions légales */}
+          <div className="flex justify-center items-center -my-6 sm:-my-8">
+            <div className="relative w-full max-w-4xl sm:max-w-5xl lg:max-w-6xl">
+              <Image 
+                src="/images/cardz-watermark.png" 
+                alt="CARDZ" 
+                width={800} 
+                height={200}
+                className="w-full h-auto object-contain opacity-30"
+                priority={false}
+              />
+            </div>
+          </div>
+
+          {/* Bottom Legal Strip */}
+          <div className="pt-2 flex flex-col sm:flex-row justify-center items-start gap-4 text-sm text-gray-700">
+            <Link href="/legal/mentions-legales" className="hover:text-gray-900 transition-colors underline">
+              Mentions légales
+            </Link>
+            <p className="text-gray-700">
+              © {new Date().getFullYear()} CARDZ, fait avec <span className="text-orange-500">❤️</span> pour la communauté étudiante - Tous droits réservés.
+            </p>
           </div>
         </div>
+
       </footer>
 
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        
+        @keyframes timeline-shine {
+          0% {
+            opacity: 0;
+            transform: translateY(-100%) scaleY(2);
+          }
+          50% {
+            opacity: 1;
+            transform: translateY(0%) scaleY(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(100%) scaleY(2);
+          }
+        }
+      `}</style>
     </div>
   );
 }
