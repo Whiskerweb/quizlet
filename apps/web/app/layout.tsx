@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { ReactNode } from 'react';
 import './globals.css';
 import './game-effects.css';
 import { Providers } from './providers';
@@ -14,13 +15,13 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <html lang="en">
       <head>
-        <script 
-          src="https://dodo.cardz.dev/trac.js" 
+        <script
+          src="https://dodo.cardz.dev/trac.js"
           data-key="pk_DUqi-qqu6ApDFHsF04UPd-wD"
           data-api-host="https://dodo.cardz.dev/_trac"
           defer
