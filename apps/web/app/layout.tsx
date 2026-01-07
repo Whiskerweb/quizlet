@@ -19,6 +19,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <script 
+          src="https://dodo.cardz.dev/trac.js" 
+          data-key="pk_DUqi-qqu6ApDFHsF04UPd-wD"
+          data-api-host="https://dodo.cardz.dev/_trac"
+          defer
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
