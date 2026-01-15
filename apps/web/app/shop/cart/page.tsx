@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trash2, Plus, Minus, CreditCard, ShieldCheck, Loader2, LogIn, User } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, Minus, CreditCard, ShieldCheck, Loader2, User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { CheckoutAuthPanel } from '@/components/shop/CheckoutAuthPanel';
 
 interface CartItem {
     id: string;
@@ -72,10 +73,9 @@ export default function CartPage() {
     const currency = cart[0]?.currency || 'eur';
 
     const handleCheckout = async () => {
-        // Check if user is authenticated
+        // Double-check authentication (should already be authenticated at this point)
         if (!isAuthenticated()) {
-            // Redirect to login with return URL
-            router.push(`/login?redirect=/shop/cart`);
+            setError('Veuillez vous connecter pour continuer');
             return;
         }
 
@@ -126,10 +126,6 @@ export default function CartPage() {
         }
     };
 
-    const handleLoginRedirect = () => {
-        router.push(`/login?redirect=/shop/cart`);
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
             {/* Animated Background */}
@@ -162,13 +158,7 @@ export default function CartPage() {
                                     <span className="text-sm">{profile?.username || user?.email}</span>
                                 </div>
                             ) : (
-                                <button
-                                    onClick={handleLoginRedirect}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-blue-400 text-sm transition-colors"
-                                >
-                                    <LogIn className="w-4 h-4" />
-                                    Se connecter
-                                </button>
+                                <span className="text-slate-400 text-sm">Non connecté</span>
                             )}
                         </div>
                     </div>
@@ -276,21 +266,13 @@ export default function CartPage() {
 
                                 {/* Auth Required Message */}
                                 {!authLoading && !isAuthenticated() && (
-                                    <div className="mb-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
-                                        <div className="flex items-start gap-3">
-                                            <LogIn className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                                            <div>
-                                                <p className="text-amber-400 font-medium text-sm">Connexion requise</p>
-                                                <p className="text-slate-400 text-xs mt-1">
-                                                    Vous devez être connecté pour finaliser votre achat et accéder à votre contenu.
-                                                </p>
-                                            </div>
-                                        </div>
+                                    <div className="space-y-4">
+                                        <CheckoutAuthPanel onAuthSuccess={() => window.location.reload()} />
                                     </div>
                                 )}
 
-                                {/* Checkout Button */}
-                                {isAuthenticated() ? (
+                                {/* Checkout Button - Only show when authenticated */}
+                                {isAuthenticated() && (
                                     <button
                                         onClick={handleCheckout}
                                         disabled={isCheckingOut}
@@ -307,15 +289,6 @@ export default function CartPage() {
                                                 Payer avec Stripe
                                             </>
                                         )}
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={handleLoginRedirect}
-                                        disabled={authLoading}
-                                        className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 rounded-xl text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02]"
-                                    >
-                                        <LogIn className="w-5 h-5" />
-                                        Se connecter pour payer
                                     </button>
                                 )}
 
