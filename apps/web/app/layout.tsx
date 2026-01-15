@@ -20,11 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Trac Analytics - First-Party Proxy */}
         <script
-          src="https://dodo.cardz.dev/trac.js"
-          data-key="pk_DUqi-qqu6ApDFHsF04UPd-wD"
-          data-api-host="https://dodo.cardz.dev/_trac"
+          src="/_trac/script.js"
           defer
+          data-domains='{"refer":"dodo.cardz.dev"}'
+          data-query-params='["via", "ref"]'
+          data-attribution-model="first-click"
         />
         <script
           dangerouslySetInnerHTML={{

@@ -13,6 +13,14 @@ const nextConfig = {
     // TODO: Corriger les warnings ESLint
     ignoreDuringBuilds: true,
   },
+
+  // First-party tracking proxy - avoids ad-blockers
+  async rewrites() {
+    return [
+      { source: "/_trac/script.js", destination: "https://traaaction.com/trac.js" },
+      { source: "/_trac/api/:path*", destination: "https://traaaction.com/api/:path*" },
+    ];
+  },
 };
 
 module.exports = nextConfig;

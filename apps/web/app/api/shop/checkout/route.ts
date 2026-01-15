@@ -27,12 +27,14 @@ interface CheckoutItem {
 interface CheckoutRequest {
     items: CheckoutItem[];
     clkId: string | null;
+    userId?: string;    // Link purchase to user account
+    userEmail?: string; // Pre-fill Stripe with user email
 }
 
 export async function POST(request: NextRequest) {
     try {
         const body: CheckoutRequest = await request.json();
-        const { items, clkId } = body;
+        const { items, clkId, userId, userEmail } = body;
 
         if (!items || items.length === 0) {
             return NextResponse.json(
@@ -89,9 +91,13 @@ export async function POST(request: NextRequest) {
             // This will be available in the webhook checkout.session.completed event
             client_reference_id: clkId || undefined,
 
-            // Backup attribution in metadata
+            // Pre-fill customer email if logged in
+            customer_email: userEmail || undefined,
+
+            // Store all attribution and user data in metadata
             metadata: {
                 clk_id: clkId || '',
+                user_id: userId || '',       // Link to Cardz user account
                 source: 'cardz_shop',
                 timestamp: new Date().toISOString(),
             },

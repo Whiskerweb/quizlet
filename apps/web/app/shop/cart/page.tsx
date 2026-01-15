@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Trash2, Plus, Minus, CreditCard, ShieldCheck, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Trash2, Plus, Minus, CreditCard, ShieldCheck, Loader2, LogIn, User } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
 
 interface CartItem {
     id: string;
@@ -22,6 +24,9 @@ function formatPrice(amount: number, currency: string) {
 }
 
 export default function CartPage() {
+    const router = useRouter();
+    const { user, profile, loading: authLoading, isAuthenticated } = useAuthStore();
+
     const [cart, setCart] = useState<CartItem[]>([]);
     const [trackingId, setTrackingId] = useState<string | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -67,6 +72,13 @@ export default function CartPage() {
     const currency = cart[0]?.currency || 'eur';
 
     const handleCheckout = async () => {
+        // Check if user is authenticated
+        if (!isAuthenticated()) {
+            // Redirect to login with return URL
+            router.push(`/login?redirect=/shop/cart`);
+            return;
+        }
+
         setIsCheckingOut(true);
         setError(null);
 
@@ -78,6 +90,7 @@ export default function CartPage() {
                 null;
 
             console.log('[TRAC] Initiating checkout with Click ID:', clkId);
+            console.log('[SHOP] User ID:', user?.id);
 
             const response = await fetch('/api/shop/checkout', {
                 method: 'POST',
@@ -90,6 +103,8 @@ export default function CartPage() {
                         price: item.price,
                     })),
                     clkId,
+                    userId: user?.id, // Link purchase to user account
+                    userEmail: user?.email,
                 }),
             });
 
@@ -109,6 +124,10 @@ export default function CartPage() {
         } finally {
             setIsCheckingOut(false);
         }
+    };
+
+    const handleLoginRedirect = () => {
+        router.push(`/login?redirect=/shop/cart`);
     };
 
     return (
@@ -133,7 +152,25 @@ export default function CartPage() {
 
                         <h1 className="text-xl font-bold text-white">Votre Panier</h1>
 
-                        <div className="w-32" /> {/* Spacer for centering */}
+                        {/* User Status */}
+                        <div className="flex items-center gap-2">
+                            {authLoading ? (
+                                <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+                            ) : isAuthenticated() ? (
+                                <div className="flex items-center gap-2 text-green-400">
+                                    <User className="w-4 h-4" />
+                                    <span className="text-sm">{profile?.username || user?.email}</span>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleLoginRedirect}
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-blue-400 text-sm transition-colors"
+                                >
+                                    <LogIn className="w-4 h-4" />
+                                    Se connecter
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
@@ -237,23 +274,50 @@ export default function CartPage() {
                                     </div>
                                 )}
 
-                                <button
-                                    onClick={handleCheckout}
-                                    disabled={isCheckingOut}
-                                    className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
-                                >
-                                    {isCheckingOut ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            Redirection...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CreditCard className="w-5 h-5" />
-                                            Payer avec Stripe
-                                        </>
-                                    )}
-                                </button>
+                                {/* Auth Required Message */}
+                                {!authLoading && !isAuthenticated() && (
+                                    <div className="mb-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                                        <div className="flex items-start gap-3">
+                                            <LogIn className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="text-amber-400 font-medium text-sm">Connexion requise</p>
+                                                <p className="text-slate-400 text-xs mt-1">
+                                                    Vous devez être connecté pour finaliser votre achat et accéder à votre contenu.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Checkout Button */}
+                                {isAuthenticated() ? (
+                                    <button
+                                        onClick={handleCheckout}
+                                        disabled={isCheckingOut}
+                                        className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
+                                    >
+                                        {isCheckingOut ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                Redirection...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CreditCard className="w-5 h-5" />
+                                                Payer avec Stripe
+                                            </>
+                                        )}
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleLoginRedirect}
+                                        disabled={authLoading}
+                                        className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 rounded-xl text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02]"
+                                    >
+                                        <LogIn className="w-5 h-5" />
+                                        Se connecter pour payer
+                                    </button>
+                                )}
 
                                 {/* Trust Badge */}
                                 <div className="mt-4 flex items-center justify-center gap-2 text-slate-400 text-sm">
@@ -286,10 +350,11 @@ export default function CartPage() {
                         <p>LocalStorage Backup: <span className="text-blue-400">{typeof window !== 'undefined' ? (localStorage.getItem('trac_clk_id') || 'N/A') : 'N/A'}</span></p>
                         <p>Cart clk_id Backup: <span className="text-purple-400">{typeof window !== 'undefined' ? (localStorage.getItem('shop_cart_clk_id') || 'N/A') : 'N/A'}</span></p>
                         <p>Articles dans le panier: <span className="text-yellow-400">{cart.length}</span></p>
+                        <p>Utilisateur: <span className={isAuthenticated() ? 'text-green-400' : 'text-red-400'}>{isAuthenticated() ? (user?.email || 'Connecté') : 'Non connecté'}</span></p>
+                        <p>User ID: <span className="text-cyan-400">{user?.id || 'N/A'}</span></p>
                     </div>
                 </div>
             </main>
         </div>
     );
 }
-
