@@ -24,9 +24,8 @@ export default function RootLayout({
         <script
           src="/_trac/script.js"
           defer
+          data-api-host="/_trac"
           data-domains='{"refer":"dodo.cardz.dev"}'
-          data-query-params='["via", "ref"]'
-          data-attribution-model="first-click"
         />
         <script
           dangerouslySetInnerHTML={{

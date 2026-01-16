@@ -13,6 +13,7 @@ import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
 import { friendsService } from '@/lib/supabase/friends';
+import { trackLead } from '@/lib/tracking/traaaction';
 import { ArrowLeft, Mail, Lock } from 'lucide-react';
 
 const registerSchema = z.object({
@@ -29,7 +30,7 @@ function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const supabase = supabaseBrowser;
-  
+
   // Get redirect URL and invite code from query params
   const redirectUrl = searchParams.get('redirect') || '/dashboard';
   const inviteCode = searchParams.get('invite');
@@ -95,6 +96,13 @@ function RegisterForm() {
       setUser(authData.user);
       setProfile(profile);
 
+      // Track the signup as a lead for Traaaction attribution
+      await trackLead({
+        customerExternalId: authData.user.id,
+        customerEmail: data.email,
+        eventName: 'sign_up',
+      });
+
       // If there's an invite code, use it to create friendship
       if (inviteCode) {
         try {
@@ -131,10 +139,10 @@ function RegisterForm() {
           </button>
           <Link href="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 flex items-center justify-center">
-              <Image 
-                src="/images/logo.png" 
-                alt="CARDZ Logo" 
-                width={32} 
+              <Image
+                src="/images/logo.png"
+                alt="CARDZ Logo"
+                width={32}
                 height={32}
                 className="object-contain"
                 priority
@@ -142,7 +150,7 @@ function RegisterForm() {
             </div>
           </Link>
         </div>
-        <Link 
+        <Link
           href={`/login${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
           className="text-sm text-gray-600 hover:text-brand-primary transition-colors"
         >
@@ -183,7 +191,7 @@ function RegisterForm() {
             )}
 
             {/* Google Login Button */}
-            <GoogleLoginButton 
+            <GoogleLoginButton
               redirectTo="/onboarding"
               className="mb-6"
             />
@@ -236,9 +244,9 @@ function RegisterForm() {
                 )}
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base font-semibold" 
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-semibold"
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating account...' : 'Sign up'}

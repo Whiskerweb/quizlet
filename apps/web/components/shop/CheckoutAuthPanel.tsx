@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
+import { trackLead } from '@/lib/tracking/traaaction';
 import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -100,6 +101,14 @@ export function CheckoutAuthPanel({ onAuthSuccess }: CheckoutAuthPanelProps) {
 
             setUser(authData.user);
             setProfile(profile);
+
+            // Track the signup as a lead for Traaaction attribution
+            await trackLead({
+                customerExternalId: authData.user.id,
+                customerEmail: data.email,
+                eventName: 'sign_up',
+            });
+
             onAuthSuccess?.();
         } catch (err: any) {
             setError(err.message || 'Échec de l\'inscription');

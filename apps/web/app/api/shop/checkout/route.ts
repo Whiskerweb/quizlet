@@ -94,10 +94,12 @@ export async function POST(request: NextRequest) {
             // Pre-fill customer email if logged in
             customer_email: userEmail || undefined,
 
-            // Store all attribution and user data in metadata
+            // Store all attribution and user data in metadata (Traaaction format)
             metadata: {
-                clk_id: clkId || '',
-                user_id: userId || '',       // Link to Cardz user account
+                tracClickId: clkId || '',           // For Traaaction attribution
+                tracCustomerExternalId: userId || '', // Same ID as trackLead
+                clk_id: clkId || '',                // Legacy format
+                user_id: userId || '',              // Link to Cardz user account
                 source: 'cardz_shop',
                 timestamp: new Date().toISOString(),
             },
