@@ -15,10 +15,11 @@ const nextConfig = {
   },
 
   // First-party tracking proxy - avoids ad-blockers
+  // Use www.traaaction.com to avoid 301 redirect that triggers CSP violations
   async rewrites() {
     return [
-      { source: "/_trac/script.js", destination: "https://traaaction.com/trac.js" },
-      { source: "/_trac/api/:path*", destination: "https://traaaction.com/api/:path*" },
+      { source: "/_trac/script.js", destination: "https://www.traaaction.com/trac.js" },
+      { source: "/_trac/api/:path*", destination: "https://www.traaaction.com/api/:path*" },
     ];
   },
 };
