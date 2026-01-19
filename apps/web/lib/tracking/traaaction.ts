@@ -53,7 +53,10 @@ export async function trackLead(params: TrackLeadParams): Promise<void> {
     try {
         const response = await fetch('/_trac/api/track/lead', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'x-publishable-key': 'pk_WoNrcIcU9AqaH8yrmW-s51Kk',
+            },
             body: JSON.stringify({
                 eventName,
                 customerExternalId,
