@@ -55,7 +55,7 @@ export async function trackLead(params: TrackLeadParams): Promise<void> {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-publishable-key': 'pk_WoNrcIcU9AqaH8yrmW-s51Kk',
+                'x-publishable-key': 'pk_rkECeKute-mgJrQrSoYw_0J9',
             },
             body: JSON.stringify({
                 eventName,
