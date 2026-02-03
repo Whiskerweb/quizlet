@@ -67,26 +67,14 @@ export function GoogleLoginButton({
     setError(null);
 
     try {
-      // Appel à l'API Supabase pour initier l'authentification OAuth
-      // provider: 'google' indique qu'on veut utiliser Google comme fournisseur
-      // 
-      // IMPORTANT : redirectTo doit pointer vers l'URL de callback de production
-      // Cette URL doit correspondre à celle configurée dans Supabase Dashboard
-      // (Authentication > URL Configuration > Redirect URLs)
-      // 
-      // En production : https://cardz.dev/auth/callback
-      // En développement : http://localhost:3000/auth/callback
-      const callbackUrl = process.env.NODE_ENV === 'production' 
+      const callbackUrl = process.env.NODE_ENV === 'production'
         ? 'https://cardz.dev/auth/callback'
         : `${window.location.origin}/auth/callback`;
-      
+
       const { data, error: oauthError } = await supabaseBrowser.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // URL de callback : où l'utilisateur sera redirigé après l'authentification Google
-          // Cette page va traiter la réponse de Google et connecter l'utilisateur
           redirectTo: callbackUrl,
-          // Optionnel : on peut passer des paramètres de requête pour savoir où rediriger après
           queryParams: {
             redirect_to: redirectTo,
           },
@@ -97,11 +85,11 @@ export function GoogleLoginButton({
         throw oauthError;
       }
 
-      // Si tout va bien, Supabase va rediriger automatiquement vers Google
-      // On ne fait rien d'autre ici, la redirection est automatique
-      // L'utilisateur sera redirigé vers Google, puis vers /auth/callback après authentification
+      // Si data.url existe mais que la redirection auto n'a pas fonctionné, rediriger manuellement
+      if (data?.url) {
+        window.location.href = data.url;
+      }
     } catch (err: any) {
-      // En cas d'erreur, on affiche un message à l'utilisateur
       setError(err.message || 'Erreur lors de la connexion avec Google');
       setIsLoading(false);
     }
