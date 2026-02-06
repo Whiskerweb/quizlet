@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         // Handle Stripe specific errors
         if (error.type === 'StripeInvalidRequestError') {
             return NextResponse.json(
-                { error: 'Erreur de configuration Stripe. Vérifiez les clés API.' },
+                { error: `Erreur Stripe: ${error.message}` },
                 { status: 500 }
             );
         }

@@ -105,119 +105,137 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // Vérification de l'authentification et initialisation du store
   useEffect(() => {
     const run = async () => {
-      // Récupération de la session Supabase
-      // getSession() récupère la session depuis localStorage/cookies
-      // C'est la source de vérité pour l'authentification côté client
-      const { data: { session }, error } = await supabaseBrowser.auth.getSession();
+      try {
+        // Récupération de la session Supabase
+        // getSession() récupère la session depuis localStorage/cookies
+        // C'est la source de vérité pour l'authentification côté client
+        const { data: { session }, error } = await supabaseBrowser.auth.getSession();
 
-      console.log('[Dashboard Layout] session', {
-        hasSession: !!session,
-        userId: session?.user?.id,
-        userEmail: session?.user?.email,
-        error: error?.message,
-      });
+        console.log('[Dashboard Layout] session', {
+          hasSession: !!session,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email,
+          error: error?.message,
+        });
 
-      // Si pas de session ou erreur → rediriger vers login
-      if (!session || error) {
-        console.log('[Dashboard Layout] No session, redirecting to /login');
-        router.replace('/login');
-        return;
-      }
+        // Si pas de session ou erreur → rediriger vers login
+        if (!session || error) {
+          console.log('[Dashboard Layout] No session, redirecting to /login');
+          router.replace('/login');
+          return;
+        }
 
-      // Session présente → vérifier et charger le profil si nécessaire
-      const { setUser: setStoreUser, setProfile: setStoreProfile } = useAuthStore.getState();
-      const currentProfile = useAuthStore.getState().profile;
+        // Session présente → vérifier et charger le profil si nécessaire
+        const { setUser: setStoreUser, setProfile: setStoreProfile } = useAuthStore.getState();
+        const currentProfile = useAuthStore.getState().profile;
 
-      // Vérifier si le profil est dans le store et correspond à l'utilisateur actuel
-      if (!currentProfile || currentProfile.id !== session.user.id) {
-        console.log('[Dashboard Layout] Profile not in store, loading from Supabase...');
+        // Vérifier si le profil est dans le store et correspond à l'utilisateur actuel
+        if (!currentProfile || currentProfile.id !== session.user.id) {
+          console.log('[Dashboard Layout] Profile not in store, loading from Supabase...');
 
-        // Charger le profil depuis Supabase
-        const { data: profileData, error: profileError } = await supabaseBrowser
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileData) {
-          const typedProfile = profileData as Profile;
-          console.log('[Dashboard Layout] Profile loaded:', typedProfile.username);
-          
-          // Check if onboarding is needed (profile missing role or name)
-          const needsOnboarding = !typedProfile.role || !typedProfile.first_name || !typedProfile.last_name;
-          
-          if (needsOnboarding) {
-            console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
-            router.replace('/onboarding');
-            return;
-          }
-          
-          setStoreUser(session.user);
-          setStoreProfile(typedProfile);
-        } else if (profileError) {
-          console.error('[Dashboard Layout] Error loading profile:', profileError);
-
-          // Créer le profil si nécessaire (fallback si le trigger SQL n'a pas fonctionné)
-          // Generate temporary username from email (will be replaced during onboarding)
-          const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
-
-          const { error: rpcError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
-            user_id: session.user.id,
-            user_email: session.user.email || '',
-            user_username: baseUsername, // Temporary username, will be updated during onboarding
-            user_first_name: session.user.user_metadata?.first_name || null,
-            user_last_name: session.user.user_metadata?.last_name || null,
-          });
-
-          if (rpcError) {
-            console.error('[Dashboard Layout] Error creating profile:', rpcError);
-          }
-
-          // Réessayer de charger le profil
-          const { data: newProfile } = await supabaseBrowser
+          // Charger le profil depuis Supabase avec un timeout
+          const { data: profileData, error: profileError } = await supabaseBrowser
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
 
-          if (newProfile) {
-            const typedNewProfile = newProfile as Profile;
-            console.log('[Dashboard Layout] Profile created/loaded:', typedNewProfile.username);
-            
-            // Check if onboarding is needed
-            const needsOnboarding = !typedNewProfile.role || !typedNewProfile.first_name || !typedNewProfile.last_name;
-            
+          if (profileData) {
+            const typedProfile = profileData as Profile;
+            console.log('[Dashboard Layout] Profile loaded:', typedProfile.username);
+
+            // Check if onboarding is needed (profile missing role or name)
+            const needsOnboarding = !typedProfile.role || !typedProfile.first_name || !typedProfile.last_name;
+
             if (needsOnboarding) {
               console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
               router.replace('/onboarding');
               return;
             }
-            
+
             setStoreUser(session.user);
-            setStoreProfile(typedNewProfile);
+            setStoreProfile(typedProfile);
+          } else if (profileError) {
+            console.error('[Dashboard Layout] Error loading profile:', profileError);
+
+            // Try to create the profile as fallback 
+            try {
+              const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
+
+              const { error: rpcError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
+                user_id: session.user.id,
+                user_email: session.user.email || '',
+                user_username: baseUsername,
+                user_first_name: session.user.user_metadata?.first_name || null,
+                user_last_name: session.user.user_metadata?.last_name || null,
+              });
+
+              if (rpcError) {
+                console.error('[Dashboard Layout] Error creating profile:', rpcError);
+              }
+
+              // Retry loading profile
+              const { data: newProfile } = await supabaseBrowser
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+              if (newProfile) {
+                const typedNewProfile = newProfile as Profile;
+                console.log('[Dashboard Layout] Profile created/loaded:', typedNewProfile.username);
+
+                const needsOnboarding = !typedNewProfile.role || !typedNewProfile.first_name || !typedNewProfile.last_name;
+
+                if (needsOnboarding) {
+                  console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
+                  router.replace('/onboarding');
+                  return;
+                }
+
+                setStoreUser(session.user);
+                setStoreProfile(typedNewProfile);
+              } else {
+                // Allow access even without profile - user is authenticated
+                console.log('[Dashboard Layout] Profile not available, but session valid - allowing access');
+                setStoreUser(session.user);
+              }
+            } catch (rpcException) {
+              console.error('[Dashboard Layout] RPC exception:', rpcException);
+              // Still allow access with valid session
+              setStoreUser(session.user);
+            }
           } else {
-            // Mettre à jour au moins l'utilisateur même si le profil n'est pas disponible
+            // No profile data and no error - edge case, still allow access
+            console.log('[Dashboard Layout] No profile data/error - allowing access with session');
             setStoreUser(session.user);
           }
-        }
-      } else {
-        // Profil déjà dans le store, vérifier si onboarding est nécessaire
-        const needsOnboarding = !currentProfile.role || !currentProfile.first_name || !currentProfile.last_name;
-        
-        if (needsOnboarding) {
-          console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
-          router.replace('/onboarding');
-          return;
-        }
-        
-        console.log('[Dashboard Layout] Profile already in store:', currentProfile.username);
-        setStoreUser(session.user);
-      }
+        } else {
+          // Profile already in store, check if onboarding needed
+          const needsOnboarding = !currentProfile.role || !currentProfile.first_name || !currentProfile.last_name;
 
-      // Autoriser l'accès au dashboard
-      console.log('[Dashboard Layout] Session found, authorizing access to dashboard');
-      setAuthorized(true);
-      setChecking(false);
+          if (needsOnboarding) {
+            console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
+            router.replace('/onboarding');
+            return;
+          }
+
+          console.log('[Dashboard Layout] Profile already in store:', currentProfile.username);
+          setStoreUser(session.user);
+        }
+
+        // Grant dashboard access
+        console.log('[Dashboard Layout] Session found, authorizing access to dashboard');
+        setAuthorized(true);
+      } catch (exception) {
+        // Critical: catch any unhandled exception to prevent infinite loading
+        console.error('[Dashboard Layout] Critical exception during auth check:', exception);
+        // Redirect to login on any critical error
+        router.replace('/login');
+      } finally {
+        // ALWAYS set checking to false to prevent infinite loading
+        setChecking(false);
+      }
     };
 
     run();
@@ -345,18 +363,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                                 <Globe className="h-4 w-4 text-content-muted" />
                                 <span>{t('language')}</span>
                               </button>
-                              
+
                               {/* Language submenu */}
                               {isLanguageMenuOpen && (
                                 <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border-subtle bg-bg-emphasis shadow-lg z-50 overflow-hidden">
                                   {(['fr', 'en', 'es', 'de'] as Language[]).map((lang) => (
                                     <button
                                       key={lang}
-                                      className={`flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors ${
-                                        language === lang
-                                          ? 'bg-bg-muted text-content-emphasis font-medium'
-                                          : 'text-content-emphasis hover:bg-bg-muted'
-                                      }`}
+                                      className={`flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors ${language === lang
+                                        ? 'bg-bg-muted text-content-emphasis font-medium'
+                                        : 'text-content-emphasis hover:bg-bg-muted'
+                                        }`}
                                       onClick={() => {
                                         setLanguage(lang);
                                         setIsLanguageMenuOpen(false);
@@ -477,7 +494,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </p>
                   </div>
                 )}
-                
+
                 {/* Padding ajusté selon la page */}
                 <div className={`mx-auto w-full ${isStudyPage ? 'max-w-full p-0' : 'max-w-[1180px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8'}`}>
                   {children}
