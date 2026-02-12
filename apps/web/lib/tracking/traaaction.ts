@@ -27,14 +27,14 @@ export async function trackLead(params: TrackLeadParams): Promise<void> {
     const getClickId = (): string | null => {
         if (typeof document !== 'undefined') {
             // Try cookie first
-            const match = document.cookie.match(/trac_click_id=([^;]+)/);
+            const match = document.cookie.match(/trac_id=([^;]+)/);
             if (match) return match[1];
         }
 
         if (typeof localStorage !== 'undefined') {
             // Fallback to localStorage
-            return localStorage.getItem('trac_clk_id') ||
-                localStorage.getItem('trac_click_id') ||
+            return localStorage.getItem('trac_id') ||
+                localStorage.getItem('trac_clk_id') ||
                 localStorage.getItem('shop_cart_clk_id');
         }
 
@@ -55,7 +55,7 @@ export async function trackLead(params: TrackLeadParams): Promise<void> {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-publishable-key': 'pk_rkECeKute-mgJrQrSoYw_0J9',
+                'x-publishable-key': 'pk_4BiQkq4hhYX25yUoQkYkGO35',
             },
             body: JSON.stringify({
                 eventName,
@@ -83,13 +83,13 @@ export async function trackLead(params: TrackLeadParams): Promise<void> {
  */
 export function getTracClickId(): string | null {
     if (typeof document !== 'undefined') {
-        const match = document.cookie.match(/trac_click_id=([^;]+)/);
+        const match = document.cookie.match(/trac_id=([^;]+)/);
         if (match) return match[1];
     }
 
     if (typeof localStorage !== 'undefined') {
-        return localStorage.getItem('trac_clk_id') ||
-            localStorage.getItem('trac_click_id') ||
+        return localStorage.getItem('trac_id') ||
+            localStorage.getItem('trac_clk_id') ||
             localStorage.getItem('shop_cart_clk_id');
     }
 

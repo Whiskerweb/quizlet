@@ -25,7 +25,7 @@ export default function RootLayout({
           src="/_trac/script.js"
           defer
           data-api-host="/_trac"
-          data-domains='{"refer":"nice.cardz.dev"}'
+          data-domains='{"refer":"rara.cardz.dev"}'
         />
         <script
           dangerouslySetInnerHTML={{
