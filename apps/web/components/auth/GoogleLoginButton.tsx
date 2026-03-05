@@ -24,26 +24,26 @@ interface GoogleLoginButtonProps {
    * Par défaut : '/dashboard'
    */
   redirectTo?: string;
-  
+
   /**
    * Texte du bouton
    * Par défaut : 'Continuer avec Google'
    */
   label?: string;
-  
+
   /**
    * Classe CSS personnalisée
    */
   className?: string;
-  
+
   /**
    * Désactive le bouton
    */
   disabled?: boolean;
-  
+
 }
 
-export function GoogleLoginButton({ 
+export function GoogleLoginButton({
   redirectTo = '/onboarding',
   label = 'Continuer avec Google',
   className = '',
@@ -67,8 +67,13 @@ export function GoogleLoginButton({
     setError(null);
 
     try {
+      // Store redirect URL in sessionStorage so /auth/callback can use it
+      if (redirectTo && redirectTo !== '/onboarding' && redirectTo !== '/dashboard') {
+        sessionStorage.setItem('oauth_redirect', redirectTo);
+      }
+
       const callbackUrl = process.env.NODE_ENV === 'production'
-        ? 'https://cardz.dev/auth/callback'
+        ? 'https://app.cardz.dev/auth/callback'
         : `${window.location.origin}/auth/callback`;
 
       const { data, error: oauthError } = await supabaseBrowser.auth.signInWithOAuth({

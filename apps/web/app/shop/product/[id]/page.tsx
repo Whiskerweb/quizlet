@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingCart, Check, Star, Shield, Zap } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Check, Star, Shield, Zap, LogIn, User } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
 
 // Demo products - same as shop page
 const DEMO_PRODUCTS: Record<string, {
@@ -80,11 +81,25 @@ export default function ProductPage() {
     const params = useParams();
     const productId = params.id as string;
     const product = DEMO_PRODUCTS[productId];
+    const { user, profile, isAuthenticated } = useAuthStore();
 
     const [isAdded, setIsAdded] = useState(false);
+    const [trackingId, setTrackingId] = useState<string | null>(null);
+    const [mounted, setMounted] = useState(false);
 
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
+    useEffect(() => {
+        // Get tracking ID to confirm persistence
+        const clkId = document.cookie.match(/clk_id=([^;]+)/)?.[1] ||
+            localStorage.getItem('trac_clk_id') ||
+            null;
+        setTrackingId(clkId);
 
+        console.log('[TRAC] Product page loaded - Click ID:', clkId);
+    }, []);
 
     if (!product) {
         return (
@@ -109,10 +124,13 @@ export default function ProductPage() {
             cart.push({ ...product, quantity: 1 });
         }
 
-
+        // Save with clk_id for attribution
+        const clkId = document.cookie.match(/clk_id=([^;]+)/)?.[1] ||
+            localStorage.getItem('trac_clk_id') ||
+            null;
 
         localStorage.setItem('shop_cart', JSON.stringify(cart));
-
+        localStorage.setItem('shop_cart_clk_id', clkId || '');
 
         setIsAdded(true);
         window.dispatchEvent(new Event('cart-updated'));
@@ -140,12 +158,32 @@ export default function ProductPage() {
                             Retour à la boutique
                         </Link>
 
-                        <Link
-                            href="/shop/cart"
-                            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300"
-                        >
-                            <ShoppingCart className="w-5 h-5 text-white" />
-                        </Link>
+                        <div className="flex items-center gap-4">
+                            {/* Auth Button */}
+                            {mounted && (
+                                isAuthenticated() ? (
+                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">
+                                        <User className="w-4 h-4 text-blue-400" />
+                                        <span className="text-sm text-white hidden sm:inline">{profile?.username || user?.email?.split('@')[0]}</span>
+                                    </div>
+                                ) : (
+                                    <a
+                                        href="https://app.cardz.dev/login?redirect=https://shop.cardz.dev"
+                                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl text-white text-sm font-medium transition-all duration-300"
+                                    >
+                                        <LogIn className="w-4 h-4" />
+                                        Se connecter
+                                    </a>
+                                )
+                            )}
+
+                            <Link
+                                href="/shop/cart"
+                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all duration-300"
+                            >
+                                <ShoppingCart className="w-5 h-5 text-white" />
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -243,7 +281,14 @@ export default function ProductPage() {
                     </div>
                 </div>
 
-
+                {/* Debug Panel */}
+                <div className="mt-12 p-4 bg-slate-800/50 rounded-xl border border-white/10">
+                    <h3 className="text-white font-semibold mb-2">🔍 Debug Tracking (Product Page)</h3>
+                    <div className="text-sm text-slate-400 font-mono">
+                        <p>Click ID survit à la navigation: <span className={trackingId ? 'text-green-400' : 'text-red-400'}>{trackingId ? '✓ Oui' : '✗ Non'}</span></p>
+                        <p>Valeur: <span className="text-blue-400">{trackingId || 'N/A'}</span></p>
+                    </div>
+                </div>
             </main>
         </div>
     );

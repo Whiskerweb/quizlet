@@ -64,9 +64,13 @@ function LoginForm() {
 
       setUser(authData.user);
       setProfile(profile);
-      // Utiliser replace pour éviter d'ajouter une entrée dans l'historique
-      router.replace(redirectUrl);
-      router.refresh();
+      // Redirect: external URL (e.g. shop.cardz.dev) or internal path
+      if (redirectUrl.startsWith('http')) {
+        window.location.href = redirectUrl;
+      } else {
+        router.replace(redirectUrl);
+        router.refresh();
+      }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {

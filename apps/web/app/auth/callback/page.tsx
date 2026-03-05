@@ -22,7 +22,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
-
+import { trackLead } from '@/lib/tracking/traaaction';
 import type { Database } from '@/lib/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -109,6 +109,12 @@ export default function OAuthCallbackPage() {
           const typedNewProfile = newProfile as Profile;
           console.log('[OAuth Callback] Profile created/loaded:', typedNewProfile.username, 'role:', typedNewProfile.role);
 
+          // Track the signup as a lead for Traaaction attribution
+          await trackLead({
+            customerExternalId: session.user.id,
+            customerEmail: session.user.email || undefined,
+            eventName: 'sign_up',
+          });
 
           // Si le rôle stocké est différent du rôle dans le profil, mettre à jour
           if (oauthRole && typedNewProfile.role !== oauthRole) {
@@ -208,6 +214,18 @@ export default function OAuthCallbackPage() {
         }
       }
 
+      // Check for redirect (e.g. back to shop.cardz.dev after login)
+      const urlParams = new URLSearchParams(window.location.search);
+      const oauthRedirect = sessionStorage.getItem('oauth_redirect');
+      const externalRedirect = urlParams.get('redirect_to') || urlParams.get('redirect') || oauthRedirect;
+      if (oauthRedirect) sessionStorage.removeItem('oauth_redirect');
+
+      // Validate redirect: either a relative path or a *.cardz.dev URL
+      const isValidRedirect = externalRedirect && (
+        externalRedirect.startsWith('/') ||
+        /^https:\/\/([a-z0-9-]+\.)?cardz\.dev(\/.*)?$/.test(externalRedirect)
+      );
+
       // Check if onboarding is needed (profile missing role or name)
       if (!finalProfile) {
         console.log('[OAuth Callback] No profile available, redirecting to /onboarding');
@@ -220,6 +238,9 @@ export default function OAuthCallbackPage() {
       if (needsOnboarding) {
         console.log('[OAuth Callback] Profile incomplete, redirecting to /onboarding');
         router.replace('/onboarding');
+      } else if (isValidRedirect) {
+        console.log('[OAuth Callback] Redirecting to external URL:', externalRedirect);
+        window.location.href = externalRedirect;
       } else {
         console.log('[OAuth Callback] Profile complete, redirecting to /dashboard');
         router.replace('/dashboard');

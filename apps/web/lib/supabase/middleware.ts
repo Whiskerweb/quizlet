@@ -14,6 +14,10 @@ export async function updateSession(request: NextRequest, rewriteUrl?: URL) {
     return supabaseResponse;
   }
 
+  // Share cookies across subdomains (shop.cardz.dev, app.cardz.dev)
+  const isProduction = request.headers.get('host')?.endsWith('.cardz.dev') || request.headers.get('host') === 'cardz.dev';
+  const cookieDomain = isProduction ? '.cardz.dev' : undefined;
+
   const supabase = createServerClient(
     supabaseUrl,
     supabaseAnonKey,
@@ -28,7 +32,10 @@ export async function updateSession(request: NextRequest, rewriteUrl?: URL) {
             ? NextResponse.rewrite(rewriteUrl, { request })
             : NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              ...(cookieDomain && { domain: cookieDomain }),
+            })
           );
         },
       },
