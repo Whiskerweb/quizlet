@@ -14,6 +14,13 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // First-party tracking proxy - avoids ad-blockers
+  async rewrites() {
+    return [
+      { source: "/_trac/script.js", destination: "https://kay.cardz.dev/trac.js" },
+      { source: "/_trac/api/:path*", destination: "https://kay.cardz.dev/api/:path*" },
+    ];
+  },
 };
 
 module.exports = nextConfig;
