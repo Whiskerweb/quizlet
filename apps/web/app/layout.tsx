@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import './globals.css';
 import './game-effects.css';
 import { Providers } from './providers';
-import { TracAnalytics } from 'traaaction/react';
+import { TracAnalyticsWrapper } from '@/components/TracAnalyticsWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -45,11 +45,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>
-        <TracAnalytics
-          apiHost="/_trac"
-          outboundDomains={['app.cardz.dev', 'shop.cardz.dev']}
-          cookieDomain=".cardz.dev"
-        />
+        <TracAnalyticsWrapper />
       </body>
     </html>
   );
