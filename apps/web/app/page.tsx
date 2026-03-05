@@ -595,6 +595,11 @@ export default function HomePage() {
                       Se connecter
                     </Link>
                   </li>
+                  <li>
+                    <a href="https://shop.cardz.dev" className="text-gray-800 hover:text-gray-900 transition-colors block">
+                      Shop
+                    </a>
+                  </li>
                 </ul>
               </div>
 
