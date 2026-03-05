@@ -82,17 +82,9 @@ export default function ProductPage() {
     const product = DEMO_PRODUCTS[productId];
 
     const [isAdded, setIsAdded] = useState(false);
-    const [trackingId, setTrackingId] = useState<string | null>(null);
 
-    useEffect(() => {
-        // Get tracking ID to confirm persistence
-        const clkId = document.cookie.match(/clk_id=([^;]+)/)?.[1] ||
-            localStorage.getItem('trac_clk_id') ||
-            null;
-        setTrackingId(clkId);
 
-        console.log('[TRAC] Product page loaded - Click ID:', clkId);
-    }, []);
+
 
     if (!product) {
         return (
@@ -117,13 +109,10 @@ export default function ProductPage() {
             cart.push({ ...product, quantity: 1 });
         }
 
-        // Save with clk_id for attribution
-        const clkId = document.cookie.match(/clk_id=([^;]+)/)?.[1] ||
-            localStorage.getItem('trac_clk_id') ||
-            null;
+
 
         localStorage.setItem('shop_cart', JSON.stringify(cart));
-        localStorage.setItem('shop_cart_clk_id', clkId || '');
+
 
         setIsAdded(true);
         window.dispatchEvent(new Event('cart-updated'));
@@ -219,8 +208,8 @@ export default function ProductPage() {
                                 onClick={handleAddToCart}
                                 disabled={isAdded}
                                 className={`w-full py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-all duration-300 ${isAdded
-                                        ? 'bg-green-500 text-white'
-                                        : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white hover:scale-[1.02]'
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white hover:scale-[1.02]'
                                     }`}
                             >
                                 {isAdded ? (
@@ -254,14 +243,7 @@ export default function ProductPage() {
                     </div>
                 </div>
 
-                {/* Debug Panel */}
-                <div className="mt-12 p-4 bg-slate-800/50 rounded-xl border border-white/10">
-                    <h3 className="text-white font-semibold mb-2">🔍 Debug Tracking (Product Page)</h3>
-                    <div className="text-sm text-slate-400 font-mono">
-                        <p>Click ID survit à la navigation: <span className={trackingId ? 'text-green-400' : 'text-red-400'}>{trackingId ? '✓ Oui' : '✗ Non'}</span></p>
-                        <p>Valeur: <span className="text-blue-400">{trackingId || 'N/A'}</span></p>
-                    </div>
-                </div>
+
             </main>
         </div>
     );

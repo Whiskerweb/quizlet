@@ -29,7 +29,7 @@ export default function CartPage() {
     const { user, profile, loading: authLoading, isAuthenticated } = useAuthStore();
 
     const [cart, setCart] = useState<CartItem[]>([]);
-    const [trackingId, setTrackingId] = useState<string | null>(null);
+
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -38,14 +38,9 @@ export default function CartPage() {
         const savedCart = JSON.parse(localStorage.getItem('shop_cart') || '[]');
         setCart(savedCart);
 
-        // Get tracking ID
-        const clkId = document.cookie.match(/clk_id=([^;]+)/)?.[1] ||
-            localStorage.getItem('trac_clk_id') ||
-            localStorage.getItem('shop_cart_clk_id') ||
-            null;
-        setTrackingId(clkId);
 
-        console.log('[TRAC] Cart page loaded - Click ID:', clkId);
+
+        console.log('[SHOP] Cart page loaded');
     }, []);
 
     const updateQuantity = (productId: string, delta: number) => {
@@ -83,13 +78,9 @@ export default function CartPage() {
         setError(null);
 
         try {
-            // Get the click_id for attribution
-            const clkId = document.cookie.match(/clk_id=([^;]+)/)?.[1] ||
-                localStorage.getItem('trac_clk_id') ||
-                localStorage.getItem('shop_cart_clk_id') ||
-                null;
 
-            console.log('[TRAC] Initiating checkout with Click ID:', clkId);
+
+
             console.log('[SHOP] User ID:', user?.id);
 
             const response = await fetch('/api/shop/checkout', {
@@ -102,7 +93,7 @@ export default function CartPage() {
                         name: item.name,
                         price: item.price,
                     })),
-                    clkId,
+                    clkId: null,
                     userId: user?.id, // Link purchase to user account
                     userEmail: user?.email,
                 }),
@@ -119,7 +110,7 @@ export default function CartPage() {
                 window.location.href = data.url;
             }
         } catch (err: any) {
-            console.error('[TRAC] Checkout error:', err);
+            console.error('[SHOP] Checkout error:', err);
             setError(err.message);
         } finally {
             setIsCheckingOut(false);
@@ -298,35 +289,13 @@ export default function CartPage() {
                                     Paiement sécurisé par Stripe
                                 </div>
 
-                                {/* Attribution Info */}
-                                {trackingId && (
-                                    <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                            <span className="text-green-400 text-xs font-medium">Attribution active</span>
-                                        </div>
-                                        <p className="text-xs text-slate-500 mt-1 font-mono truncate">
-                                            ID: {trackingId}
-                                        </p>
-                                    </div>
-                                )}
+
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Debug Panel */}
-                <div className="mt-12 p-4 bg-slate-800/50 rounded-xl border border-white/10">
-                    <h3 className="text-white font-semibold mb-2">🔍 Debug Tracking (Cart Page)</h3>
-                    <div className="text-sm text-slate-400 font-mono space-y-1">
-                        <p>Click ID Cookie: <span className={trackingId ? 'text-green-400' : 'text-red-400'}>{trackingId || 'Non trouvé'}</span></p>
-                        <p>LocalStorage Backup: <span className="text-blue-400">{typeof window !== 'undefined' ? (localStorage.getItem('trac_clk_id') || 'N/A') : 'N/A'}</span></p>
-                        <p>Cart clk_id Backup: <span className="text-purple-400">{typeof window !== 'undefined' ? (localStorage.getItem('shop_cart_clk_id') || 'N/A') : 'N/A'}</span></p>
-                        <p>Articles dans le panier: <span className="text-yellow-400">{cart.length}</span></p>
-                        <p>Utilisateur: <span className={isAuthenticated() ? 'text-green-400' : 'text-red-400'}>{isAuthenticated() ? (user?.email || 'Connecté') : 'Non connecté'}</span></p>
-                        <p>User ID: <span className="text-cyan-400">{user?.id || 'N/A'}</span></p>
-                    </div>
-                </div>
+
             </main>
         </div>
     );

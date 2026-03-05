@@ -14,13 +14,6 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
-  // First-party tracking proxy - avoids ad-blockers
-  async rewrites() {
-    return [
-      { source: "/_trac/script.js", destination: "https://rara.cardz.dev/trac.js" },
-      { source: "/_trac/api/:path*", destination: "https://rara.cardz.dev/api/:path*" },
-    ];
-  },
 };
 
 module.exports = nextConfig;

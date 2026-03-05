@@ -26,7 +26,7 @@ interface CheckoutItem {
 
 interface CheckoutRequest {
     items: CheckoutItem[];
-    clkId: string | null;
+
     userId?: string;    // Link purchase to user account
     userEmail?: string; // Pre-fill Stripe with user email
 }
@@ -34,7 +34,7 @@ interface CheckoutRequest {
 export async function POST(request: NextRequest) {
     try {
         const body: CheckoutRequest = await request.json();
-        const { items, clkId, userId, userEmail } = body;
+        const { items, userId, userEmail } = body;
 
         if (!items || items.length === 0) {
             return NextResponse.json(
@@ -46,9 +46,8 @@ export async function POST(request: NextRequest) {
         // Get the origin for redirect URLs
         const origin = request.headers.get('origin') || 'http://localhost:3000';
 
-        console.log('[TRAC] Creating Stripe Checkout Session');
-        console.log('[TRAC] Click ID for attribution:', clkId);
-        console.log('[TRAC] Items:', items.length);
+        console.log('[SHOP] Creating Stripe Checkout Session');
+        console.log('[SHOP] Items:', items.length);
 
         // Create line items for Stripe
         // If priceId starts with 'price_demo', create price_data inline
@@ -87,18 +86,13 @@ export async function POST(request: NextRequest) {
             success_url: `${origin}/shop/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${origin}/shop/cart`,
 
-            // CRITICAL: Inject click_id for first-party attribution
-            // This will be available in the webhook checkout.session.completed event
-            client_reference_id: clkId || undefined,
+
 
             // Pre-fill customer email if logged in
             customer_email: userEmail || undefined,
 
-            // Store all attribution and user data in metadata (Traaaction format)
+            // Store user data in metadata
             metadata: {
-                tracClickId: clkId || '',           // For Traaaction attribution
-                tracCustomerExternalId: userId || '', // Same ID as trackLead
-                clk_id: clkId || '',                // Legacy format
                 user_id: userId || '',              // Link to Cardz user account
                 source: 'cardz_shop',
                 timestamp: new Date().toISOString(),
@@ -111,8 +105,7 @@ export async function POST(request: NextRequest) {
             allow_promotion_codes: true,
         });
 
-        console.log('[TRAC] Checkout Session created:', session.id);
-        console.log('[TRAC] client_reference_id:', session.client_reference_id);
+        console.log('[SHOP] Checkout Session created:', session.id);
 
         return NextResponse.json({
             url: session.url,
@@ -120,7 +113,7 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('[TRAC] Checkout error:', error);
+        console.error('[SHOP] Checkout error:', error);
 
         // Handle Stripe specific errors
         if (error.type === 'StripeInvalidRequestError') {

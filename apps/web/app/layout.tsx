@@ -20,13 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Trac Analytics - First-Party Proxy */}
-        <script
-          src="/_trac/script.js"
-          defer
-          data-api-host="/_trac"
-          data-domains='{"refer":"rara.cardz.dev"}'
-        />
+
         <script
           dangerouslySetInnerHTML={{
             __html: `

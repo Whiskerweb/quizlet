@@ -98,8 +98,8 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
                         onClick={handleAddToCart}
                         disabled={!product.priceId}
                         className={`flex-1 py-3 px-4 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition-all duration-300 ${isAdded
-                                ? 'bg-green-500'
-                                : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:scale-105'
+                            ? 'bg-green-500'
+                            : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:scale-105'
                             } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                         <ShoppingCart className="w-4 h-4" />
@@ -116,7 +116,7 @@ export default function ShopPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [cartCount, setCartCount] = useState(0);
-    const [trackingId, setTrackingId] = useState<string | null>(null);
+
 
     useEffect(() => {
         // Fetch products from Stripe
@@ -148,13 +148,7 @@ export default function ShopPage() {
             }
         };
 
-        // Get tracking ID
-        if (typeof window !== 'undefined') {
-            const clkId = document.cookie.match(/clk_id=([^;]+)/)?.[1] ||
-                localStorage.getItem('trac_clk_id') ||
-                null;
-            setTrackingId(clkId);
-        }
+
 
         updateCartCount();
         window.addEventListener('cart-updated', updateCartCount);
@@ -181,13 +175,10 @@ export default function ShopPage() {
             });
         }
 
-        // Save cart with clk_id for attribution
-        const clkId = document.cookie.match(/clk_id=([^;]+)/)?.[1] ||
-            localStorage.getItem('trac_clk_id') ||
-            null;
+
 
         localStorage.setItem('shop_cart', JSON.stringify(cart));
-        localStorage.setItem('shop_cart_clk_id', clkId || '');
+
 
         window.dispatchEvent(new Event('cart-updated'));
     };
@@ -209,13 +200,7 @@ export default function ShopPage() {
                         </Link>
 
                         <div className="flex items-center gap-4">
-                            {/* Tracking Status Badge */}
-                            {trackingId && (
-                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-500/20 border border-green-500/30 rounded-full">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                    <span className="text-green-400 text-xs font-medium">Tracked</span>
-                                </div>
-                            )}
+
 
                             {/* Cart */}
                             <Link
@@ -312,15 +297,7 @@ export default function ShopPage() {
                     </Link>
                 </div>
 
-                {/* Debug Panel */}
-                <div className="mt-8 p-4 bg-slate-800/50 rounded-xl border border-white/10">
-                    <h3 className="text-white font-semibold mb-2">🔍 Debug Tracking</h3>
-                    <div className="text-sm text-slate-400 font-mono">
-                        <p>Click ID: <span className={trackingId ? 'text-green-400' : 'text-red-400'}>{trackingId || 'Not found'}</span></p>
-                        <p>Cart Items: <span className="text-blue-400">{cartCount}</span></p>
-                        <p>Stripe Products: <span className="text-purple-400">{products.length}</span></p>
-                    </div>
-                </div>
+
             </main>
         </div>
     );

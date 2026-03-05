@@ -22,7 +22,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
-import { trackLead } from '@/lib/tracking/traaaction';
+
 import type { Database } from '@/lib/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -109,12 +109,6 @@ export default function OAuthCallbackPage() {
           const typedNewProfile = newProfile as Profile;
           console.log('[OAuth Callback] Profile created/loaded:', typedNewProfile.username, 'role:', typedNewProfile.role);
 
-          // Track the signup as a lead for Traaaction attribution
-          await trackLead({
-            customerExternalId: session.user.id,
-            customerEmail: session.user.email || undefined,
-            eventName: 'sign_up',
-          });
 
           // Si le rôle stocké est différent du rôle dans le profil, mettre à jour
           if (oauthRole && typedNewProfile.role !== oauthRole) {

@@ -48,7 +48,7 @@ export async function GET() {
 
         // Fallback: If no products in Stripe (e.g. new test account), return Demo Products
         if (formattedProducts.length === 0) {
-            console.log('[TRAC] No products found in Stripe. Serving Demo Products.');
+            console.log('[SHOP] No products found in Stripe. Serving Demo Products.');
             formattedProducts = [
                 {
                     id: 'prod_demo_1',
@@ -86,7 +86,7 @@ export async function GET() {
         return NextResponse.json({ products: formattedProducts });
 
     } catch (error: any) {
-        console.error('[TRAC] Error fetching products:', error);
+        console.error('[SHOP] Error fetching products:', error);
 
         return NextResponse.json(
             { error: 'Erreur lors de la récupération des produits' },
