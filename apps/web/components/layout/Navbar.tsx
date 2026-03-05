@@ -30,10 +30,10 @@ export function Navbar() {
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2">
                 <div className="w-6 h-6 flex items-center justify-center">
-                  <Image 
-                    src="/images/logo.png" 
-                    alt="CARDZ Logo" 
-                    width={24} 
+                  <Image
+                    src="/images/logo.png"
+                    alt="CARDZ Logo"
+                    width={24}
                     height={24}
                     className="object-contain"
                     priority
@@ -60,10 +60,10 @@ export function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <div className="w-6 h-6 flex items-center justify-center">
-                <Image 
-                  src="/images/logo.png" 
-                  alt="CARDZ Logo" 
-                  width={24} 
+                <Image
+                  src="/images/logo.png"
+                  alt="CARDZ Logo"
+                  width={24}
                   height={24}
                   className="object-contain"
                   priority

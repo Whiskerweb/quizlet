@@ -189,6 +189,9 @@ importers:
       tailwind-merge:
         specifier: ^2.2.0
         version: 2.6.0
+      traaaction:
+        specifier: ^1.1.0
+        version: 1.1.0(react@18.3.1)(typescript@5.9.3)
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -7976,6 +7979,22 @@ packages:
   /tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
 
+  /traaaction@1.1.0(react@18.3.1)(typescript@5.9.3):
+    resolution: {integrity: sha512-GGwVSPz56qxBXbBGC7AjZM3lGbA7v5PqXXKdmCbr7xc6xW4S1OOY9zIFWZVscq+fv0mCmcSu/Lj0mtl+3kYOHg==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: '>=18.0.0'
+      typescript: '>=5.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      typescript:
+        optional: true
+    dependencies:
+      react: 18.3.1
+      typescript: 5.9.3
+    dev: false
+
   /tree-kill@1.2.2:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
     hasBin: true
@@ -8269,7 +8288,6 @@ packages:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
-    dev: true
 
   /uglify-js@3.19.3:
     resolution: {integrity: sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ==}

@@ -8,16 +8,20 @@ import { CheckCircle, ArrowRight, Package, Mail, Sparkles } from 'lucide-react';
 function SuccessContent() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get('session_id');
-
+    const [trackingId, setTrackingId] = useState<string | null>(null);
 
     useEffect(() => {
         // Clear the cart
         localStorage.removeItem('shop_cart');
         window.dispatchEvent(new Event('cart-updated'));
 
+        // Get tracking ID for confirmation
+        const clkId = document.cookie.match(/clk_id=([^;]+)/)?.[1] ||
+            localStorage.getItem('trac_clk_id') ||
+            null;
+        setTrackingId(clkId);
 
-
-        console.log('[SHOP] Checkout completed - Session:', sessionId);
+        console.log('[TRAC] Checkout completed - Session:', sessionId, 'Click ID:', clkId);
     }, [sessionId]);
 
     return (
@@ -74,7 +78,18 @@ function SuccessContent() {
                         </div>
                     </div>
 
-
+                    {/* Attribution Confirmation */}
+                    {trackingId && (
+                        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 mb-8">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                <span className="text-green-400 font-medium">Attribution enregistrée</span>
+                            </div>
+                            <p className="text-xs text-slate-500 font-mono">
+                                Click ID: {trackingId}
+                            </p>
+                        </div>
+                    )}
 
                     {/* Actions */}
                     <div className="flex flex-col gap-3">
@@ -94,9 +109,33 @@ function SuccessContent() {
                     </div>
                 </div>
 
-
+                {/* Debug Panel */}
+                <div className="mt-8 p-4 bg-slate-800/50 rounded-xl border border-white/10">
+                    <h3 className="text-white font-semibold mb-2">🔍 Debug Tracking (Success)</h3>
+                    <div className="text-sm text-slate-400 font-mono space-y-1">
+                        <p>Session ID: <span className="text-blue-400">{sessionId || 'N/A'}</span></p>
+                        <p>Click ID: <span className={trackingId ? 'text-green-400' : 'text-red-400'}>{trackingId || 'Non trouvé'}</span></p>
+                        <p>Attribution: <span className="text-green-400">✓ Transmis à Stripe via client_reference_id</span></p>
+                    </div>
+                </div>
             </div>
         </div>
+    );
+}
+
+export default function SuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="text-white">Chargement...</div>
+            </div>
+        }>
+            <SuccessContent />
+        </Suspense>
+    );
+}
+            </div >
+        </div >
     );
 }
 

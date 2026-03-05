@@ -41,7 +41,9 @@ export async function POST(req: NextRequest) {
 
             console.log('💰 [FINANCIAL] Processing Checkout Session:', session.id);
 
-
+            // Attribution Data
+            const clickId = session.client_reference_id || session.metadata?.clk_id || 'N/A';
+            console.log('🔗 [TRACKING] Click ID:', clickId);
 
             // Financial Calculation
             // We need to fetch the PaymentIntent and then the BalanceTransaction to get exact fees
