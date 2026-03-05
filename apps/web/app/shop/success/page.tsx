@@ -134,19 +134,3 @@ export default function SuccessPage() {
         </Suspense>
     );
 }
-            </div >
-        </div >
-    );
-}
-
-export default function SuccessPage() {
-    return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="text-white">Chargement...</div>
-            </div>
-        }>
-            <SuccessContent />
-        </Suspense>
-    );
-}
