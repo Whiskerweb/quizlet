@@ -2,7 +2,14 @@ import { Traaaction } from 'traaaction';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-const trac = new Traaaction();
+let trac: Traaaction | null = null;
+
+function getTraaaction() {
+  if (!trac) {
+    trac = new Traaaction();
+  }
+  return trac;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[TRAC] Server-side lead tracking:', { clickId, customerId, customerEmail, eventName });
 
-    await trac.track.lead({
+    await getTraaaction().track.lead({
       clickId,
       customerId,
       eventName,
