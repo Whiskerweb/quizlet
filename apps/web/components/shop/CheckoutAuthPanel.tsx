@@ -103,11 +103,11 @@ export function CheckoutAuthPanel({ onAuthSuccess }: CheckoutAuthPanelProps) {
             setProfile(profile);
 
             // Track the signup as a lead for Traaaction attribution
-            await trackLead({
+            trackLead({
                 customerExternalId: authData.user.id,
                 customerEmail: data.email,
                 eventName: 'sign_up',
-            });
+            }).catch(() => {});
 
             onAuthSuccess?.();
         } catch (err: any) {

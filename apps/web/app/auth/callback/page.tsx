@@ -110,11 +110,11 @@ export default function OAuthCallbackPage() {
           console.log('[OAuth Callback] Profile created/loaded:', typedNewProfile.username, 'role:', typedNewProfile.role);
 
           // Track the signup as a lead for Traaaction attribution
-          await trackLead({
+          trackLead({
             customerExternalId: session.user.id,
             customerEmail: session.user.email || undefined,
             eventName: 'sign_up',
-          });
+          }).catch(() => {});
 
           // Si le rôle stocké est différent du rôle dans le profil, mettre à jour
           if (oauthRole && typedNewProfile.role !== oauthRole) {

@@ -97,11 +97,11 @@ function RegisterForm() {
       setProfile(profile);
 
       // Track the signup as a lead for Traaaction attribution
-      await trackLead({
+      trackLead({
         customerExternalId: authData.user.id,
         customerEmail: data.email,
         eventName: 'sign_up',
-      });
+      }).catch(() => {});
 
       // If there's an invite code, use it to create friendship
       if (inviteCode) {
