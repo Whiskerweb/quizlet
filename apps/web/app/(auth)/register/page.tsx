@@ -47,81 +47,85 @@ function RegisterForm() {
     setIsLoading(true);
     setError(null);
 
-    const doSignup = async () => {
-      // Sign up with Supabase Auth (disable email confirmation)
+    try {
+      console.log('[Register] Step 1: signUp...');
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
-        options: {
-          emailRedirectTo: undefined, // No email confirmation
-        },
       });
+      console.log('[Register] Step 1 done:', { user: !!authData?.user, session: !!authData?.session, error: authError?.message });
 
       if (authError) throw authError;
       if (!authData.user) throw new Error('No user returned');
 
-      // Wait a bit for the trigger to create the profile
+      // Supabase returns a fake user with empty identities if email already exists (to prevent enumeration)
+      if (authData.user.identities && authData.user.identities.length === 0) {
+        throw new Error('An account with this email already exists. Please sign in instead.');
+      }
+
+      // If no session, email confirmation might be enabled or session wasn't returned
+      if (!authData.session) {
+        console.warn('[Register] No session returned — trying signIn fallback');
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        });
+        console.log('[Register] Sign-in fallback:', { session: !!signInData?.session, error: signInError?.message });
+
+        if (signInError || !signInData.session) {
+          throw new Error('Account created but could not sign in. Check your email for a confirmation link, or try signing in.');
+        }
+      }
+
+      // At this point we have a valid session — profile creation happens via DB trigger
+      // Wait briefly for the trigger, then try RPC as fallback
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Generate a temporary username from email (will be replaced by first_name + last_name during onboarding)
       const tempUsername = data.email.split('@')[0] || `user_${authData.user.id.substring(0, 8)}`;
 
-      // Use RPC function to create/update profile (bypasses RLS)
+      console.log('[Register] Step 2: RPC create_or_update_profile...');
       const { error: profileError } = await (supabase.rpc as any)('create_or_update_profile', {
         user_id: authData.user.id,
         user_email: data.email,
         user_username: tempUsername,
-        user_role: 'student', // Default to student, will be updated during onboarding
+        user_role: 'student',
         user_first_name: null,
         user_last_name: null,
       });
+      console.log('[Register] Step 2 done:', { error: profileError?.message });
 
       if (profileError) {
-        console.error('Profile error:', profileError);
-        throw new Error(`Database error saving new user: ${profileError.message}`);
+        console.error('Profile RPC error (non-blocking):', profileError);
+        // Don't throw — the DB trigger may have created it already
       }
 
-      // Fetch updated profile
-      const { data: profile, error: fetchError } = await supabase
+      console.log('[Register] Step 3: fetch profile...');
+      const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', authData.user.id)
         .single();
-
-      if (fetchError) throw fetchError;
+      console.log('[Register] Step 3 done:', { hasProfile: !!profile });
 
       setUser(authData.user);
-      setProfile(profile);
+      if (profile) setProfile(profile);
 
-      // Track the signup as a lead for Traaaction attribution
+      // Fire-and-forget: tracking + invite code
       trackLead({
         customerExternalId: authData.user.id,
         customerEmail: data.email,
         eventName: 'sign_up',
       }).catch(() => {});
 
-      // If there's an invite code, use it to create friendship
       if (inviteCode) {
-        try {
-          console.log('[Register] Using invite code:', inviteCode);
-          await friendsService.useInviteCode(inviteCode, authData.user.id);
-          console.log('[Register] Friendship created successfully');
-        } catch (inviteError: any) {
-          console.error('[Register] Failed to use invite code:', inviteError);
-          // Don't block registration if invite fails
-        }
+        friendsService.useInviteCode(inviteCode, authData.user.id).catch((err: any) => {
+          console.error('[Register] Failed to use invite code:', err);
+        });
       }
 
-      // Redirect to onboarding instead of dashboard
       router.replace('/onboarding');
-    };
-
-    try {
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Signup timed out. Please try again.')), 15000)
-      );
-      await Promise.race([doSignup(), timeout]);
     } catch (err: any) {
+      console.error('[Register] Error:', err);
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);

@@ -33,216 +33,104 @@ export default function OAuthCallbackPage() {
 
   useEffect(() => {
     const run = async () => {
-      // Récupération de la session Supabase
-      // getSession() récupère la session depuis localStorage/cookies
-      // Si Supabase a traité le hash fragment OAuth (#access_token=...), la session sera disponible
+      // Step 1: Get session
+      console.log('[OAuth Callback] Step 1: getSession...');
       const { data: { session }, error } = await supabaseBrowser.auth.getSession();
+      console.log('[OAuth Callback] Step 1 done:', { hasSession: !!session, error: error?.message });
 
-      console.log('[OAuth Callback] session', {
-        hasSession: !!session,
-        userId: session?.user?.id,
-        userEmail: session?.user?.email,
-        error: error?.message,
-      });
-
-      // Si pas de session ou erreur → rediriger vers login
       if (!session || error) {
-        console.log('[OAuth Callback] No session found, redirecting to /login');
         router.replace('/login');
         return;
       }
 
-      // Session présente → charger le profil
-      console.log('[OAuth Callback] Session found, loading profile...');
+      setUser(session.user);
 
-      // Récupérer le rôle depuis sessionStorage (stocké avant la redirection OAuth)
+      // Retrieve stored role from before OAuth redirect
       const oauthRole = sessionStorage.getItem('oauth_role') as 'student' | 'teacher' | null;
-      console.log('[OAuth Callback] OAuth role from sessionStorage:', oauthRole);
+      if (oauthRole) sessionStorage.removeItem('oauth_role');
 
-      // Attendre un peu pour que le trigger SQL ait le temps de créer le profil
+      // Step 2: Wait for DB trigger then load profile
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Charger le profil depuis Supabase
-      const { data: profile, error: profileError } = await supabaseBrowser
+      console.log('[OAuth Callback] Step 2: load profile...');
+      const { data: profile } = await supabaseBrowser
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
+      console.log('[OAuth Callback] Step 2 done:', { hasProfile: !!profile });
 
-      // Variable pour stocker le profil final (utilisée pour la redirection)
-      let finalProfile: Profile | null = null;
+      let finalProfile: Profile | null = profile as Profile | null;
 
-      if (profileError || !profile) {
-        console.log('[OAuth Callback] Profile not found, creating profile...', profileError);
-
-        // Nettoyer sessionStorage après récupération
-        if (oauthRole) {
-          sessionStorage.removeItem('oauth_role');
-        }
-
-        // Créer le profil si nécessaire
-        // Generate temporary username from email (will be replaced during onboarding if name is provided)
+      // Step 3: Create profile if it doesn't exist
+      if (!finalProfile) {
+        console.log('[OAuth Callback] Step 3: create profile via RPC...');
         const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
-
-        const { error: rpcError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
+        await (supabaseBrowser.rpc as any)('create_or_update_profile', {
           user_id: session.user.id,
           user_email: session.user.email || '',
-          user_username: baseUsername, // Temporary username, will be updated during onboarding
-          user_role: oauthRole || 'student', // Utiliser le rôle stocké ou 'student' par défaut
+          user_username: baseUsername,
+          user_role: oauthRole || 'student',
           user_first_name: session.user.user_metadata?.first_name || session.user.user_metadata?.full_name?.split(' ')[0] || null,
           user_last_name: session.user.user_metadata?.last_name || session.user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || null,
         });
 
-        if (rpcError) {
-          console.error('[OAuth Callback] Error creating profile:', rpcError);
-          // Continuer quand même, le trigger SQL devrait avoir créé le profil
-        }
-
-        // Récupérer le profil créé
-        const { data: newProfile, error: fetchError } = await supabaseBrowser
+        const { data: newProfile } = await supabaseBrowser
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
+        finalProfile = (newProfile as Profile) || null;
+        console.log('[OAuth Callback] Step 3 done:', { hasProfile: !!finalProfile });
 
-        if (newProfile) {
-          const typedNewProfile = newProfile as Profile;
-          console.log('[OAuth Callback] Profile created/loaded:', typedNewProfile.username, 'role:', typedNewProfile.role);
-
-          // Track the signup as a lead for Traaaction attribution
-          trackLead({
-            customerExternalId: session.user.id,
-            customerEmail: session.user.email || undefined,
-            eventName: 'sign_up',
-          }).catch(() => {});
-
-          // Si le rôle stocké est différent du rôle dans le profil, mettre à jour
-          if (oauthRole && typedNewProfile.role !== oauthRole) {
-            console.log('[OAuth Callback] Updating role from', typedNewProfile.role, 'to', oauthRole);
-            const { error: updateError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
-              user_id: session.user.id,
-              user_email: session.user.email || '',
-              user_username: typedNewProfile.username,
-              user_role: oauthRole,
-              user_first_name: typedNewProfile.first_name,
-              user_last_name: typedNewProfile.last_name,
-            });
-
-            if (updateError) {
-              console.error('[OAuth Callback] Error updating role:', updateError);
-              finalProfile = typedNewProfile;
-            } else {
-              // Recharger le profil avec le bon rôle
-              const { data: updatedProfile } = await supabaseBrowser
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-
-              if (updatedProfile) {
-                finalProfile = updatedProfile as Profile;
-                setUser(session.user);
-                setProfile(finalProfile);
-              } else {
-                finalProfile = typedNewProfile;
-                setUser(session.user);
-                setProfile(typedNewProfile);
-              }
-            }
-          } else {
-            finalProfile = typedNewProfile;
-            setUser(session.user);
-            setProfile(typedNewProfile);
-          }
-        } else {
-          console.error('[OAuth Callback] Failed to fetch profile after creation:', fetchError);
-          // Rediriger quand même vers dashboard, le layout essaiera de charger le profil
-          setUser(session.user);
-        }
-      } else {
-        // Profil existe déjà
-        const typedProfile = profile as Profile;
-        finalProfile = typedProfile;
-        console.log('[OAuth Callback] Profile loaded:', typedProfile.username, 'current role:', typedProfile.role);
-
-        // Vérifier si le profil vient d'être créé (créé il y a moins de 5 secondes)
-        // Si oui et qu'un rôle est stocké, mettre à jour le rôle
-        const profileCreatedAt = new Date(typedProfile.created_at).getTime();
-        const now = Date.now();
-        const isRecentlyCreated = (now - profileCreatedAt) < 5000; // 5 secondes
-
-        if (isRecentlyCreated && oauthRole && typedProfile.role !== oauthRole) {
-          console.log('[OAuth Callback] Profile was just created, updating role from', typedProfile.role, 'to', oauthRole);
-          const { error: updateError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
+        // Fire-and-forget: track signup
+        trackLead({
+          customerExternalId: session.user.id,
+          customerEmail: session.user.email || undefined,
+          eventName: 'sign_up',
+        }).catch(() => {});
+      } else if (oauthRole && finalProfile.role !== oauthRole) {
+        // Profile exists but role needs updating (recently created via trigger)
+        const profileCreatedAt = new Date(finalProfile.created_at).getTime();
+        if (Date.now() - profileCreatedAt < 5000) {
+          console.log('[OAuth Callback] Updating role to', oauthRole);
+          await (supabaseBrowser.rpc as any)('create_or_update_profile', {
             user_id: session.user.id,
             user_email: session.user.email || '',
-            user_username: typedProfile.username,
+            user_username: finalProfile.username,
             user_role: oauthRole,
-            user_first_name: typedProfile.first_name,
-            user_last_name: typedProfile.last_name,
+            user_first_name: finalProfile.first_name,
+            user_last_name: finalProfile.last_name,
           });
-
-          if (updateError) {
-            console.error('[OAuth Callback] Error updating role:', updateError);
-          } else {
-            // Recharger le profil avec le bon rôle
-            const { data: updatedProfile } = await supabaseBrowser
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            if (updatedProfile) {
-              finalProfile = updatedProfile as Profile;
-              console.log('[OAuth Callback] Profile role updated to:', finalProfile.role);
-              setUser(session.user);
-              setProfile(finalProfile);
-            } else {
-              setUser(session.user);
-              setProfile(typedProfile);
-            }
-          }
-        } else {
-          // Profil existe et rôle correct (ou profil ancien), mettre à jour le store
-          setUser(session.user);
-          setProfile(typedProfile);
-        }
-
-        // Nettoyer sessionStorage après utilisation
-        if (oauthRole) {
-          sessionStorage.removeItem('oauth_role');
+          const { data: updatedProfile } = await supabaseBrowser
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          if (updatedProfile) finalProfile = updatedProfile as Profile;
         }
       }
 
-      // Check for redirect (e.g. back to shop.cardz.dev after login)
+      if (finalProfile) setProfile(finalProfile);
+
+      // Determine redirect destination
       const urlParams = new URLSearchParams(window.location.search);
       const oauthRedirect = sessionStorage.getItem('oauth_redirect');
       const externalRedirect = urlParams.get('redirect_to') || urlParams.get('redirect') || oauthRedirect;
       if (oauthRedirect) sessionStorage.removeItem('oauth_redirect');
 
-      // Validate redirect: either a relative path or a *.cardz.dev URL
       const isValidRedirect = externalRedirect && (
         externalRedirect.startsWith('/') ||
         /^https:\/\/([a-z0-9-]+\.)?cardz\.dev(\/.*)?$/.test(externalRedirect)
       );
 
-      // Check if onboarding is needed (profile missing role or name)
-      if (!finalProfile) {
-        console.log('[OAuth Callback] No profile available, redirecting to /onboarding');
-        router.replace('/onboarding');
-        return;
-      }
-
-      const needsOnboarding = !finalProfile.role || !finalProfile.first_name || !finalProfile.last_name;
+      const needsOnboarding = !finalProfile || !finalProfile.role || !finalProfile.first_name || !finalProfile.last_name;
 
       if (needsOnboarding) {
-        console.log('[OAuth Callback] Profile incomplete, redirecting to /onboarding');
         router.replace('/onboarding');
       } else if (isValidRedirect) {
-        console.log('[OAuth Callback] Redirecting to external URL:', externalRedirect);
         window.location.href = externalRedirect;
       } else {
-        console.log('[OAuth Callback] Profile complete, redirecting to /dashboard');
         router.replace('/dashboard');
       }
     };

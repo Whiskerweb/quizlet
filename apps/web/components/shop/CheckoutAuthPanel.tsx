@@ -90,6 +90,20 @@ export function CheckoutAuthPanel({ onAuthSuccess }: CheckoutAuthPanelProps) {
             if (authError) throw authError;
             if (!authData.user) throw new Error('Erreur lors de l\'inscription');
 
+            // Supabase returns fake user with empty identities if email already exists
+            if (authData.user.identities && authData.user.identities.length === 0) {
+                throw new Error('Un compte avec cet email existe déjà. Connectez-vous.');
+            }
+
+            // If no session, try signing in directly
+            if (!authData.session) {
+                const { error: signInError } = await supabase.auth.signInWithPassword({
+                    email: data.email,
+                    password: data.password,
+                });
+                if (signInError) throw new Error('Compte créé mais connexion impossible. Réessayez.');
+            }
+
             // Wait a moment for the trigger to create the profile
             await new Promise(resolve => setTimeout(resolve, 1000));
 
