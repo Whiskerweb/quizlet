@@ -76,7 +76,7 @@ export function CheckoutAuthPanel({ onAuthSuccess }: CheckoutAuthPanelProps) {
         setIsLoading(true);
         setError(null);
 
-        try {
+        const doSignup = async () => {
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: data.email,
                 password: data.password,
@@ -110,6 +110,13 @@ export function CheckoutAuthPanel({ onAuthSuccess }: CheckoutAuthPanelProps) {
             }).catch(() => {});
 
             onAuthSuccess?.();
+        };
+
+        try {
+            const timeout = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Inscription expirée. Veuillez réessayer.')), 15000)
+            );
+            await Promise.race([doSignup(), timeout]);
         } catch (err: any) {
             setError(err.message || 'Échec de l\'inscription');
         } finally {

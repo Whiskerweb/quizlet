@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
@@ -44,9 +44,13 @@ export default function OnboardingPage() {
   }>({});
 
   const supabase = supabaseBrowser;
+  const hasCheckedAuth = useRef(false);
 
   // Check if user is authenticated and load profile if needed
   useEffect(() => {
+    if (hasCheckedAuth.current) return;
+    hasCheckedAuth.current = true;
+
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -62,7 +66,7 @@ export default function OnboardingPage() {
           .select('*')
           .eq('id', session.user.id)
           .single();
-        
+
         if (profileData) {
           currentProfile = profileData;
           setProfile(profileData);
@@ -89,7 +93,7 @@ export default function OnboardingPage() {
     };
 
     checkAuth();
-  }, [router, profile, supabase, setProfile]);
+  }, [router, supabase, setProfile]);
 
   // Step 1: Role selection
   const [selectedRole, setSelectedRole] = useState<'student' | 'teacher' | undefined>(

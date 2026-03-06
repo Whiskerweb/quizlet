@@ -47,7 +47,7 @@ function RegisterForm() {
     setIsLoading(true);
     setError(null);
 
-    try {
+    const doSignup = async () => {
       // Sign up with Supabase Auth (disable email confirmation)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
@@ -67,9 +67,6 @@ function RegisterForm() {
       const tempUsername = data.email.split('@')[0] || `user_${authData.user.id.substring(0, 8)}`;
 
       // Use RPC function to create/update profile (bypasses RLS)
-      // Note: TypeScript doesn't know about this RPC function, so we cast the entire call to bypass type checking
-      // We don't set role here - it will be set during onboarding
-      // Username is temporary and will be replaced during onboarding
       const { error: profileError } = await (supabase.rpc as any)('create_or_update_profile', {
         user_id: authData.user.id,
         user_email: data.email,
@@ -117,7 +114,13 @@ function RegisterForm() {
 
       // Redirect to onboarding instead of dashboard
       router.replace('/onboarding');
-      router.refresh();
+    };
+
+    try {
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Signup timed out. Please try again.')), 15000)
+      );
+      await Promise.race([doSignup(), timeout]);
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {

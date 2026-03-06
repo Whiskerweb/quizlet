@@ -247,7 +247,12 @@ export default function OAuthCallbackPage() {
       }
     };
 
-    run();
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 15000)
+    );
+    Promise.race([run(), timeout]).catch(() => {
+      router.replace('/login?error=timeout');
+    });
   }, [router, setUser, setProfile]);
 
   return (
