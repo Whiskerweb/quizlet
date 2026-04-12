@@ -16,15 +16,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // Récupération des variables d'environnement
 // Ces variables doivent être définies dans votre fichier .env.local
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-// Vérification que les variables d'environnement sont définies
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase environment variables. Please check your .env.local file.'
-  );
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
 
 /**
  * Client Supabase configuré pour l'authentification OAuth
