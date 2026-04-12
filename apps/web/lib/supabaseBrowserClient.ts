@@ -22,10 +22,12 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholde
 const getCookieDomain = () => {
   if (typeof window === 'undefined') return undefined;
   const hostname = window.location.hostname;
-  return hostname.endsWith('.cardz.dev') || hostname === 'cardz.dev'
-    ? '.cardz.dev'
-    : undefined;
+  const isProduction = hostname.endsWith('.cardz.dev') || hostname === 'cardz.dev';
+  return isProduction ? '.cardz.dev' : undefined;
 };
+
+const isProductionDomain = typeof window !== 'undefined' && 
+  (window.location.hostname.endsWith('.cardz.dev') || window.location.hostname === 'cardz.dev');
 
 /**
  * Instance unique du client Supabase pour le navigateur
@@ -39,6 +41,6 @@ export const supabaseBrowser = createBrowserClient<Database>(supabaseUrl, supaba
     domain: getCookieDomain(),
     path: '/',
     sameSite: 'lax',
-    secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
+    secure: isProductionDomain,
   },
 });

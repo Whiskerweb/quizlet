@@ -15,7 +15,8 @@ export async function updateSession(request: NextRequest, rewriteUrl?: URL) {
   }
 
   // Share cookies across subdomains (shop.cardz.dev, app.cardz.dev)
-  const isProduction = request.headers.get('host')?.endsWith('.cardz.dev') || request.headers.get('host') === 'cardz.dev';
+  const host = request.headers.get('host') || '';
+  const isProduction = host.endsWith('.cardz.dev') || host === 'cardz.dev';
   const cookieDomain = isProduction ? '.cardz.dev' : undefined;
 
   const supabase = createServerClient(
@@ -35,6 +36,9 @@ export async function updateSession(request: NextRequest, rewriteUrl?: URL) {
             supabaseResponse.cookies.set(name, value, {
               ...options,
               ...(cookieDomain && { domain: cookieDomain }),
+              path: '/',
+              sameSite: 'lax',
+              secure: isProduction,
             })
           );
         },
