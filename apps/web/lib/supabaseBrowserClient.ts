@@ -26,11 +26,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // Share cookies across subdomains (shop.cardz.dev, app.cardz.dev)
 const getCookieDomain = () => {
-  if (typeof window !== 'undefined') {
-    const isProduction = window.location.hostname.endsWith('.cardz.dev') || window.location.hostname === 'cardz.dev';
-    return isProduction ? '.cardz.dev' : undefined;
-  }
-  return undefined;
+  if (typeof window === 'undefined') return undefined;
+  const hostname = window.location.hostname;
+  return hostname.endsWith('.cardz.dev') || hostname === 'cardz.dev'
+    ? '.cardz.dev'
+    : undefined;
 };
 
 /**
@@ -40,7 +40,11 @@ const getCookieDomain = () => {
  * et services côté client.
  */
 export const supabaseBrowser = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+  isSingleton: true,
   cookieOptions: {
     domain: getCookieDomain(),
+    path: '/',
+    sameSite: 'lax',
+    secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
   },
 });

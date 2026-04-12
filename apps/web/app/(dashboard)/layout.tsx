@@ -32,11 +32,10 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, profile, logout } = useAuthStore();
+  const { user, profile, loading, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const { language, setLanguage } = useLanguageStore();
   const { t } = useTranslation();
-  const [checking, setChecking] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -102,147 +101,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     };
   }, [isProfileMenuOpen, isLanguageMenuOpen]);
 
-  // Vérification de l'authentification et initialisation du store
+  // Vérification de l'authentification basée sur le store
   useEffect(() => {
-    const run = async () => {
-      try {
-        // Récupération de la session Supabase
-        // getSession() récupère la session depuis localStorage/cookies
-        // C'est la source de vérité pour l'authentification côté client
-        const { data: { session }, error } = await supabaseBrowser.auth.getSession();
-
-        console.log('[Dashboard Layout] session', {
-          hasSession: !!session,
-          userId: session?.user?.id,
-          userEmail: session?.user?.email,
-          error: error?.message,
-        });
-
-        // Si pas de session ou erreur → rediriger vers login
-        if (!session || error) {
-          console.log('[Dashboard Layout] No session, redirecting to /login');
-          router.replace('/login');
-          return;
-        }
-
-        // Session présente → vérifier et charger le profil si nécessaire
-        const { setUser: setStoreUser, setProfile: setStoreProfile } = useAuthStore.getState();
-        const currentProfile = useAuthStore.getState().profile;
-
-        // Vérifier si le profil est dans le store et correspond à l'utilisateur actuel
-        if (!currentProfile || currentProfile.id !== session.user.id) {
-          console.log('[Dashboard Layout] Profile not in store, loading from Supabase...');
-
-          // Charger le profil depuis Supabase avec un timeout
-          const { data: profileData, error: profileError } = await supabaseBrowser
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileData) {
-            const typedProfile = profileData as Profile;
-            console.log('[Dashboard Layout] Profile loaded:', typedProfile.username);
-
-            // Check if onboarding is needed (profile missing role or name)
-            const needsOnboarding = !typedProfile.role || !typedProfile.first_name || !typedProfile.last_name;
-
-            if (needsOnboarding) {
-              console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
-              router.replace('/onboarding');
-              return;
-            }
-
-            setStoreUser(session.user);
-            setStoreProfile(typedProfile);
-          } else if (profileError) {
-            console.error('[Dashboard Layout] Error loading profile:', profileError);
-
-            // Try to create the profile as fallback 
-            try {
-              const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
-
-              const { error: rpcError } = await (supabaseBrowser.rpc as any)('create_or_update_profile', {
-                user_id: session.user.id,
-                user_email: session.user.email || '',
-                user_username: baseUsername,
-                user_first_name: session.user.user_metadata?.first_name || null,
-                user_last_name: session.user.user_metadata?.last_name || null,
-              });
-
-              if (rpcError) {
-                console.error('[Dashboard Layout] Error creating profile:', rpcError);
-              }
-
-              // Retry loading profile
-              const { data: newProfile } = await supabaseBrowser
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-
-              if (newProfile) {
-                const typedNewProfile = newProfile as Profile;
-                console.log('[Dashboard Layout] Profile created/loaded:', typedNewProfile.username);
-
-                const needsOnboarding = !typedNewProfile.role || !typedNewProfile.first_name || !typedNewProfile.last_name;
-
-                if (needsOnboarding) {
-                  console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
-                  router.replace('/onboarding');
-                  return;
-                }
-
-                setStoreUser(session.user);
-                setStoreProfile(typedNewProfile);
-              } else {
-                // Allow access even without profile - user is authenticated
-                console.log('[Dashboard Layout] Profile not available, but session valid - allowing access');
-                setStoreUser(session.user);
-              }
-            } catch (rpcException) {
-              console.error('[Dashboard Layout] RPC exception:', rpcException);
-              // Still allow access with valid session
-              setStoreUser(session.user);
-            }
-          } else {
-            // No profile data and no error - edge case, still allow access
-            console.log('[Dashboard Layout] No profile data/error - allowing access with session');
-            setStoreUser(session.user);
-          }
-        } else {
-          // Profile already in store, check if onboarding needed
-          const needsOnboarding = !currentProfile.role || !currentProfile.first_name || !currentProfile.last_name;
-
-          if (needsOnboarding) {
-            console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
-            router.replace('/onboarding');
-            return;
-          }
-
-          console.log('[Dashboard Layout] Profile already in store:', currentProfile.username);
-          setStoreUser(session.user);
-        }
-
-        // Grant dashboard access
-        console.log('[Dashboard Layout] Session found, authorizing access to dashboard');
-        setAuthorized(true);
-      } catch (exception) {
-        // Critical: catch any unhandled exception to prevent infinite loading
-        console.error('[Dashboard Layout] Critical exception during auth check:', exception);
-        // Redirect to login on any critical error
+    if (!loading) {
+      if (!user) {
+        console.log('[Dashboard Layout] No user in store, redirecting to /login');
         router.replace('/login');
-      } finally {
-        // ALWAYS set checking to false to prevent infinite loading
-        setChecking(false);
+      } else {
+        // Check if onboarding is needed
+        const needsOnboarding = profile && (!profile.role || !profile.first_name || !profile.last_name);
+        if (needsOnboarding) {
+          console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
+          router.replace('/onboarding');
+        } else {
+          console.log('[Dashboard Layout] User authorized');
+          setAuthorized(true);
+        }
       }
-    };
+    }
+  }, [user, profile, loading, router]);
 
-    run();
-  }, [router]);
-
-  // GARDE 1 : Afficher un loader pendant la vérification
-  if (checking) {
+  // GARDE 1 : Afficher un loader pendant la vérification (via le store)
+  if (loading || (!authorized && user)) {
     return (
       <div className="app-shell flex min-h-screen items-center justify-center bg-bg-default">
         <p className="text-content-muted">{t('loadingDashboard')}</p>
