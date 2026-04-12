@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  username      String        @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  avatar        String?
+  isPremium     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  sets          Set[]
+  studySessions StudySession[]
+  stats         UserStats?
+  cardProgress  CardProgress[]
+
+  @@index([email])
+  @@index([username])
+}
+
+model Set {
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  isPublic    Boolean        @default(false)
+  shareId     String         @unique @default(cuid())
+  coverImage  String?
+  tags        String[]
+  language    String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flashcards  Flashcard[]
+  studySessions StudySession[]
+  stats       SetStats?
+
+  @@index([userId])
+  @@index([isPublic])
+  @@index([shareId])
+}
+
+model Flashcard {
+  id          String   @id @default(cuid())
+  front       String
+  back        String
+  imageUrl    String?
+  audioUrl    String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  setId       String
+  set         Set      @relation(fields: [setId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  progress    CardProgress[]
+
+  @@index([setId])
+}
+
+model StudySession {
+  id          String   @id @default(cuid())
+  mode        String   // 'flashcard' | 'quiz' | 'writing' | 'match'
+  score       Int?
+  totalCards  Int
+  completed   Boolean  @default(false)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  setId       String
+  set         Set      @relation(fields: [setId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+
+  @@index([userId])
+  @@index([setId])
+}
+
+model Answer {
+  id            String   @id @default(cuid())
+  isCorrect     Boolean
+  timeSpent     Int?     // milliseconds
+  answeredAt    DateTime @default(now())
+
+  flashcardId   String
+  flashcard     Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  sessionId     String
+  session       StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([flashcardId])
+}
+
+model CardProgress {
+  id            String   @id @default(cuid())
+  easeFactor    Float    @default(2.5)
+  interval      Int      @default(0) // Days until next review
+  repetitions   Int      @default(0)
+  nextReview    DateTime @default(now())
+  lastReview    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flashcardId   String
+  flashcard     Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, flashcardId])
+  @@index([userId])
+  @@index([flashcardId])
+  @@index([nextReview])
+}
+
+model UserStats {
+  id              String   @id @default(cuid())
+  totalSets       Int      @default(0)
+  totalFlashcards Int      @default(0)
+  totalStudyTime  Int      @default(0) // minutes
+  totalSessions   Int      @default(0)
+  averageScore    Float    @default(0)
+  updatedAt       DateTime @updatedAt
+
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SetStats {
+  id              String   @id @default(cuid())
+  views           Int      @default(0)
+  studies         Int      @default(0)
+  favorites       Int      @default(0)
+  averageScore    Float    @default(0)
+  updatedAt       DateTime @updatedAt
+
+  setId           String   @unique
+  set             Set      @relation(fields: [setId], references: [id], onDelete: Cascade)
+}
+

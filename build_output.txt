@@ -1,0 +1,744 @@
+
+> @cardz/web@1.0.0 build /Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web
+> next build
+
+  ▲ Next.js 14.2.33
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/33) ...
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/login/page.js:1:11032)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 65750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/login/page.js:1:2320)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99109) {
+  digest: '2362196636'
+}
+
+Error occurred prerendering page "/login". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/login/page.js:1:11032)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 65750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/login/page.js:1:2320)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99109)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:38526)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 4331 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:1:3119)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 58271 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/public-sets/page.js:1:2121)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '1967113178'
+}
+
+Error occurred prerendering page "/public-sets". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:38526)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 4331 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:1:3119)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 58271 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/public-sets/page.js:1:2121)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 4883 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:18:4834)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71006 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/folders/shared/page.js:1:2168)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '2877681289'
+}
+
+Error occurred prerendering page "/folders/shared". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 4883 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:18:4834)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71006 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/folders/shared/page.js:1:2168)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:34:433)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:34:787)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 47581 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/dashboard/page.js:1:2096)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '1508772030'
+}
+
+Error occurred prerendering page "/dashboard". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:34:433)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:34:787)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 47581 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/dashboard/page.js:1:2096)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18051)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18288)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 73674 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/classes/page.js:1:2085)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '3462253508'
+}
+
+Error occurred prerendering page "/classes". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18051)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18288)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 73674 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/classes/page.js:1:2085)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/register/page.js:1:16291)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 87413 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/register/page.js:1:2341)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99109) {
+  digest: '595534911'
+}
+
+Error occurred prerendering page "/register". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/register/page.js:1:16291)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 87413 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/register/page.js:1:2341)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99109)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/onboarding/page.js:1:12076)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 66467 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/onboarding/page.js:1:2342)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99109) {
+  digest: '3645898559'
+}
+
+Error occurred prerendering page "/onboarding". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/onboarding/page.js:1:12076)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 66467 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/onboarding/page.js:1:2342)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99109)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/_not-found/page.js:1:2305)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/_not-found/page.js:1:1933)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '3140103180'
+}
+
+Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/_not-found/page.js:1:2305)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/_not-found/page.js:1:1933)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+   Generating static pages (8/33) 
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:38526)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 4519 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/5354.js:1:55535)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 28704 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/share-modules/page.js:1:2120)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '1641611057'
+}
+
+Error occurred prerendering page "/share-modules". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:38526)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 4519 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/5354.js:1:55535)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 28704 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/share-modules/page.js:1:2120)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/login/page.js:1:11032)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 4331 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:1:3119)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 37169 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/sets/create/page.js:1:2158)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '1991647794'
+}
+
+Error occurred prerendering page "/sets/create". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/login/page.js:1:11032)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 4331 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/4932.js:1:3119)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 37169 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/sets/create/page.js:1:2158)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:575)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '767648664'
+}
+
+Error occurred prerendering page "/shop". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:575)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:9615)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:487)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '4221103344'
+}
+
+Error occurred prerendering page "/enseignants". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:9615)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:487)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/register/page.js:1:16291)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/register/page.js:1:16645)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 14392 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/home/page.js:1:2079)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '3722092151'
+}
+
+Error occurred prerendering page "/home". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/register/page.js:1:16291)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(auth)/register/page.js:1:16645)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 14392 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/home/page.js:1:2079)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18051)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18288)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 88276 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/my-class/page.js:1:2091)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '3333972460'
+}
+
+Error occurred prerendering page "/my-class". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18051)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18288)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 88276 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/my-class/page.js:1:2091)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:9615)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:487)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '4221103344'
+}
+
+Error occurred prerendering page "/etudiants". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:9615)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:487)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/page.js:1:27320)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/page.js:1:27674)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 51614 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/test-invite/page.js:1:2097)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '815674121'
+}
+
+Error occurred prerendering page "/test-invite". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/page.js:1:27320)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/page.js:1:27674)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 51614 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/test-invite/page.js:1:2097)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+   Generating static pages (16/33) 
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:9615)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:9969)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 35692 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/debug-friends/page.js:1:2110)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '1449932132'
+}
+
+Error occurred prerendering page "/debug-friends". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:9615)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/6647.js:1:9969)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 35692 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/(dashboard)/debug-friends/page.js:1:2110)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/auth/callback/page.js:1:2878)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 74166 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/auth/callback/page.js:1:2153)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99109) {
+  digest: '400287469'
+}
+
+Error occurred prerendering page "/auth/callback". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/auth/callback/page.js:1:2878)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 74166 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/auth/callback/page.js:1:2153)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:99109)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/notre-modele/page.js:1:14077)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/notre-modele/page.js:1:12303)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '1885457862'
+}
+
+Error occurred prerendering page "/notre-modele". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/notre-modele/page.js:1:14077)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/notre-modele/page.js:1:12303)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:575)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '767648664'
+}
+
+Error occurred prerendering page "/legal/politique-confidentialite". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:575)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+   Generating static pages (24/33) 
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/success/page.js:1:6065)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/success/page.js:1:2127)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '1079253443'
+}
+
+Error occurred prerendering page "/shop/success". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/success/page.js:1:6065)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/success/page.js:1:2127)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18051)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18288)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 58314 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:2839)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906 {
+  digest: '2109099068'
+}
+
+Error occurred prerendering page "/shop/cart". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18051)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:18288)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 58314 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/shop/cart/page.js:1:2839)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98819
+    at /Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:98906
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:38526)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:39439)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 22698 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:32889)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 47801 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:1:3133)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296) {
+  digest: '4056526512'
+}
+
+Error occurred prerendering page "/search". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:38526)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 71158 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:39439)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 22698 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:3:32889)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 47801 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/search/page.js:1:3133)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at i (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:88296)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/page.js:1:27320)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/page.js:1:25546)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '803801540'
+}
+
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/page.js:1:27320)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/app/page.js:1:25546)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:575)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '767648664'
+}
+
+Error occurred prerendering page "/legal/cgu". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:575)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:575)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539) {
+  digest: '767648664'
+}
+
+Error occurred prerendering page "/legal/mentions-legales". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Missing Supabase environment variables. Please check your .env.local file.
+    at 88750 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:4975)
+    at t (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at 69551 (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/chunks/169.js:1:575)
+    at Object.t [as require] (/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web/.next/server/webpack-runtime.js:1:127)
+    at require (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:16:18839)
+    at I (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:94364)
+    at C (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:92915)
+    at rR (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:33975)
+    at nN (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62305)
+    at nB (/Users/lucasroncey/Desktop/Projet Saas/cardz/node_modules/.pnpm/next@14.2.33_react-dom@18.3.1_react@18.3.1/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+ ✓ Generating static pages (33/33)
+
+> Export encountered errors on following paths:
+	/(auth)/login/page: /login
+	/(auth)/onboarding/page: /onboarding
+	/(auth)/register/page: /register
+	/(dashboard)/classes/page: /classes
+	/(dashboard)/dashboard/page: /dashboard
+	/(dashboard)/debug-friends/page: /debug-friends
+	/(dashboard)/folders/shared/page: /folders/shared
+	/(dashboard)/home/page: /home
+	/(dashboard)/my-class/page: /my-class
+	/(dashboard)/public-sets/page: /public-sets
+	/(dashboard)/sets/create/page: /sets/create
+	/(dashboard)/share-modules/page: /share-modules
+	/(dashboard)/test-invite/page: /test-invite
+	/_not-found/page: /_not-found
+	/auth/callback/page: /auth/callback
+	/enseignants/page: /enseignants
+	/etudiants/page: /etudiants
+	/legal/cgu/page: /legal/cgu
+	/legal/mentions-legales/page: /legal/mentions-legales
+	/legal/politique-confidentialite/page: /legal/politique-confidentialite
+	/notre-modele/page: /notre-modele
+	/page: /
+	/search/page: /search
+	/shop/cart/page: /shop/cart
+	/shop/page: /shop
+	/shop/success/page: /shop/success
+/Users/lucasroncey/Desktop/Projet Saas/cardz/apps/web:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @cardz/web@1.0.0 build: `next build`
+Exit status 1
