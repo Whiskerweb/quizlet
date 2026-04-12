@@ -3,8 +3,8 @@
 /**
  * Client Supabase unique pour le navigateur
  * 
- * Ce fichier exporte une seule instance de client Supabase pour tout le front.
- * Cela évite les problèmes de "Multiple GoTrueClient instances detected".
+ * Utilise @supabase/ssr pour assurer la persistance de la session
+ * avec des cookies de manière partagée avec le serveur.
  * 
  * IMPORTANT : Tous les composants client et services doivent utiliser cette instance unique.
  * Ne créez pas d'autres instances avec createClient() côté navigateur.
@@ -12,7 +12,7 @@
  * Pour les opérations serveur (API routes, Server Components), utilisez lib/supabase/server.ts
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from './supabase/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -24,24 +24,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// Share cookies across subdomains (shop.cardz.dev, app.cardz.dev)
+const getCookieDomain = () => {
+  if (typeof window !== 'undefined') {
+    const isProduction = window.location.hostname.endsWith('.cardz.dev') || window.location.hostname === 'cardz.dev';
+    return isProduction ? '.cardz.dev' : undefined;
+  }
+  return undefined;
+};
+
 /**
  * Instance unique du client Supabase pour le navigateur
  * 
- * Configuration :
- * - persistSession: true → La session est sauvegardée dans localStorage
- * - detectSessionInUrl: true → Détecte automatiquement le hash fragment OAuth (#access_token=...)
- * - autoRefreshToken: true → Rafraîchit automatiquement le token
- * 
- * Cette instance partage la même session pour tous les composants et services côté client.
+ * Cette instance partage la même session (via cookies) pour tous les composants 
+ * et services côté client.
  */
-export const supabaseBrowser = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    detectSessionInUrl: true,
-    autoRefreshToken: true,
+export const supabaseBrowser = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+  cookieOptions: {
+    domain: getCookieDomain(),
   },
 });
-
-
-
-
