@@ -109,9 +109,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         router.replace('/login');
       } else {
         // Check if onboarding is needed
-        const needsOnboarding = profile && (!profile.role || !profile.first_name || !profile.last_name);
+        // If profile is null, we definitely need onboarding or it failed to load
+        const needsOnboarding = !profile || (!profile.role || !profile.first_name || !profile.last_name);
         if (needsOnboarding) {
-          console.log('[Dashboard Layout] Profile incomplete, redirecting to /onboarding');
+          console.log('[Dashboard Layout] Profile missing or incomplete, redirecting to /onboarding');
           router.replace('/onboarding');
         } else {
           console.log('[Dashboard Layout] User authorized');
@@ -121,8 +122,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [user, profile, loading, router]);
 
-  // GARDE 1 : Afficher un loader pendant la vérification (via le store)
-  if (loading || (!authorized && user)) {
+  // GARDE 1 : Afficher un loader uniquement pendant le chargement initial
+  if (loading) {
     return (
       <div className="app-shell flex min-h-screen items-center justify-center bg-bg-default">
         <p className="text-content-muted">{t('loadingDashboard')}</p>
@@ -131,7 +132,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   if (!authorized) {
-    return null;
+    // Return a placeholder or null while the redirect happens
+    return (
+      <div className="app-shell flex min-h-screen items-center justify-center bg-bg-default">
+        <p className="text-content-muted">Redirection...</p>
+      </div>
+    );
   }
 
   const sidebarWidth = isSidebarOpen ? (isMobile ? '260px' : '260px') : (isMobile ? '0px' : '80px');

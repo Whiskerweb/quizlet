@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { useAuthStore } from '@/store/authStore';
 import { Database } from '@/lib/supabase/types';
@@ -9,78 +9,89 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { setUser, setProfile, setLoading } = useAuthStore();
+    const isInitialMount = useRef(true);
 
     useEffect(() => {
-        const initializeAuth = async () => {
-            console.log('[AuthProvider] Initializing auth...');
-            try {
-                // Get initial session
-                const { data: { session }, error: sessionError } = await supabaseBrowser.auth.getSession();
+        if (isInitialMount.current) {
+            const initializeAuth = async () => {
+                console.log('[Auth Provider] Initializing auth...');
+                setLoading(true);
+                try {
+                    // Check initial session
+                    const { data: { session }, error: sessionError } = await supabaseBrowser.auth.getSession();
 
-                if (sessionError) throw sessionError;
+                    if (sessionError) {
+                        console.error('[Auth Provider] Session error:', sessionError.message);
+                        setLoading(false);
+                        return;
+                    }
 
-                if (session) {
-                    console.log('[AuthProvider] Session found:', session.user.id);
+                    if (session?.user) {
+                        console.log('[Auth Provider] Session found for:', session.user.email);
+                        setUser(session.user);
+
+                        // Fetch profile
+                        try {
+                            console.log('[Auth Provider] Fetching profile for:', session.user.id);
+                            const { data, error: profileError } = await supabaseBrowser
+                                .from('profiles')
+                                .select('*')
+                                .eq('id', session.user.id)
+                                .single();
+
+                            if (profileError) {
+                                console.warn('[Auth Provider] Profile not found or error:', profileError.message);
+                                setProfile(null);
+                            } else {
+                                console.log('[Auth Provider] Profile loaded successfully');
+                                setProfile(data as Profile);
+                            }
+                        } catch (err) {
+                            console.error('[Auth Provider] Unexpected error fetching profile:', err);
+                            setProfile(null);
+                        }
+                    } else {
+                        console.log('[Auth Provider] No active session');
+                        setUser(null);
+                        setProfile(null);
+                    }
+                } catch (error) {
+                    console.error('[Auth Provider] Initialization error:', error);
+                } finally {
+                    console.log('[Auth Provider] Initialization complete, setting loading=false');
+                    setLoading(false);
+                    isInitialMount.current = false;
+                }
+            };
+
+            initializeAuth();
+
+            // Listen for auth state changes
+            const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(async (event, session) => {
+                console.log('[Auth Provider] Auth state changed:', event);
+
+                if (session?.user) {
                     setUser(session.user);
 
-                    // Fetch profile
-                    const { data: profile, error: profileError } = await supabaseBrowser
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
-
-                    if (profileError) {
-                        console.warn('[AuthProvider] Profile not found or error:', profileError.message);
-                        setProfile(null);
-                    } else if (profile) {
-                        setProfile(profile as Profile);
+                    // Only reload profile if necessary
+                    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+                        const { data } = await supabaseBrowser
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', session.user.id)
+                            .single();
+                        setProfile(data as Profile || null);
                     }
                 } else {
-                    console.log('[AuthProvider] No session found');
                     setUser(null);
                     setProfile(null);
                 }
-            } catch (error: any) {
-                console.error('[AuthProvider] Auth initialization critical error:', error.message);
-                setUser(null);
-                setProfile(null);
-            } finally {
-                console.log('[AuthProvider] Initialization complete, setting loading to false');
-                setLoading(false);
-            }
-        };
+            });
 
-        initializeAuth();
-
-        // Listen for auth changes
-        const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange(async (event, session) => {
-            console.log('[AuthProvider] Auth state change event:', event);
-            if (session) {
-                setUser(session.user);
-
-                // Refresh profile on sign in or token refreshed
-                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-                    const { data: profile } = await supabaseBrowser
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
-
-                    if (profile) {
-                        setProfile(profile as Profile);
-                    }
-                }
-            } else {
-                setUser(null);
-                setProfile(null);
-            }
-            setLoading(false);
-        });
-
-        return () => {
-            subscription.unsubscribe();
-        };
+            return () => {
+                subscription.unsubscribe();
+            };
+        }
     }, [setUser, setProfile, setLoading]);
 
     return <>{children}</>;

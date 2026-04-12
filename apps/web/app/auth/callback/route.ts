@@ -1,91 +1,74 @@
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-/**
- * Server-side OAuth callback handler (/auth/callback)
- * 
- * This route handles the complete OAuth flow server-side:
- * 1. Exchange the authorization code for a session (sets cookies)
- * 2. Load or create the user profile
- * 3. Redirect to the appropriate destination
- * 
- * CRITICAL: The code exchange MUST happen server-side with @supabase/ssr
- * so that auth cookies are properly set in the HTTP response headers.
- * Without this, the middleware won't see any session on page refresh.
- */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const redirectTo = searchParams.get('redirect_to') || searchParams.get('next') || '/dashboard';
+  // if "next" is in search params, use it as the redirection URL
+  const next = searchParams.get('next') ?? '/dashboard';
 
-  if (!code) {
-    console.error('[Auth Callback] No code parameter found');
-    return NextResponse.redirect(`${origin}/login?error=no_code`);
-  }
+  if (code) {
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            cookieStore.set({ name, value, ...options });
+          },
+          remove(name: string, options: CookieOptions) {
+            cookieStore.set({ name, value: '', ...options });
+          },
+        },
+      }
+    );
 
-  try {
-    const supabase = await createClient();
-
-    // Step 1: Exchange the code for a session
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-
+    const { data: { session }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    
     if (exchangeError) {
       console.error('[Auth Callback] Code exchange error:', exchangeError.message);
       return NextResponse.redirect(`${origin}/login?error=exchange_failed`);
     }
 
-    // Step 2: Get the user from the newly created session
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (session) {
+      // Small wait/retry to ensure database triggers have finished creating the profile
+      let profile = null;
+      let retries = 3;
 
-    if (userError || !user) {
-      console.error('[Auth Callback] Get user error:', userError?.message);
-      return NextResponse.redirect(`${origin}/login?error=no_user`);
+      while (retries > 0 && !profile) {
+        console.log(`[Auth Callback] Checking for profile... (Attempt ${4 - retries}/3)`);
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (data) {
+          profile = data;
+        } else {
+          retries--;
+          if (retries > 0) await new Promise(resolve => setTimeout(resolve, 800));
+        }
+      }
+
+      // Determine redirection target
+      let redirectTo = next;
+      
+      const needsOnboarding = !profile || (!profile.role || !profile.first_name || !profile.last_name);
+      if (needsOnboarding) {
+        redirectTo = '/onboarding';
+      }
+
+      console.log(`[Auth Callback] Redirecting to: ${redirectTo}`);
+      return NextResponse.redirect(`${origin}${redirectTo}`);
     }
-
-    // Step 3: Check if profile exists
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, role, first_name, last_name')
-      .eq('id', user.id)
-      .single();
-
-    // Step 4: Create profile if it doesn't exist
-    if (!profile) {
-      const baseUsername = user.email?.split('@')[0] || `user_${user.id.substring(0, 8)}`;
-      await supabase.rpc('create_or_update_profile', {
-        user_id: user.id,
-        user_email: user.email || '',
-        user_username: baseUsername,
-        user_role: 'student',
-        user_first_name: user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || null,
-        user_last_name: user.user_metadata?.last_name || user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || null,
-      });
-
-      // New user always needs onboarding
-      return NextResponse.redirect(`${origin}/onboarding`);
-    }
-
-    // Step 5: Check if onboarding is needed
-    const needsOnboarding = !profile.role || !profile.first_name || !profile.last_name;
-
-    if (needsOnboarding) {
-      return NextResponse.redirect(`${origin}/onboarding`);
-    }
-
-    // Step 6: Redirect to the intended destination
-    // Validate the redirect URL for security
-    const isValidRedirect = redirectTo.startsWith('/') ||
-      /^https:\/\/([a-z0-9-]+\.)?cardz\.dev(\/.*)?$/.test(redirectTo);
-
-    const finalRedirect = isValidRedirect ? redirectTo : '/dashboard';
-
-    if (finalRedirect.startsWith('http')) {
-      return NextResponse.redirect(finalRedirect);
-    }
-
-    return NextResponse.redirect(`${origin}${finalRedirect}`);
-  } catch (err) {
-    console.error('[Auth Callback] Unexpected error:', err);
-    return NextResponse.redirect(`${origin}/login?error=unexpected`);
   }
+
+  // return the user to an error page with instructions
+  return NextResponse.redirect(`${origin}/login?error=auth_failed`);
 }
