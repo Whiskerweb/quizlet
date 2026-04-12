@@ -18,6 +18,16 @@ import type { Database } from './supabase/types';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
 
+// Add a verification log for debugging
+if (typeof window !== 'undefined') {
+  const isPlaceholder = supabaseUrl.includes('placeholder.supabase.co');
+  if (isPlaceholder) {
+    console.error('⚠️ [Supabase Config] Using placeholder URL. AUTH WILL NOT WORK.');
+  } else {
+    console.log('✅ [Supabase Config] Using production URL:', supabaseUrl.substring(0, 20) + '...');
+  }
+}
+
 // Share cookies across subdomains (shop.cardz.dev, app.cardz.dev)
 const getCookieDomain = () => {
   if (typeof window === 'undefined') return undefined;

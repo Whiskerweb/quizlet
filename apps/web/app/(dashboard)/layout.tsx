@@ -16,10 +16,9 @@
 
 import { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { supabaseBrowser } from '@/lib/supabaseBrowserClient';
 import { SidebarNav } from '@/components/layout/SidebarNav';
 import { Button } from '@/components/ui/Button';
-import { LogOut, Menu, Trophy, Settings, Sun, Moon, Globe, User as UserIcon } from 'lucide-react';
+import { Menu, Trophy, Sun, Moon, Globe } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeStore } from '@/store/themeStore';
 import { useLanguageStore, languageNames, type Language } from '@/store/languageStore';
@@ -37,6 +36,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { language, setLanguage } = useLanguageStore();
   const { t } = useTranslation();
   const [authorized, setAuthorized] = useState(false);
+  const [loadTimeout, setLoadTimeout] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -50,7 +50,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   // Initialiser le thème au chargement
   useEffect(() => {
-    // Appliquer le thème au chargement
     if (typeof window !== 'undefined') {
       document.documentElement.classList.remove('light', 'dark');
       document.documentElement.classList.add(theme);
@@ -101,6 +100,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     };
   }, [isProfileMenuOpen, isLanguageMenuOpen]);
 
+  // Timer de sécurité pour le chargement
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (loading || (!authorized && user)) {
+      timer = setTimeout(() => {
+        setLoadTimeout(true);
+        console.error('[Dashboard Layout] Auth loading timeout reached (15s)');
+      }, 15000);
+    }
+    return () => clearTimeout(timer);
+  }, [loading, authorized, user]);
+
   // Vérification de l'authentification basée sur le store
   useEffect(() => {
     if (!loading) {
@@ -109,7 +120,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         router.replace('/login');
       } else {
         // Check if onboarding is needed
-        // If profile is null, we definitely need onboarding or it failed to load
         const needsOnboarding = !profile || (!profile.role || !profile.first_name || !profile.last_name);
         if (needsOnboarding) {
           console.log('[Dashboard Layout] Profile missing or incomplete, redirecting to /onboarding');
@@ -122,20 +132,50 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [user, profile, loading, router]);
 
-  // GARDE 1 : Afficher un loader uniquement pendant le chargement initial
+  // GARDE 1 : Timeout de sécurité
+  if (loadTimeout && !authorized) {
+    return (
+      <div className="app-shell flex min-h-screen flex-col items-center justify-center bg-bg-default p-6 text-center">
+        <h2 className="mb-2 text-xl font-bold text-content-emphasis">Le chargement prend plus de temps que prévu</h2>
+        <p className="mb-6 max-w-md text-content-muted">
+          Il semble y avoir une difficulté à charger ton profil. Cela peut être dû à un problème de connexion ou de configuration.
+        </p>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button onClick={() => window.location.reload()} variant="primary">
+            Actualiser la page
+          </Button>
+          <Button 
+            onClick={async () => {
+              await logout();
+              window.location.href = '/login';
+            }} 
+            variant="secondary"
+          >
+            Se déconnecter
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // GARDE 2 : Afficher un loader uniquement pendant le chargement initial
   if (loading) {
     return (
       <div className="app-shell flex min-h-screen items-center justify-center bg-bg-default">
-        <p className="text-content-muted">{t('loadingDashboard')}</p>
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-content-muted">{t('loadingDashboard')}</p>
+          <div className="h-2 w-48 overflow-hidden rounded-full bg-bg-muted">
+            <div className="h-full animate-progress bg-primary-600" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!authorized) {
-    // Return a placeholder or null while the redirect happens
     return (
       <div className="app-shell flex min-h-screen items-center justify-center bg-bg-default">
-        <p className="text-content-muted">Redirection...</p>
+        <p className="text-content-muted">Vérification de l'accès...</p>
       </div>
     );
   }
@@ -233,7 +273,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                               className="flex w-full items-center gap-3 px-4 py-2 text-sm text-content-emphasis hover:bg-bg-muted transition-colors"
                               onClick={() => {
                                 setIsProfileMenuOpen(false);
-                                // TODO: Implémenter la navigation vers les réalisations
                               }}
                             >
                               <Trophy className="h-4 w-4 text-content-muted" />
@@ -315,40 +354,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                               }}
                             >
                               <span>{t('logout')}</span>
-                            </button>
-                          </div>
-
-                          {/* Separator */}
-                          <div className="border-t border-border-subtle" />
-
-                          {/* Footer links */}
-                          <div className="py-1">
-                            <button
-                              className="flex w-full items-center px-4 py-2 text-sm text-content-muted hover:bg-bg-muted transition-colors"
-                              onClick={() => {
-                                setIsProfileMenuOpen(false);
-                                // TODO: Implémenter la navigation
-                              }}
-                            >
-                              <span>{t('privacyPolicy')}</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-4 py-2 text-sm text-content-muted hover:bg-bg-muted transition-colors"
-                              onClick={() => {
-                                setIsProfileMenuOpen(false);
-                                // TODO: Implémenter la navigation
-                              }}
-                            >
-                              <span>{t('help')}</span>
-                            </button>
-                            <button
-                              className="flex w-full items-center px-4 py-2 text-sm text-content-muted hover:bg-bg-muted transition-colors"
-                              onClick={() => {
-                                setIsProfileMenuOpen(false);
-                                // TODO: Implémenter la navigation
-                              }}
-                            >
-                              <span>{t('subscribe')}</span>
                             </button>
                           </div>
                         </div>
