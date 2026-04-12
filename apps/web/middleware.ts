@@ -30,12 +30,12 @@ export async function middleware(request: NextRequest) {
 function addSecurityHeaders(response: NextResponse) {
   const cspHeader = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live",
-    "style-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.traaaction.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
-    "font-src 'self' data:",
-    "connect-src 'self' https://*.supabase.co https://*.supabase.in",
-    "frame-src 'self'",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self' https://*.supabase.co https://*.supabase.in https://accounts.google.com https://www.traaaction.com https://vercel.live",
+    "frame-src 'self' https://accounts.google.com",
   ].join('; ');
 
   response.headers.set('Content-Security-Policy', cspHeader);

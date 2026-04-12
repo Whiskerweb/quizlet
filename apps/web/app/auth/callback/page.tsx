@@ -3,19 +3,15 @@
 /**
  * Page de callback OAuth (/auth/callback)
  * 
- * Cette page est appelée par Supabase après que l'utilisateur s'est authentifié
- * avec un fournisseur OAuth (Google, GitHub, etc.).
+ * Cette page est appelée APRÈS que le route.ts ait échangé le code OAuth
+ * côté serveur (les cookies de session sont déjà posés).
  * 
- * Logique :
- * 1. Vérifie la session avec getSession()
- * 2. Charge le profil depuis Supabase
- * 3. Si le profil n'existe pas, le crée via RPC
- * 4. Met à jour le store Zustand avec user et profile
- * 5. Redirige vers /dashboard
+ * Elle gère :
+ * 1. Le chargement/création du profil
+ * 2. La redirection vers le dashboard ou l'onboarding
  * 
- * Note : Cette URL doit être configurée dans Supabase Dashboard :
- * - Allez dans Authentication > URL Configuration
- * - Ajoutez https://cardz.dev/auth/callback dans "Redirect URLs"
+ * Note : L'échange de code se fait dans route.ts (server-side).
+ * Cette page ne fait QUE le chargement du profil et la redirection.
  */
 
 import { useEffect } from 'react';
@@ -33,13 +29,14 @@ export default function OAuthCallbackPage() {
 
   useEffect(() => {
     const run = async () => {
-      // Step 1: Get session
-      console.log('[OAuth Callback] Step 1: getSession...');
+      // Step 1: Get the session (cookies should already be set by route.ts)
+      console.log('[OAuth Callback] Getting session...');
       const { data: { session }, error } = await supabaseBrowser.auth.getSession();
-      console.log('[OAuth Callback] Step 1 done:', { hasSession: !!session, error: error?.message });
+      console.log('[OAuth Callback] Session:', { hasSession: !!session, error: error?.message });
 
       if (!session || error) {
-        router.replace('/login');
+        console.error('[OAuth Callback] No session after code exchange, redirecting to login');
+        router.replace('/login?error=no_session');
         return;
       }
 
@@ -52,19 +49,18 @@ export default function OAuthCallbackPage() {
       // Step 2: Wait for DB trigger then load profile
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      console.log('[OAuth Callback] Step 2: load profile...');
+      console.log('[OAuth Callback] Loading profile...');
       const { data: profile } = await supabaseBrowser
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single();
-      console.log('[OAuth Callback] Step 2 done:', { hasProfile: !!profile });
 
       let finalProfile: Profile | null = profile as Profile | null;
 
       // Step 3: Create profile if it doesn't exist
       if (!finalProfile) {
-        console.log('[OAuth Callback] Step 3: create profile via RPC...');
+        console.log('[OAuth Callback] Creating profile via RPC...');
         const baseUsername = session.user.email?.split('@')[0] || `user_${session.user.id.substring(0, 8)}`;
         await (supabaseBrowser.rpc as any)('create_or_update_profile', {
           user_id: session.user.id,
@@ -81,7 +77,6 @@ export default function OAuthCallbackPage() {
           .eq('id', session.user.id)
           .single();
         finalProfile = (newProfile as Profile) || null;
-        console.log('[OAuth Callback] Step 3 done:', { hasProfile: !!finalProfile });
 
         // Fire-and-forget: track signup
         trackLead({
@@ -90,7 +85,6 @@ export default function OAuthCallbackPage() {
           eventName: 'sign_up',
         }).catch(() => {});
       } else if (oauthRole && finalProfile.role !== oauthRole) {
-        // Profile exists but role needs updating (recently created via trigger)
         const profileCreatedAt = new Date(finalProfile.created_at).getTime();
         if (Date.now() - profileCreatedAt < 5000) {
           console.log('[OAuth Callback] Updating role to', oauthRole);
@@ -149,5 +143,3 @@ export default function OAuthCallbackPage() {
     </div>
   );
 }
-
-
