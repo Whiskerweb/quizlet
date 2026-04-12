@@ -104,14 +104,22 @@ export function CheckoutAuthPanel({ onAuthSuccess }: CheckoutAuthPanelProps) {
                 if (signInError) throw new Error('Compte créé mais connexion impossible. Réessayez.');
             }
 
-            // Wait a moment for the trigger to create the profile
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', authData.user.id)
-                .single();
+            // Robust retry mechanism to wait for the profile to be created/loaded
+            let profile = null;
+            let retries = 5;
+            while (retries > 0 && !profile) {
+                const { data: p } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', authData.user.id)
+                    .single();
+                if (p) {
+                    profile = p;
+                } else {
+                    retries--;
+                    if (retries > 0) await new Promise(resolve => setTimeout(resolve, 800));
+                }
+            }
 
             setUser(authData.user);
             setProfile(profile);
