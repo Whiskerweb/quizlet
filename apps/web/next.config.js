@@ -17,8 +17,8 @@ const nextConfig = {
   // First-party tracking proxy - avoids ad-blockers
   async rewrites() {
     return [
-      { source: "/_trac/script.js", destination: "https://kay.cardz.dev/trac.js" },
-      { source: "/_trac/api/:path*", destination: "https://kay.cardz.dev/api/:path*" },
+      { source: "/_trac/script.js", destination: "https://www.traaaction.com/trac.js" },
+      { source: "/_trac/api/:path*", destination: "https://www.traaaction.com/api/:path*" },
     ];
   },
 };
